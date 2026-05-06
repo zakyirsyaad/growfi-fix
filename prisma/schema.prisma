@@ -1,0 +1,469 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Rarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHIC
+}
+
+enum PlotState {
+  EMPTY
+  GROWING
+  READY
+  REGROWING
+  LOCKED
+}
+
+enum PlantState {
+  GROWING
+  READY
+  REGROWING
+  DEAD
+}
+
+enum Mutation {
+  NORMAL
+  BIG
+  SWEET
+  GOLDEN
+  CRYSTAL
+  RAINBOW
+}
+
+enum RotationStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  CANCELLED
+  EXPIRED
+}
+
+enum TradeStatus {
+  PENDING
+  ACTIVE
+  LOCKED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum OfferItemType {
+  FRUIT
+  GROW
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  SYSTEM_SELL
+  SHOP_BUY
+  MARKETPLACE_BUY
+  MARKETPLACE_SELL
+  MARKETPLACE_FEE
+  TRADE_TRANSFER
+  GARDEN_EXPAND
+  DAILY_QUEST_REWARD
+  MOCK_CREDIT
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum ActivityType {
+  SEED_BOUGHT
+  PLANT_PLANTED
+  PLANT_WATERED
+  WATER_REFILLED
+  FRUIT_HARVESTED
+  FRUIT_SOLD
+  MARKETPLACE_LISTED
+  MARKETPLACE_SOLD
+  MARKETPLACE_CANCELLED
+  TRADE_CREATED
+  TRADE_UPDATED
+  TRADE_COMPLETED
+  TRADE_CANCELLED
+  DEPOSIT
+  WITHDRAW
+  GARDEN_EXPANDED
+  DAILY_QUEST_CLAIMED
+  WALLET_CONNECTED
+}
+
+model User {
+  id                   String       @id @default(cuid())
+  discordId            String       @unique
+  username             String
+  avatarUrl            String?
+  walletAddress        String?      @unique
+  growBalance          Int          @default(100)
+  lockedGrowBalance    Int          @default(0)
+  maxStamina           Int          @default(100)
+  stamina              Int          @default(100)
+  lastStaminaUpdatedAt DateTime     @default(now())
+  maxWaterCharges      Int          @default(20)
+  waterCharges         Int          @default(20)
+  gardenLevel          Int          @default(1)
+  totalHarvests        Int          @default(0)
+  totalTrades          Int          @default(0)
+  marketplaceSales     Int          @default(0)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  wallets              Wallet[]
+  garden               Garden?
+  seeds                UserSeed[]
+  fruits               UserFruit[]
+  plants               UserPlant[]
+  shopPurchases        ShopPurchase[]
+  marketplaceListings  MarketplaceListing[] @relation("SellerListings")
+  initiatedTrades      Trade[]      @relation("InitiatedTrades")
+  receivedTrades       Trade[]      @relation("ReceivedTrades")
+  tradeOfferItems      TradeOfferItem[]
+  transactions         Transaction[]
+  dailyQuests          DailyQuestProgress[]
+  activityLogs         ActivityLog[] @relation("ActorActivity")
+  targetedActivityLogs ActivityLog[] @relation("TargetActivity")
+
+  @@index([username])
+}
+
+model Wallet {
+  id         String   @id @default(cuid())
+  userId     String
+  address    String   @unique
+  chain      String   @default("solana")
+  verifiedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Garden {
+  id        String       @id @default(cuid())
+  userId    String       @unique
+  width     Int          @default(4)
+  height    Int          @default(4)
+  level     Int          @default(1)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plots     GardenPlot[]
+}
+
+model GardenPlot {
+  id        String     @id @default(cuid())
+  gardenId  String
+  x         Int
+  y         Int
+  state     PlotState  @default(EMPTY)
+  plantId   String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  garden    Garden     @relation(fields: [gardenId], references: [id], onDelete: Cascade)
+  plant     UserPlant?  @relation("CurrentPlotPlant", fields: [plantId], references: [id])
+  plantLog  UserPlant[] @relation("PlotPlantHistory")
+
+  @@unique([gardenId, x, y])
+  @@index([gardenId, state])
+}
+
+model SeedCatalog {
+  id                     String       @id @default(cuid())
+  slug                   String       @unique
+  name                   String
+  rarity                 Rarity
+  basePrice              Int
+  growTimeSeconds        Int
+  harvestCooldownSeconds Int
+  regrowTimeSeconds      Int          @default(0)
+  maxHarvests            Int          @default(1)
+  minYield               Int
+  maxYield               Int
+  mutationChanceBps      Int
+  requiredGardenLevel    Int          @default(1)
+  iconUrl                String
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  fruit                  FruitCatalog?
+  userSeeds              UserSeed[]
+  plants                 UserPlant[]
+  shopItems              ShopItem[]
+}
+
+model FruitCatalog {
+  id            String       @id @default(cuid())
+  seedId        String       @unique
+  slug          String       @unique
+  name          String
+  rarity        Rarity
+  baseSellPrice Int
+  iconUrl       String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  seed          SeedCatalog  @relation(fields: [seedId], references: [id], onDelete: Cascade)
+  userFruits    UserFruit[]
+  listings      MarketplaceListing[]
+  tradeItems    TradeOfferItem[]
+}
+
+model UserSeed {
+  id        String      @id @default(cuid())
+  userId    String
+  seedId    String
+  quantity  Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seed      SeedCatalog @relation(fields: [seedId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seedId])
+  @@index([userId])
+}
+
+model UserFruit {
+  id             String       @id @default(cuid())
+  userId         String
+  fruitId        String
+  mutation       Mutation     @default(NORMAL)
+  quantity       Int          @default(0)
+  lockedQuantity Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fruit          FruitCatalog @relation(fields: [fruitId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fruitId, mutation])
+  @@index([userId])
+}
+
+model UserPlant {
+  id              String       @id @default(cuid())
+  userId          String
+  gardenPlotId    String
+  seedId          String
+  plantedAt       DateTime     @default(now())
+  growCompleteAt  DateTime
+  nextHarvestAt   DateTime?
+  lastWateredAt   DateTime?
+  waterLevel      Int          @default(0)
+  waterBoostSeconds Int        @default(0)
+  health          Int          @default(100)
+  permanentMutation Mutation?
+  harvestCount    Int          @default(0)
+  state           PlantState   @default(GROWING)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seed            SeedCatalog  @relation(fields: [seedId], references: [id], onDelete: Restrict)
+  gardenPlot      GardenPlot   @relation("PlotPlantHistory", fields: [gardenPlotId], references: [id], onDelete: Cascade)
+  currentPlot     GardenPlot?  @relation("CurrentPlotPlant")
+
+  @@index([userId, state])
+  @@index([gardenPlotId])
+}
+
+model ShopRotation {
+  id        String         @id @default(cuid())
+  startsAt  DateTime
+  endsAt    DateTime
+  status    RotationStatus @default(ACTIVE)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  items     ShopItem[]
+  purchases ShopPurchase[]
+
+  @@index([status, endsAt])
+}
+
+model ShopItem {
+  id            String       @id @default(cuid())
+  rotationId    String
+  seedId        String
+  price         Int
+  stockTotal    Int
+  stockRemaining Int
+  maxBuyPerUser Int
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  rotation      ShopRotation @relation(fields: [rotationId], references: [id], onDelete: Cascade)
+  seed          SeedCatalog  @relation(fields: [seedId], references: [id], onDelete: Restrict)
+  purchases     ShopPurchase[]
+
+  @@unique([rotationId, seedId])
+  @@index([rotationId])
+}
+
+model ShopPurchase {
+  id          String       @id @default(cuid())
+  userId      String
+  rotationId  String
+  shopItemId  String
+  seedId      String
+  quantity    Int
+  totalPrice  Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rotation    ShopRotation @relation(fields: [rotationId], references: [id], onDelete: Cascade)
+  shopItem    ShopItem     @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopItemId])
+  @@index([rotationId])
+}
+
+model MarketplaceListing {
+  id        String        @id @default(cuid())
+  sellerId  String
+  fruitId   String
+  mutation  Mutation
+  quantity  Int
+  price     Int
+  status    ListingStatus @default(ACTIVE)
+  expiresAt DateTime
+  soldAt    DateTime?
+  buyerId   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  seller    User          @relation("SellerListings", fields: [sellerId], references: [id], onDelete: Cascade)
+  fruit     FruitCatalog  @relation(fields: [fruitId], references: [id], onDelete: Restrict)
+
+  @@index([status, expiresAt])
+  @@index([sellerId])
+}
+
+model Trade {
+  id                  String      @id @default(cuid())
+  initiatorId         String
+  recipientId         String
+  status              TradeStatus @default(PENDING)
+  initiatorConfirmed  Boolean     @default(false)
+  recipientConfirmed  Boolean     @default(false)
+  expiresAt           DateTime
+  completedAt         DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  initiator           User        @relation("InitiatedTrades", fields: [initiatorId], references: [id], onDelete: Cascade)
+  recipient           User        @relation("ReceivedTrades", fields: [recipientId], references: [id], onDelete: Cascade)
+  items               TradeOfferItem[]
+
+  @@index([initiatorId, status])
+  @@index([recipientId, status])
+  @@index([status, expiresAt])
+}
+
+model TradeOfferItem {
+  id         String        @id @default(cuid())
+  tradeId    String
+  userId     String
+  type       OfferItemType
+  fruitId    String?
+  mutation   Mutation?
+  quantity   Int           @default(0)
+  growAmount Int           @default(0)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  trade      Trade         @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fruit      FruitCatalog? @relation(fields: [fruitId], references: [id], onDelete: Restrict)
+
+  @@index([tradeId])
+  @@index([userId])
+}
+
+model Transaction {
+  id        String            @id @default(cuid())
+  userId    String
+  type      TransactionType
+  amount    Int
+  signature String?
+  status    TransactionStatus @default(PENDING)
+  metadata  Json?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([signature])
+}
+
+model ActivityLog {
+  id           String       @id @default(cuid())
+  actorId      String
+  targetUserId String?
+  type         ActivityType
+  message      String
+  metadata     Json?
+  createdAt    DateTime     @default(now())
+
+  actor        User         @relation("ActorActivity", fields: [actorId], references: [id], onDelete: Cascade)
+  targetUser   User?        @relation("TargetActivity", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([type, createdAt])
+}
+
+model DailyQuestProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  questKey    String
+  questDate   DateTime
+  progress    Int      @default(0)
+  target      Int
+  rewardGrow  Int      @default(0)
+  claimed     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questKey, questDate])
+  @@index([userId, questDate])
+}
+
+model SystemConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model SystemBalance {
+  id              String   @id @default("system")
+  treasuryBalance Int      @default(0)
+  updatedAt       DateTime @updatedAt
+}

@@ -1,0 +1,107 @@
+@import "@solana/wallet-adapter-react-ui/styles.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: 40 43% 94%;
+  --foreground: 132 20% 16%;
+  --card: 48 52% 98%;
+  --card-foreground: 132 20% 16%;
+  --popover: 48 52% 98%;
+  --popover-foreground: 132 20% 16%;
+  --primary: 132 47% 31%;
+  --primary-foreground: 42 64% 97%;
+  --secondary: 87 42% 90%;
+  --secondary-foreground: 132 27% 22%;
+  --muted: 39 36% 88%;
+  --muted-foreground: 126 13% 38%;
+  --accent: 188 50% 90%;
+  --accent-foreground: 144 27% 20%;
+  --destructive: 346 75% 45%;
+  --destructive-foreground: 42 64% 97%;
+  --border: 42 36% 80%;
+  --input: 42 36% 80%;
+  --ring: 132 47% 31%;
+  --radius: 0.75rem;
+}
+
+* {
+  box-sizing: border-box;
+  letter-spacing: 0 !important;
+}
+
+html {
+  min-height: 100%;
+  background: hsl(var(--background));
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 243, 0.96) 0%, rgba(236, 246, 231, 0.96) 52%, rgba(245, 235, 219, 0.96) 100%),
+    repeating-linear-gradient(90deg, rgba(71, 119, 68, 0.05) 0 1px, transparent 1px 96px);
+  color: hsl(var(--foreground));
+}
+
+body[data-game-route="true"] {
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.wallet-adapter-button {
+  height: 40px !important;
+  border-radius: 8px !important;
+  background: #203024 !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+}
+
+.wallet-adapter-dropdown-list {
+  border-radius: 8px !important;
+}
+
+.plot-grid {
+  grid-template-columns: repeat(var(--garden-width), minmax(0, 1fr));
+}
+
+.phaser-root canvas {
+  display: block;
+  height: 100% !important;
+  width: 100% !important;
+  image-rendering: pixelated;
+}
+
+
+
+@layer base {
+  :root {
+    --sidebar-background: 48 52% 98%;
+    --sidebar-foreground: 132 20% 16%;
+    --sidebar-primary: 132 47% 31%;
+    --sidebar-primary-foreground: 42 64% 97%;
+    --sidebar-accent: 87 42% 90%;
+    --sidebar-accent-foreground: 132 27% 22%;
+    --sidebar-border: 42 36% 80%;
+    --sidebar-ring: 132 47% 31%;
+  }
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
