@@ -19,6 +19,24 @@ type FarmSceneData = {
   farm?: PublicFarmResponse;
 };
 
+const FARM_OBJECTS = {
+  mailbox: { x: 430, y: 238 },
+  walletBank: { x: 472, y: 184 },
+  farmBoard: { x: 526, y: 268 },
+  seedShop: { x: 1050, y: 188 },
+  marketBoard: { x: 1005, y: 336 },
+  tradeBoard: { x: 1156, y: 336 },
+  storageChest: { x: 426, y: 704 },
+  waterWell: { x: 282, y: 696 },
+  questBoard: { x: 236, y: 588 },
+  scarecrow: { x: 844, y: 724 },
+  pond: { x: 1036, y: 754 },
+  petArea: { x: 1190, y: 720 },
+  visitorSpawn: { x: 1190, y: 590 }
+} as const;
+
+let activeFarmSceneInstances = 0;
+
 export class FarmScene extends Phaser.Scene {
   private player!: Player;
   private controller!: PlayerController;
@@ -32,6 +50,8 @@ export class FarmScene extends Phaser.Scene {
   private cleanup: Array<() => void> = [];
   private visitorMode = false;
   private visitorFarm?: PublicFarmResponse;
+  private fpsText?: Phaser.GameObjects.Text;
+  private nextFpsUpdateAt = 0;
 
   constructor() {
     super("FarmScene");
@@ -43,6 +63,15 @@ export class FarmScene extends Phaser.Scene {
   }
 
   create() {
+    activeFarmSceneInstances += 1;
+    console.debug("[GrowFi] Home Farm scene create", {
+      activeFarmSceneInstances,
+      visitorMode: this.visitorMode
+    });
+    if (activeFarmSceneInstances > 1) {
+      console.warn("[GrowFi] Duplicate Home Farm scene instance detected", activeFarmSceneInstances);
+    }
+
     const map = MAPS.farm;
     this.physics.world.setBounds(0, 0, map.width, map.height);
     this.drawGround(map.width, map.height);
@@ -54,8 +83,8 @@ export class FarmScene extends Phaser.Scene {
     house.body?.setOffset(6, 23);
     house.refreshBody();
 
-    const mailbox = this.add.sprite(430, 260, ASSET_KEYS.objects.mailbox).setDepth(7);
-    this.add.text(234, 222, this.visitorMode ? "Guest Spawn" : "Home", {
+    const mailbox = this.add.sprite(FARM_OBJECTS.mailbox.x, FARM_OBJECTS.mailbox.y, ASSET_KEYS.objects.mailbox).setDepth(7);
+    this.add.text(234, 222, this.visitorMode ? "Guest Spawn" : "Home Farm", {
       fontFamily: "monospace",
       fontSize: "12px",
       color: "#203024",
@@ -98,6 +127,7 @@ export class FarmScene extends Phaser.Scene {
       label: "Press E to walk to Town",
       action: { kind: "map", map: "town" }
     });
+    this.logInteractableCounts("Home Farm static interactables registered");
 
     this.transitions.add({
       id: "walk-to-town",
@@ -111,13 +141,8 @@ export class FarmScene extends Phaser.Scene {
           const garden = payload as GardenResponse;
           this.plotSystem.renderGarden(garden, false);
           if (garden.user.id) {
-            this.multiplayer.join(`farm:${garden.user.id}`);
+            this.multiplayer.join(`home:${garden.user.id}`);
           }
-        }
-      }),
-      gameEventBus.on("refreshFarmState", () => {
-        if (!this.visitorMode) {
-          this.refreshFarmState();
         }
       }),
       gameEventBus.on("visitorFarmLoaded", (payload) => {
@@ -164,7 +189,12 @@ export class FarmScene extends Phaser.Scene {
       this.refreshFarmState();
     }
 
+    this.addDebugFpsMeter();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      console.debug("[GrowFi] Home Farm scene shutdown", {
+        activeFarmSceneInstances,
+        interactables: this.interactionSystem?.count()
+      });
       this.cleanup.forEach((fn) => fn());
       this.cleanup = [];
       this.controller?.destroy();
@@ -172,6 +202,10 @@ export class FarmScene extends Phaser.Scene {
       this.multiplayer?.destroy();
       this.presence?.destroy();
       this.interactionSystem?.destroy();
+      this.fpsText?.destroy();
+      this.obstacles?.clear(true, true);
+      this.obstacles?.destroy();
+      activeFarmSceneInstances = Math.max(0, activeFarmSceneInstances - 1);
     });
   }
 
@@ -181,21 +215,61 @@ export class FarmScene extends Phaser.Scene {
     this.transitions?.update();
     this.remotePlayers?.update();
     this.multiplayer?.update();
+    this.updateDebugFps();
   }
 
   private async refreshFarmState() {
+    console.debug("[GrowFi] FarmScene.refreshFarmState() called", {
+      visitorMode: this.visitorMode
+    });
     const garden = await this.plotSystem.refreshFarmState();
     if (garden?.user.id) {
-      this.multiplayer.join(`farm:${garden.user.id}`);
+      this.multiplayer.join(`home:${garden.user.id}`);
     }
   }
 
   private addFarmObjectInteractions() {
     this.interactionSystem.add({
+      id: "seed-shop-stall",
+      type: "shop",
+      x: FARM_OBJECTS.seedShop.x,
+      y: FARM_OBJECTS.seedShop.y + 58,
+      radius: 88,
+      label: "Press E to open Seed Shop",
+      action: { kind: "overlay", overlay: "seedShop" }
+    });
+    this.interactionSystem.add({
+      id: "wallet-bank",
+      type: "wallet",
+      x: FARM_OBJECTS.walletBank.x,
+      y: FARM_OBJECTS.walletBank.y,
+      radius: INTERACTION_RADIUS,
+      label: "Press E to open Wallet",
+      action: { kind: "overlay", overlay: "wallet" }
+    });
+    this.interactionSystem.add({
+      id: "marketplace-board",
+      type: "marketplace",
+      x: FARM_OBJECTS.marketBoard.x,
+      y: FARM_OBJECTS.marketBoard.y,
+      radius: INTERACTION_RADIUS,
+      label: "Press E to open Marketplace",
+      action: { kind: "overlay", overlay: "marketplace" }
+    });
+    this.interactionSystem.add({
+      id: "trade-board",
+      type: "trade",
+      x: FARM_OBJECTS.tradeBoard.x,
+      y: FARM_OBJECTS.tradeBoard.y,
+      radius: INTERACTION_RADIUS,
+      label: "Press E to open Trade Board",
+      action: { kind: "overlay", overlay: "trade" }
+    });
+    this.interactionSystem.add({
       id: "farm-board",
       type: "farmBoard",
-      x: 520,
-      y: 276,
+      x: FARM_OBJECTS.farmBoard.x,
+      y: FARM_OBJECTS.farmBoard.y,
       radius: INTERACTION_RADIUS,
       label: "Press E to manage Farm",
       action: { kind: "overlay", overlay: "farmUpgrade" }
@@ -203,8 +277,8 @@ export class FarmScene extends Phaser.Scene {
     this.interactionSystem.add({
       id: "storage-chest",
       type: "storageChest",
-      x: 392,
-      y: 322,
+      x: FARM_OBJECTS.storageChest.x,
+      y: FARM_OBJECTS.storageChest.y,
       radius: INTERACTION_RADIUS,
       label: "Press E to open Storage",
       action: { kind: "overlay", overlay: "inventory" }
@@ -212,8 +286,8 @@ export class FarmScene extends Phaser.Scene {
     this.interactionSystem.add({
       id: "water-well",
       type: "waterWell",
-      x: 510,
-      y: 410,
+      x: FARM_OBJECTS.waterWell.x,
+      y: FARM_OBJECTS.waterWell.y,
       radius: INTERACTION_RADIUS,
       label: "Press E to refill Watering Can",
       action: { kind: "event", event: "refillWater" }
@@ -221,8 +295,8 @@ export class FarmScene extends Phaser.Scene {
     this.interactionSystem.add({
       id: "quest-board",
       type: "questBoard",
-      x: 250,
-      y: 356,
+      x: FARM_OBJECTS.questBoard.x,
+      y: FARM_OBJECTS.questBoard.y,
       radius: INTERACTION_RADIUS,
       label: "Press E to open Daily Quests",
       action: { kind: "overlay", overlay: "questBoard" }
@@ -230,8 +304,8 @@ export class FarmScene extends Phaser.Scene {
     this.interactionSystem.add({
       id: "scarecrow",
       type: "scarecrow",
-      x: 585,
-      y: 555,
+      x: FARM_OBJECTS.scarecrow.x,
+      y: FARM_OBJECTS.scarecrow.y,
       radius: INTERACTION_RADIUS,
       label: "Press E to inspect Scarecrow",
       action: {
@@ -243,8 +317,8 @@ export class FarmScene extends Phaser.Scene {
     this.interactionSystem.add({
       id: "pond",
       type: "pond",
-      x: 990,
-      y: 750,
+      x: FARM_OBJECTS.pond.x,
+      y: FARM_OBJECTS.pond.y,
       radius: 110,
       label: "Press E to inspect Pond",
       action: {
@@ -256,8 +330,8 @@ export class FarmScene extends Phaser.Scene {
     this.interactionSystem.add({
       id: "pet-area",
       type: "petArea",
-      x: 214,
-      y: 510,
+      x: FARM_OBJECTS.petArea.x,
+      y: FARM_OBJECTS.petArea.y,
       radius: INTERACTION_RADIUS,
       label: "Press E to inspect Pet Area",
       action: {
@@ -268,6 +342,36 @@ export class FarmScene extends Phaser.Scene {
     });
   }
 
+  private logInteractableCounts(message: string) {
+    console.debug("[GrowFi]", message, this.interactionSystem.count());
+  }
+
+  private addDebugFpsMeter() {
+    if (typeof window === "undefined" || window.localStorage.getItem("growfi:debugFps") !== "1") {
+      return;
+    }
+
+    this.fpsText = this.add
+      .text(14, 14, "FPS", {
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: "#203024",
+        backgroundColor: "rgba(255,252,243,0.85)",
+        padding: { x: 6, y: 3 }
+      })
+      .setScrollFactor(0)
+      .setDepth(200);
+  }
+
+  private updateDebugFps() {
+    if (!this.fpsText || this.time.now < this.nextFpsUpdateAt) {
+      return;
+    }
+
+    this.nextFpsUpdateAt = this.time.now + 500;
+    this.fpsText.setText(`FPS ${Math.round(this.game.loop.actualFps)}`);
+  }
+
   private drawGround(width: number, height: number) {
     for (let y = 0; y < height; y += TILE_SIZE) {
       for (let x = 0; x < width; x += TILE_SIZE) {
@@ -275,11 +379,20 @@ export class FarmScene extends Phaser.Scene {
       }
     }
 
-    for (let x = 280; x < 1370; x += TILE_SIZE) {
+    for (let x = 250; x < 1370; x += TILE_SIZE) {
       this.add.image(x, 520, ASSET_KEYS.tiles.path).setDepth(1);
     }
-    for (let y = 195; y < 530; y += TILE_SIZE) {
+    for (let y = 195; y < 735; y += TILE_SIZE) {
       this.add.image(318, y, ASSET_KEYS.tiles.path).setDepth(1);
+    }
+    for (let x = 430; x < 1230; x += TILE_SIZE) {
+      this.add.image(x, 336, ASSET_KEYS.tiles.path).setDepth(1);
+    }
+    for (let y = 205; y < 382; y += TILE_SIZE) {
+      this.add.image(1050, y, ASSET_KEYS.tiles.path).setDepth(1);
+    }
+    for (let x = 208; x < 475; x += TILE_SIZE) {
+      this.add.image(x, 696, ASSET_KEYS.tiles.path).setDepth(1);
     }
   }
 
@@ -295,7 +408,7 @@ export class FarmScene extends Phaser.Scene {
       }
     }
 
-    const water = this.obstacles.create(990, 750, ASSET_KEYS.tiles.water) as Phaser.Physics.Arcade.Sprite;
+    const water = this.obstacles.create(FARM_OBJECTS.pond.x, FARM_OBJECTS.pond.y, ASSET_KEYS.tiles.water) as Phaser.Physics.Arcade.Sprite;
     water.setDisplaySize(210, 96).setDepth(2);
     water.body?.setSize(210, 96);
     water.refreshBody();
@@ -310,12 +423,16 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private drawFarmDecorations() {
-    this.add.sprite(520, 276, ASSET_KEYS.objects.farmBoard).setDepth(8);
-    this.add.sprite(392, 322, ASSET_KEYS.objects.storageChest).setDepth(8);
-    this.add.sprite(510, 410, ASSET_KEYS.objects.waterWell).setDepth(8);
-    this.add.sprite(250, 356, ASSET_KEYS.objects.questBoard).setDepth(8);
-    this.add.sprite(585, 555, ASSET_KEYS.objects.scarecrow).setDepth(8);
-    this.add.sprite(214, 510, ASSET_KEYS.objects.petArea).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.walletBank.x, FARM_OBJECTS.walletBank.y, ASSET_KEYS.objects.bank).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.farmBoard.x, FARM_OBJECTS.farmBoard.y, ASSET_KEYS.objects.farmBoard).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.seedShop.x, FARM_OBJECTS.seedShop.y, ASSET_KEYS.objects.shop).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.marketBoard.x, FARM_OBJECTS.marketBoard.y, ASSET_KEYS.objects.marketBoard).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.tradeBoard.x, FARM_OBJECTS.tradeBoard.y, ASSET_KEYS.objects.tradeBoard).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.storageChest.x, FARM_OBJECTS.storageChest.y, ASSET_KEYS.objects.storageChest).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.waterWell.x, FARM_OBJECTS.waterWell.y, ASSET_KEYS.objects.waterWell).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.questBoard.x, FARM_OBJECTS.questBoard.y, ASSET_KEYS.objects.questBoard).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.scarecrow.x, FARM_OBJECTS.scarecrow.y, ASSET_KEYS.objects.scarecrow).setDepth(8);
+    this.add.sprite(FARM_OBJECTS.petArea.x, FARM_OBJECTS.petArea.y, ASSET_KEYS.objects.petArea).setDepth(8);
 
     [
       [150, 160],
@@ -324,7 +441,8 @@ export class FarmScene extends Phaser.Scene {
       [1244, 202],
       [132, 740],
       [310, 775],
-      [1196, 830]
+      [1196, 830],
+      [1290, 660]
     ].forEach(([x, y]) => this.add.sprite(x, y, ASSET_KEYS.objects.tree).setDepth(4));
 
     [
@@ -333,7 +451,9 @@ export class FarmScene extends Phaser.Scene {
       [520, 720],
       [1140, 690],
       [1240, 336],
-      [760, 262]
+      [760, 262],
+      [932, 218],
+      [1230, 478]
     ].forEach(([x, y]) => this.add.sprite(x, y, ASSET_KEYS.objects.bush).setDepth(5));
 
     [
@@ -343,7 +463,10 @@ export class FarmScene extends Phaser.Scene {
       [742, 732],
       [848, 284],
       [1070, 540],
-      [1180, 544]
+      [1180, 544],
+      [914, 350],
+      [1226, 292],
+      [270, 642]
     ].forEach(([x, y]) => this.add.sprite(x, y, ASSET_KEYS.objects.flower).setDepth(5));
 
     [
@@ -353,7 +476,7 @@ export class FarmScene extends Phaser.Scene {
       [360, 690]
     ].forEach(([x, y]) => this.add.sprite(x, y, ASSET_KEYS.objects.rock).setDepth(5));
 
-    this.add.text(274, 444, "Visitor Spawn", {
+    this.add.text(FARM_OBJECTS.visitorSpawn.x - 56, FARM_OBJECTS.visitorSpawn.y - 40, "Visitor Spawn", {
       fontFamily: "monospace",
       fontSize: "11px",
       color: "#203024",

@@ -34,6 +34,14 @@ export const ASSET_KEYS = {
     tradeBoard: "trade-board",
     bank: "wallet-bank",
     portal: "farm-portal",
-    leaderboard: "leaderboard-board"
+    leaderboard: "leaderboard-board",
+    communityBoard: "community-board",
+    eventBoard: "event-board",
+    chatBoard: "chat-board",
+    fountain: "town-fountain",
+    bench: "town-bench",
+    lamp: "town-lamp",
+    cosmeticShop: "cosmetic-shop",
+    eventStage: "event-stage"
   }
 } as const;

@@ -1,8 +1,6 @@
 export type RealtimeRoom =
   | "town"
-  | "seed_shop"
-  | "marketplace"
-  | "trade_area"
+  | `home:${string}`
   | `farm:${string}`;
 
 export type PlayerDirection = "up" | "down" | "left" | "right" | "idle";
@@ -34,6 +32,22 @@ export type TradeInvitePayload = {
   toUserId: string;
   room: RealtimeRoom;
   createdAt: number;
+};
+
+export type TradeInviteDeclinedPayload = {
+  inviteId: string;
+  fromUserId: string;
+  toUserId: string;
+  room: RealtimeRoom;
+  reason?: string;
+};
+
+export type TradeSessionCreatedPayload = {
+  inviteId: string;
+  tradeId: string;
+  room: RealtimeRoom;
+  initiator: Pick<OnlinePlayer, "userId" | "username" | "avatarUrl">;
+  recipient: Pick<OnlinePlayer, "userId" | "username" | "avatarUrl">;
 };
 
 export type ChatMessagePayload = {

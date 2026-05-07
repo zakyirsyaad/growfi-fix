@@ -17,6 +17,7 @@ import { CountdownBadge } from "@/components/game/shared/CountdownBadge";
 import { EmptyState, ErrorState, LoadingState } from "@/components/game/shared/StatusStates";
 import { MutationBadge } from "@/components/game/shared/MutationBadge";
 import { apiFetch } from "@/lib/utils/fetcher";
+import type { OnlinePlayer } from "@/lib/realtime/types";
 import type { InventoryResponse, Mutation } from "@/types/game-data";
 
 type TradeView = {
@@ -103,11 +104,13 @@ function OfferColumn({
 export function TradeOverlay({
   open,
   onOpenChange,
-  payload
+  payload,
+  onlinePlayers = []
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   payload?: unknown;
+  onlinePlayers?: OnlinePlayer[];
 }) {
   const queryClient = useQueryClient();
   const [recipientUsername, setRecipientUsername] = useState("");
@@ -136,9 +139,12 @@ export function TradeOverlay({
   });
 
   useEffect(() => {
-    const value = payload as { recipientUsername?: string; recipientId?: string } | undefined;
+    const value = payload as { recipientUsername?: string; recipientId?: string; tradeId?: string } | undefined;
     if (open && value?.recipientUsername) {
       setRecipientUsername(value.recipientUsername);
+    }
+    if (open && value?.tradeId) {
+      setSelectedTradeId(value.tradeId);
     }
   }, [open, payload]);
 
@@ -261,7 +267,25 @@ export function TradeOverlay({
         ) : (
           <div className="space-y-4">
             <Card className="bg-white/80">
-              <CardContent className="grid gap-3 p-4 sm:grid-cols-[1fr_auto]">
+              <CardContent className="space-y-3 p-4">
+                {onlinePlayers.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="text-sm font-bold">Online farmers</div>
+                    <div className="flex flex-wrap gap-2">
+                      {onlinePlayers.slice(0, 8).map((player) => (
+                        <Button
+                          key={player.userId}
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setRecipientUsername(player.username)}
+                        >
+                          {player.username}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <div>
                   <Label>Recipient Discord username</Label>
                   <Input value={recipientUsername} onChange={(event) => setRecipientUsername(event.target.value)} placeholder="farmer-name" />
@@ -270,6 +294,7 @@ export function TradeOverlay({
                   <Button disabled={(!recipientUsername && !(payload as { recipientId?: string } | undefined)?.recipientId) || createMutation.isPending} onClick={() => createMutation.mutate()}>
                     Create Trade
                   </Button>
+                </div>
                 </div>
               </CardContent>
             </Card>

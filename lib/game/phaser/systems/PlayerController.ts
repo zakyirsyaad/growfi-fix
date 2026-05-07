@@ -3,13 +3,21 @@ import { gameEventBus } from "@/lib/game/eventBus";
 import { PLAYER_SPEED, PLAYER_SPRINT_SPEED } from "@/lib/game/phaser/config/controls";
 import type { Player } from "@/lib/game/phaser/objects/Player";
 
+const scenesWithPlayerController = new WeakSet<Phaser.Scene>();
+
 export class PlayerController {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private keys?: Record<"w" | "a" | "s" | "d" | "shift", Phaser.Input.Keyboard.Key>;
   private joystick = new Phaser.Math.Vector2(0, 0);
+  private destroyed = false;
   private cleanup: Array<() => void> = [];
 
   constructor(private scene: Phaser.Scene, private player: Player) {
+    if (scenesWithPlayerController.has(scene)) {
+      console.warn("[GrowFi] Duplicate PlayerController detected for scene", scene.scene.key);
+    }
+    scenesWithPlayerController.add(scene);
+
     this.cursors = scene.input.keyboard?.createCursorKeys();
     this.keys = scene.input.keyboard?.addKeys({
       w: Phaser.Input.Keyboard.KeyCodes.W,
@@ -41,20 +49,27 @@ export class PlayerController {
     const down = this.cursors?.down.isDown || this.keys?.s.isDown;
     const sprint = this.keys?.shift.isDown;
 
-    const velocity = new Phaser.Math.Vector2(
-      (right ? 1 : 0) - (left ? 1 : 0) + this.joystick.x,
-      (down ? 1 : 0) - (up ? 1 : 0) + this.joystick.y
-    );
+    let velocityX = (right ? 1 : 0) - (left ? 1 : 0) + this.joystick.x;
+    let velocityY = (down ? 1 : 0) - (up ? 1 : 0) + this.joystick.y;
+    const lengthSq = velocityX * velocityX + velocityY * velocityY;
 
-    if (velocity.lengthSq() > 0) {
-      velocity.normalize().scale(sprint ? PLAYER_SPRINT_SPEED : PLAYER_SPEED);
+    if (lengthSq > 0) {
+      const speed = sprint ? PLAYER_SPRINT_SPEED : PLAYER_SPEED;
+      const scale = speed / Math.sqrt(lengthSq);
+      velocityX *= scale;
+      velocityY *= scale;
     }
 
-    body.setVelocity(velocity.x, velocity.y);
+    body.setVelocity(velocityX, velocityY);
     this.player.faceVelocity();
   }
 
   destroy() {
+    if (this.destroyed) {
+      return;
+    }
+    this.destroyed = true;
     this.cleanup.forEach((fn) => fn());
+    scenesWithPlayerController.delete(this.scene);
   }
 }

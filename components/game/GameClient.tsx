@@ -17,12 +17,12 @@ export function GameClient() {
   const { data: garden, isLoading, refetch: refetchGarden } = useQuery({
     queryKey: ["garden"],
     queryFn: () => apiFetch<GardenResponse>("/api/garden"),
-    refetchInterval: 10_000
+    refetchOnWindowFocus: false
   });
   const { data: shop } = useQuery({
     queryKey: ["shop"],
     queryFn: () => apiFetch<ShopResponse>("/api/shop/current"),
-    refetchInterval: 15_000
+    refetchOnWindowFocus: false
   });
 
   useEffect(() => {

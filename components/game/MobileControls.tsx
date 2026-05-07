@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useRef, useState } from "react";
-import { Backpack, Hand, Map, Menu, ShoppingBasket, Store, Wallet } from "lucide-react";
+import { memo, useRef, useState } from "react";
+import { Backpack, Hand, Handshake, Map, ShoppingBasket, Sprout, Store, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gameEventBus, type GameOverlayKey } from "@/lib/game/eventBus";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ function QuickButton({
   );
 }
 
-export function MobileControls() {
+export const MobileControls = memo(function MobileControls() {
   const padRef = useRef<HTMLDivElement | null>(null);
   const [thumb, setThumb] = useState({ x: 0, y: 0, active: false });
 
@@ -57,12 +57,13 @@ export function MobileControls() {
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-5 gap-2 px-3 pb-3">
+      <div className="mx-auto grid max-w-lg grid-cols-6 gap-2 px-3 pb-3">
         <QuickButton icon={Backpack} label="Bag" overlay="inventory" />
         <QuickButton icon={ShoppingBasket} label="Shop" overlay="seedShop" />
         <QuickButton icon={Store} label="Market" overlay="marketplace" />
         <QuickButton icon={Wallet} label="Wallet" overlay="wallet" />
-        <QuickButton icon={Menu} label="Menu" overlay="profile" />
+        <QuickButton icon={Handshake} label="Trade" overlay="trade" />
+        <QuickButton icon={Sprout} label="Farm" overlay="farmUpgrade" />
       </div>
 
       <div className="pointer-events-none absolute bottom-24 left-5">
@@ -101,4 +102,4 @@ export function MobileControls() {
       </Button>
     </div>
   );
-}
+});

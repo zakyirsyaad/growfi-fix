@@ -62,8 +62,28 @@ function labelForPlot(plot: GardenPlotView, visitorMode: boolean) {
   return "Locked Plot";
 }
 
+type PlotSpriteView = {
+  sprite: Phaser.GameObjects.Sprite;
+  iconText?: Phaser.GameObjects.Text;
+  shine?: Phaser.GameObjects.Arc;
+  signature: string;
+};
+
+function signatureForPlot(plot: GardenPlotView, texture: string) {
+  return [
+    texture,
+    plot.state,
+    plot.plant?.id || "empty",
+    plot.plant?.state || "none",
+    plot.plant?.visualStage || "auto",
+    plot.plant?.seed.iconUrl || "",
+    plot.plant?.permanentMutation || "NORMAL"
+  ].join("|");
+}
+
 export class FarmPlotSystem {
   private group: Phaser.GameObjects.Group;
+  private plotViews = new Map<string, PlotSpriteView>();
   private destroyed = false;
 
   constructor(
@@ -84,6 +104,7 @@ export class FarmPlotSystem {
       return undefined;
     }
 
+    console.debug("[GrowFi] refreshFarmState() called");
     const response = await fetch("/api/garden", { cache: "no-store" });
     if (!response.ok) {
       return undefined;
@@ -99,12 +120,24 @@ export class FarmPlotSystem {
       return;
     }
 
-    this.clearPlots();
+    console.debug("[GrowFi] renderFarmPlots() called", {
+      plots: data.garden.plots.length,
+      visitorMode
+    });
+
+    const incomingIds = new Set(data.garden.plots.map((plot) => plot.id));
+    Array.from(this.plotViews.keys()).forEach((plotId) => {
+      if (!incomingIds.has(plotId)) {
+        this.removePlotView(plotId);
+      }
+    });
 
     data.garden.plots.forEach((plot) => {
       this.updatePlotVisual(plot);
       this.registerPlotInteraction(plot, visitorMode);
     });
+
+    console.debug("[GrowFi] interactables after renderFarmPlots()", this.interactionSystem.count());
   }
 
   clearPlots() {
@@ -113,29 +146,33 @@ export class FarmPlotSystem {
     }
 
     this.group.clear(true, true);
+    this.plotViews.clear();
     this.interactionSystem.removeByPrefix("plot:");
   }
 
   updatePlotVisual(plot: GardenPlotView) {
     const { x, y } = this.plotPosition(plot);
-    const sprite = this.scene.add.sprite(x, y, textureForPlot(plot)).setDepth(5);
-    sprite.setScale(1.2);
-    this.group.add(sprite);
+    const texture = textureForPlot(plot);
+    const signature = signatureForPlot(plot, texture);
+    let view = this.plotViews.get(plot.id);
 
-    if (plot.plant?.seed.iconUrl) {
-      const text = this.scene.add
-        .text(x, y - 2, plot.plant.seed.iconUrl, {
-          fontFamily: "Arial",
-          fontSize: "18px"
-        })
-        .setOrigin(0.5)
-        .setDepth(6);
-      this.group.add(text);
+    if (!view) {
+      const sprite = this.scene.add.sprite(x, y, texture).setDepth(5);
+      sprite.setScale(1.2);
+      this.group.add(sprite);
+      view = { sprite, signature: "" };
+      this.plotViews.set(plot.id, view);
     }
 
-    if (plot.plant?.permanentMutation && plot.plant.permanentMutation !== "NORMAL") {
-      const shine = this.scene.add.circle(x + 13, y - 13, 4, 0xf7d767, 0.95).setDepth(7);
-      this.group.add(shine);
+    view.sprite.setPosition(x, y);
+    if (view.signature !== signature) {
+      view.sprite.setTexture(texture);
+      this.updateIcon(view, plot, x, y);
+      this.updateShine(view, plot, x, y);
+      view.signature = signature;
+    } else {
+      view.iconText?.setPosition(x, y - 2);
+      view.shine?.setPosition(x + 13, y - 13);
     }
   }
 
@@ -151,6 +188,7 @@ export class FarmPlotSystem {
 
     this.destroyed = true;
     this.interactionSystem.removeByPrefix("plot:");
+    this.plotViews.clear();
 
     if (!this.isGroupAlive()) {
       return;
@@ -176,9 +214,63 @@ export class FarmPlotSystem {
       x,
       y,
       radius: INTERACTION_RADIUS,
+      priority: plot.state === "READY" || plot.plant?.state === "READY" ? 120 : 55,
       label: labelForPlot(plot, visitorMode),
       action: { kind: "plot", plotId: plot.id, visitorMode }
     });
+  }
+
+  private removePlotView(plotId: string) {
+    const view = this.plotViews.get(plotId);
+    if (!view) {
+      return;
+    }
+
+    view.sprite.destroy();
+    view.iconText?.destroy();
+    view.shine?.destroy();
+    this.plotViews.delete(plotId);
+    this.interactionSystem.remove(`plot:${plotId}`);
+  }
+
+  private updateIcon(view: PlotSpriteView, plot: GardenPlotView, x: number, y: number) {
+    const icon = plot.plant?.seed.iconUrl;
+    if (!icon) {
+      view.iconText?.destroy();
+      view.iconText = undefined;
+      return;
+    }
+
+    if (!view.iconText) {
+      view.iconText = this.scene.add
+        .text(x, y - 2, icon, {
+          fontFamily: "Arial",
+          fontSize: "18px"
+        })
+        .setOrigin(0.5)
+        .setDepth(6);
+      this.group.add(view.iconText);
+      return;
+    }
+
+    view.iconText.setText(icon).setPosition(x, y - 2);
+  }
+
+  private updateShine(view: PlotSpriteView, plot: GardenPlotView, x: number, y: number) {
+    const shouldShine = !!plot.plant?.permanentMutation && plot.plant.permanentMutation !== "NORMAL";
+    if (!shouldShine) {
+      view.shine?.destroy();
+      view.shine = undefined;
+      return;
+    }
+
+    if (!view.shine) {
+      view.shine = this.scene.add.circle(x + 13, y - 13, 4, 0xf7d767, 0.95).setDepth(7);
+      this.group.add(view.shine);
+      return;
+    }
+
+    view.shine.setPosition(x + 13, y - 13);
   }
 
   private plotPosition(plot: GardenPlotView) {

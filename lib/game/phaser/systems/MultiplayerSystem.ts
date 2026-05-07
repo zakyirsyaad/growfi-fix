@@ -5,11 +5,16 @@ import type { Player } from "@/lib/game/phaser/objects/Player";
 import type { RemotePlayerSystem } from "@/lib/game/phaser/systems/RemotePlayerSystem";
 import type { PlayerDirection, RealtimeRoom } from "@/lib/realtime/types";
 
+const MOVEMENT_SEND_INTERVAL_MS = 90;
+const MOVEMENT_DISTANCE_THRESHOLD_SQ = 4;
+
 export class MultiplayerSystem {
   private room?: RealtimeRoom;
   private lastSentAt = 0;
   private lastX = Number.NaN;
   private lastY = Number.NaN;
+  private lastDirection: PlayerDirection = "idle";
+  private lastMoving = false;
   private cleanup: Array<() => void> = [];
 
   constructor(
@@ -21,6 +26,16 @@ export class MultiplayerSystem {
       gameEventBus.on("roomPlayersUpdated", ({ room, players }) => {
         if (room === this.room) {
           this.remotePlayers.setPlayers(players);
+        }
+      }),
+      gameEventBus.on("remotePlayerMoved", ({ room, player }) => {
+        if (room === this.room) {
+          this.remotePlayers.upsertPlayer(player);
+        }
+      }),
+      gameEventBus.on("remotePlayerStopped", ({ room, player }) => {
+        if (room === this.room) {
+          this.remotePlayers.upsertPlayer(player);
         }
       })
     );
@@ -34,6 +49,11 @@ export class MultiplayerSystem {
       leaveRealtimeRoom(this.room);
     }
     this.room = room;
+    this.lastSentAt = 0;
+    this.lastX = this.player.x;
+    this.lastY = this.player.y;
+    this.lastDirection = "idle";
+    this.lastMoving = false;
     joinRealtimeRoom(room, this.player.x, this.player.y);
   }
 
@@ -43,25 +63,41 @@ export class MultiplayerSystem {
     }
 
     const now = this.scene.time.now;
-    if (now - this.lastSentAt < 80) {
+    const moving = this.isMoving();
+    const direction = this.direction();
+
+    if (!moving) {
+      if (this.lastMoving) {
+        this.stop();
+        this.lastMoving = false;
+        this.lastDirection = direction;
+      }
+      return;
+    }
+
+    if (now - this.lastSentAt < MOVEMENT_SEND_INTERVAL_MS) {
       return;
     }
 
     const dx = this.player.x - this.lastX;
     const dy = this.player.y - this.lastY;
-    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
+    const movedEnough = dx * dx + dy * dy >= MOVEMENT_DISTANCE_THRESHOLD_SQ;
+    const directionChanged = direction !== this.lastDirection;
+    if (!movedEnough && !directionChanged) {
       return;
     }
 
     this.lastSentAt = now;
     this.lastX = this.player.x;
     this.lastY = this.player.y;
+    this.lastDirection = direction;
+    this.lastMoving = true;
     sendMovement({
       room: this.room,
       x: this.player.x,
       y: this.player.y,
-      direction: this.direction(),
-      animationState: this.isMoving() ? "walking" : "idle"
+      direction,
+      animationState: "walking"
     });
   }
 
@@ -77,6 +113,11 @@ export class MultiplayerSystem {
       direction: this.direction(),
       animationState: "idle"
     });
+    this.lastSentAt = this.scene.time.now;
+    this.lastX = this.player.x;
+    this.lastY = this.player.y;
+    this.lastDirection = this.direction();
+    this.lastMoving = false;
   }
 
   destroy() {

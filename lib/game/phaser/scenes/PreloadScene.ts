@@ -172,6 +172,51 @@ export class PreloadScene extends Phaser.Scene {
       g.fillStyle(0x5e3b20, 1).fillRect(11, 11, 60, 44).fillRect(20, 55, 6, 17).fillRect(56, 55, 6, 17);
       g.fillStyle(0xf7d767, 1).fillRect(21, 19, 40, 8).fillRect(21, 32, 28, 6).fillRect(21, 43, 34, 6);
     });
+    objectTexture(this, ASSET_KEYS.objects.communityBoard, 82, 72, (g) => {
+      g.fillStyle(0x5e3b20, 1).fillRect(11, 11, 60, 44).fillRect(20, 55, 6, 17).fillRect(56, 55, 6, 17);
+      g.fillStyle(0xfff4c7, 1).fillRect(18, 18, 46, 30);
+      g.fillStyle(0xe74376, 1).fillCircle(23, 23, 3).fillCircle(58, 41, 3);
+      g.fillStyle(0x203024, 1).fillRect(28, 23, 26, 3).fillRect(22, 32, 36, 3).fillRect(28, 41, 22, 3);
+    });
+    objectTexture(this, ASSET_KEYS.objects.eventBoard, 92, 74, (g) => {
+      g.fillStyle(0x5e3b20, 1).fillRect(10, 12, 72, 42).fillRect(20, 54, 6, 20).fillRect(66, 54, 6, 20);
+      g.fillStyle(0x9b3d53, 1).fillRect(16, 18, 60, 9);
+      g.fillStyle(0xfff4c7, 1).fillRect(16, 29, 60, 18);
+      g.fillStyle(0xf7d767, 1).fillCircle(46, 38, 7);
+    });
+    objectTexture(this, ASSET_KEYS.objects.chatBoard, 62, 58, (g) => {
+      g.fillStyle(0x5e3b20, 1).fillRect(10, 14, 42, 26).fillRect(18, 40, 5, 18).fillRect(40, 40, 5, 18);
+      g.fillStyle(0x2b9ee7, 1).fillRoundedRect(16, 19, 30, 14, 4);
+      g.fillStyle(0xffffff, 1).fillRect(22, 24, 18, 2);
+    });
+    objectTexture(this, ASSET_KEYS.objects.fountain, 96, 82, (g) => {
+      g.fillStyle(0x868276, 1).fillEllipse(48, 58, 78, 28).fillEllipse(48, 39, 54, 22);
+      g.fillStyle(0x5db7d9, 1).fillEllipse(48, 53, 62, 18).fillEllipse(48, 35, 40, 14);
+      g.fillStyle(0x9be4ef, 1).fillRect(45, 8, 6, 32).fillEllipse(48, 10, 22, 8);
+      g.fillStyle(0xf7d767, 1).fillCircle(48, 7, 4);
+    });
+    objectTexture(this, ASSET_KEYS.objects.bench, 70, 34, (g) => {
+      g.fillStyle(0x5e3b20, 1).fillRect(8, 10, 54, 6).fillRect(8, 20, 54, 6).fillRect(15, 24, 5, 10).fillRect(50, 24, 5, 10);
+      g.fillStyle(0xa96e3f, 1).fillRect(8, 7, 54, 5);
+    });
+    objectTexture(this, ASSET_KEYS.objects.lamp, 28, 64, (g) => {
+      g.fillStyle(0x203024, 1).fillRect(12, 20, 4, 40).fillRect(8, 58, 12, 4);
+      g.fillStyle(0xf7d767, 1).fillCircle(14, 15, 10);
+      g.lineStyle(2, 0x203024, 1).strokeCircle(14, 15, 10);
+    });
+    objectTexture(this, ASSET_KEYS.objects.cosmeticShop, 112, 92, (g) => {
+      g.fillStyle(0x9b3d53, 1).fillRect(8, 0, 96, 22);
+      g.fillStyle(0xf7ead5, 1).fillRoundedRect(16, 22, 80, 62, 4);
+      g.fillStyle(0xff9ebd, 1).fillRect(16, 22, 80, 9);
+      g.fillStyle(0x5e3b20, 1).fillRect(44, 54, 22, 30);
+      g.fillStyle(0xf7d767, 1).fillCircle(34, 45, 7).fillCircle(78, 45, 7);
+    });
+    objectTexture(this, ASSET_KEYS.objects.eventStage, 160, 82, (g) => {
+      g.fillStyle(0x5e3b20, 1).fillRect(10, 52, 140, 22);
+      g.fillStyle(0xa96e3f, 1).fillRect(20, 44, 120, 10);
+      g.fillStyle(0x9b3d53, 1).fillRect(18, 10, 124, 34);
+      g.fillStyle(0xf7d767, 1).fillCircle(36, 28, 5).fillCircle(80, 28, 5).fillCircle(124, 28, 5);
+    });
 
     this.scene.start("FarmScene", { visitorMode: false });
   }

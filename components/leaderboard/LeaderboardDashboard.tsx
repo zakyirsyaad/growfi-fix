@@ -43,37 +43,61 @@ function Board({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Rank</TableHead>
-          <TableHead>Farmer</TableHead>
-          <TableHead className="text-right">{title}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      <div className="space-y-2 md:hidden">
         {users.map((user, index) => (
-          <TableRow key={user.id}>
-            <TableCell>
+          <Card key={user.id} className="bg-white/82">
+            <CardContent className="flex items-center gap-3 p-3">
               <Badge variant={index === 0 ? "legendary" : "outline"} className="gap-1">
                 <Icon className="h-3.5 w-3.5" />
                 {index + 1}
               </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.avatarUrl || undefined} />
                   <AvatarFallback>{user.username.slice(0, 1).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <span className="font-semibold">{user.username}</span>
+                <span className="truncate font-semibold">{user.username}</span>
               </div>
-            </TableCell>
-            <TableCell className="text-right font-bold">{metric(user)}</TableCell>
-          </TableRow>
+              <span className="font-bold">{metric(user)}</span>
+            </CardContent>
+          </Card>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Rank</TableHead>
+              <TableHead>Farmer</TableHead>
+              <TableHead className="text-right">{title}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user, index) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  <Badge variant={index === 0 ? "legendary" : "outline"} className="gap-1">
+                    <Icon className="h-3.5 w-3.5" />
+                    {index + 1}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.avatarUrl || undefined} />
+                      <AvatarFallback>{user.username.slice(0, 1).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold">{user.username}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-right font-bold">{metric(user)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }
 

@@ -7,10 +7,15 @@ import { GameHUD } from "@/components/game/GameHUD";
 import { InteractionPrompt } from "@/components/game/InteractionPrompt";
 import { MobileControls } from "@/components/game/MobileControls";
 import { ActivityLogOverlay } from "@/components/game/overlays/ActivityLogOverlay";
+import { CommunityBoardOverlay } from "@/components/game/overlays/CommunityBoardOverlay";
+import { EventBoardOverlay } from "@/components/game/overlays/EventBoardOverlay";
 import { InventoryOverlay } from "@/components/game/overlays/InventoryOverlay";
+import { IncomingTradeInviteDialog } from "@/components/game/overlays/IncomingTradeInviteDialog";
 import { LeaderboardOverlay } from "@/components/game/overlays/LeaderboardOverlay";
+import { LocalChatOverlay } from "@/components/game/overlays/LocalChatOverlay";
 import { MarketplaceOverlay } from "@/components/game/overlays/MarketplaceOverlay";
 import { ProfileOverlay } from "@/components/game/overlays/ProfileOverlay";
+import { ProfilePreviewDialog } from "@/components/game/overlays/ProfilePreviewDialog";
 import { SeedSelectModal } from "@/components/game/overlays/SeedSelectModal";
 import { SeedShopOverlay } from "@/components/game/overlays/SeedShopOverlay";
 import { TradeOverlay } from "@/components/game/overlays/TradeOverlay";
@@ -22,10 +27,33 @@ import { PlayerInteractionOverlay } from "@/components/game/overlays/PlayerInter
 import { QuestBoardOverlay } from "@/components/game/overlays/QuestBoardOverlay";
 import { gameEventBus, type GameArea, type GameOverlayKey } from "@/lib/game/eventBus";
 import { apiFetch } from "@/lib/utils/fetcher";
-import type { OnlinePlayer } from "@/lib/realtime/types";
+import type { ChatMessagePayload, OnlinePlayer, TradeInvitePayload } from "@/lib/realtime/types";
 import type { GardenResponse } from "@/types/game-data";
 
 type OverlayState = Partial<Record<GameOverlayKey, boolean>>;
+
+function samePrompt(
+  current: { visible: boolean; label?: string },
+  next: { visible: boolean; label?: string }
+) {
+  return current.visible === next.visible && current.label === next.label;
+}
+
+function sameOnlinePlayers(current: OnlinePlayer[], next: OnlinePlayer[]) {
+  if (current.length !== next.length) {
+    return false;
+  }
+
+  return current.every((player, index) => {
+    const candidate = next[index];
+    return (
+      candidate &&
+      player.userId === candidate.userId &&
+      player.username === candidate.username &&
+      player.currentRoom === candidate.currentRoom
+    );
+  });
+}
 
 export function GameOverlay({
   garden,
@@ -44,7 +72,9 @@ export function GameOverlay({
   const [ownerName, setOwnerName] = useState<string | undefined>();
   const [visitorMode, setVisitorMode] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState<OnlinePlayer[]>([]);
-  const [currentRoom, setCurrentRoom] = useState("farm:unknown");
+  const [currentRoom, setCurrentRoom] = useState("home:unknown");
+  const [incomingInvite, setIncomingInvite] = useState<TradeInvitePayload | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessagePayload[]>([]);
 
   const refreshGameQueries = async () => {
     await Promise.all([
@@ -95,15 +125,18 @@ export function GameOverlay({
 
   useEffect(() => {
     return gameEventBus.on("interactionPrompt", ({ visible, label }) => {
-      setPrompt({ visible, label });
+      setPrompt((current) => {
+        const next = { visible, label };
+        return samePrompt(current, next) ? current : next;
+      });
     });
   }, []);
 
   useEffect(() => {
     return gameEventBus.on("areaChanged", ({ area: nextArea, ownerName: nextOwner, visitorMode: isVisitor }) => {
-      setArea(nextArea);
-      setOwnerName(nextOwner);
-      setVisitorMode(!!isVisitor);
+      setArea((current) => (current === nextArea ? current : nextArea));
+      setOwnerName((current) => (current === nextOwner ? current : nextOwner));
+      setVisitorMode((current) => (current === !!isVisitor ? current : !!isVisitor));
     });
   }, []);
 
@@ -133,20 +166,51 @@ export function GameOverlay({
 
   useEffect(() => {
     return gameEventBus.on("roomPlayersUpdated", ({ players, room }) => {
-      setOnlinePlayers(players);
-      setCurrentRoom(room);
+      setOnlinePlayers((current) => (sameOnlinePlayers(current, players) ? current : players));
+      setCurrentRoom((current) => (current === room ? current : room));
     });
   }, []);
 
   useEffect(() => {
     return gameEventBus.on("tradeInviteReceived", (invite) => {
-      setPayloads((current) => ({ ...current, trade: { recipientId: invite.from.userId, recipientUsername: invite.from.username } }));
-      toast(`${invite.from.username} invited you to trade`, {
-        action: {
-          label: "Open",
-          onClick: () => setOverlays((current) => ({ ...current, trade: true }))
+      setIncomingInvite(invite);
+    });
+  }, []);
+
+  useEffect(() => {
+    return gameEventBus.on("tradeSessionCreated", (session) => {
+      const other = session.initiator.userId === garden?.user.id ? session.recipient : session.initiator;
+      setPayloads((current) => ({
+        ...current,
+        trade: {
+          tradeId: session.tradeId,
+          recipientId: other.userId,
+          recipientUsername: other.username
         }
+      }));
+      setOverlays((current) => ({ ...current, trade: true }));
+      queryClient.invalidateQueries({ queryKey: ["trades"] });
+      toast.success(`Trade opened with ${other.username}`);
+    });
+  }, [garden?.user.id, queryClient]);
+
+  useEffect(() => {
+    return gameEventBus.on("tradeInviteAccepted", (session) => {
+      toast.success(`${session.recipient.username} accepted your trade invite`);
+    });
+  }, []);
+
+  useEffect(() => {
+    return gameEventBus.on("tradeInviteDeclined", (payload) => {
+      toast.error("Trade invite declined", {
+        description: payload.reason || "The other farmer declined."
       });
+    });
+  }, []);
+
+  useEffect(() => {
+    return gameEventBus.on("localChatMessage", (message) => {
+      setChatMessages((current) => [...current.slice(-99), message]);
     });
   }, []);
 
@@ -185,12 +249,29 @@ export function GameOverlay({
         onOpenChange={(open) => setOverlay("marketplace", open)}
         payload={payloads.marketplace}
       />
-      <TradeOverlay open={!!overlays.trade} onOpenChange={(open) => setOverlay("trade", open)} payload={payloads.trade} />
+      <TradeOverlay
+        open={!!overlays.trade}
+        onOpenChange={(open) => setOverlay("trade", open)}
+        payload={payloads.trade}
+        onlinePlayers={onlinePlayers}
+      />
       <WalletOverlay open={!!overlays.wallet} onOpenChange={(open) => setOverlay("wallet", open)} />
       <ProfileOverlay open={!!overlays.profile} onOpenChange={(open) => setOverlay("profile", open)} />
       <ActivityLogOverlay open={!!overlays.activityLog} onOpenChange={(open) => setOverlay("activityLog", open)} />
-      <VisitFarmOverlay open={!!overlays.visitFarm} onOpenChange={(open) => setOverlay("visitFarm", open)} />
+      <VisitFarmOverlay
+        open={!!overlays.visitFarm}
+        onOpenChange={(open) => setOverlay("visitFarm", open)}
+        onlinePlayers={onlinePlayers}
+      />
       <LeaderboardOverlay open={!!overlays.leaderboard} onOpenChange={(open) => setOverlay("leaderboard", open)} />
+      <CommunityBoardOverlay open={!!overlays.communityBoard} onOpenChange={(open) => setOverlay("communityBoard", open)} />
+      <EventBoardOverlay open={!!overlays.eventBoard} onOpenChange={(open) => setOverlay("eventBoard", open)} />
+      <LocalChatOverlay
+        open={!!overlays.localChat}
+        onOpenChange={(open) => setOverlay("localChat", open)}
+        room={currentRoom}
+        messages={chatMessages}
+      />
       <FarmUpgradeOverlay
         open={!!overlays.farmUpgrade}
         onOpenChange={(open) => setOverlay("farmUpgrade", open)}
@@ -208,6 +289,12 @@ export function GameOverlay({
         onOpenChange={(open) => setOverlay("playerInteraction", open)}
         player={payloads.playerInteraction as OnlinePlayer | undefined}
       />
+      <ProfilePreviewDialog
+        open={!!overlays.profilePreview}
+        onOpenChange={(open) => setOverlay("profilePreview", open)}
+        player={payloads.profilePreview as OnlinePlayer | undefined}
+      />
+      <IncomingTradeInviteDialog invite={incomingInvite} onClose={() => setIncomingInvite(null)} />
     </>
   );
 }

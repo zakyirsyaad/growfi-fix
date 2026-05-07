@@ -1,15 +1,17 @@
 "use client";
 
+import { memo } from "react";
 import {
   Backpack,
   Droplets,
   Hand,
+  Handshake,
   Home,
   MapPin,
   Menu,
   ShoppingBasket,
+  Sprout,
   Store,
-  Trophy,
   User,
   Users,
   Wallet
@@ -34,13 +36,14 @@ import type { GardenResponse } from "@/types/game-data";
 const quickActions: Array<{ overlay: GameOverlayKey; label: string; icon: typeof Backpack }> = [
   { overlay: "inventory", label: "Inventory", icon: Backpack },
   { overlay: "seedShop", label: "Seed Shop", icon: ShoppingBasket },
-  { overlay: "marketplace", label: "Marketplace", icon: Store },
+  { overlay: "marketplace", label: "Market", icon: Store },
   { overlay: "wallet", label: "Wallet", icon: Wallet },
-  { overlay: "leaderboard", label: "Leaderboard", icon: Trophy },
+  { overlay: "trade", label: "Trade", icon: Handshake },
+  { overlay: "farmUpgrade", label: "Farm", icon: Sprout },
   { overlay: "onlinePlayers", label: "Online Players", icon: Users }
 ];
 
-export function GameHUD({
+export const GameHUD = memo(function GameHUD({
   garden,
   area,
   shopEndsAt,
@@ -148,4 +151,4 @@ export function GameHUD({
       </div>
     </TooltipProvider>
   );
-}
+});

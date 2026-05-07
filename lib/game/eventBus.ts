@@ -1,6 +1,12 @@
-import type { OnlinePlayer, TradeInvitePayload } from "@/lib/realtime/types";
+import type {
+  ChatMessagePayload,
+  OnlinePlayer,
+  TradeInviteDeclinedPayload,
+  TradeInvitePayload,
+  TradeSessionCreatedPayload
+} from "@/lib/realtime/types";
 
-export type GameArea = "Home Farm" | "Town Area" | "Other User Farm";
+export type GameArea = "Home Farm" | "Town Social Hub" | "Other User Farm";
 
 export type GameInteractableType =
   | "plot"
@@ -10,12 +16,17 @@ export type GameInteractableType =
   | "wallet"
   | "profile"
   | "leaderboard"
+  | "communityBoard"
+  | "eventBoard"
   | "visitFarm"
+  | "chatBoard"
   | "mailbox"
   | "farmBoard"
   | "storageChest"
   | "waterWell"
   | "questBoard"
+  | "cosmeticShop"
+  | "socialTradePlaza"
   | "scarecrow"
   | "pond"
   | "petArea"
@@ -34,6 +45,10 @@ export type GameOverlayKey =
   | "activityLog"
   | "visitFarm"
   | "leaderboard"
+  | "communityBoard"
+  | "eventBoard"
+  | "localChat"
+  | "profilePreview"
   | "farmUpgrade"
   | "questBoard"
   | "onlinePlayers"
@@ -57,7 +72,13 @@ export type GameBusEvents = {
   returnHome: undefined;
   areaChanged: { area: GameArea; visitorMode?: boolean; ownerName?: string };
   roomPlayersUpdated: { players: OnlinePlayer[]; room: string };
+  remotePlayerMoved: { player: OnlinePlayer; room: string };
+  remotePlayerStopped: { player: OnlinePlayer; room: string };
   tradeInviteReceived: TradeInvitePayload;
+  tradeInviteAccepted: TradeSessionCreatedPayload;
+  tradeInviteDeclined: TradeInviteDeclinedPayload;
+  tradeSessionCreated: TradeSessionCreatedPayload;
+  localChatMessage: ChatMessagePayload;
   socketReady: { connected: boolean };
   joystickMove: { x: number; y: number };
   joystickEnd: undefined;

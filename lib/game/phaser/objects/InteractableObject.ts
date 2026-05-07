@@ -13,6 +13,7 @@ export type InteractableObject = {
   x: number;
   y: number;
   radius: number;
+  priority?: number;
   label: string;
   action: InteractableAction;
 };

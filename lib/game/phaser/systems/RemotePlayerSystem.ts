@@ -25,7 +25,6 @@ export class RemotePlayerSystem {
     }
 
     players.forEach((player) => this.upsertPlayer(player));
-    this.registerInteractions();
   }
 
   upsertPlayer(player: OnlinePlayer) {
@@ -35,6 +34,7 @@ export class RemotePlayerSystem {
       existing.target.set(player.x, player.y);
       existing.label.setText(player.username);
       existing.sprite.setFlipX(player.direction === "left");
+      this.upsertInteraction(existing);
       return;
     }
 
@@ -57,6 +57,8 @@ export class RemotePlayerSystem {
       label,
       target: new Phaser.Math.Vector2(player.x, player.y)
     });
+
+    this.upsertInteraction(this.players.get(player.userId)!);
   }
 
   removePlayer(userId: string) {
@@ -76,8 +78,8 @@ export class RemotePlayerSystem {
       view.sprite.x = Phaser.Math.Linear(view.sprite.x, view.target.x, 0.22);
       view.sprite.y = Phaser.Math.Linear(view.sprite.y, view.target.y, 0.22);
       view.label.setPosition(view.sprite.x, view.sprite.y - 34);
+      this.interactionSystem.updateDynamicPosition(`remote:${view.player.userId}`, view.sprite.x, view.sprite.y);
     }
-    this.registerInteractions();
   }
 
   destroy() {
@@ -87,22 +89,19 @@ export class RemotePlayerSystem {
     }
   }
 
-  private registerInteractions() {
-    this.interactionSystem.removeByPrefix("remote:");
-    for (const view of this.players.values()) {
-      this.interactionSystem.add({
-        id: `remote:${view.player.userId}`,
-        type: "remotePlayer",
-        x: view.sprite.x,
-        y: view.sprite.y,
-        radius: INTERACTION_RADIUS,
-        label: `Press E to interact with ${view.player.username}`,
-        action: {
-          kind: "overlay",
-          overlay: "playerInteraction",
-          payload: view.player
-        }
-      });
-    }
+  private upsertInteraction(view: RemotePlayerView) {
+    this.interactionSystem.upsertDynamic({
+      id: `remote:${view.player.userId}`,
+      type: "remotePlayer",
+      x: view.sprite.x,
+      y: view.sprite.y,
+      radius: INTERACTION_RADIUS,
+      label: `Press E to interact with ${view.player.username}`,
+      action: {
+        kind: "overlay",
+        overlay: "playerInteraction",
+        payload: view.player
+      }
+    });
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Search, Sprout } from "lucide-react";
+import { Handshake, Search, Sprout, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { EmptyState, ErrorState } from "@/components/game/shared/StatusStates";
 import { apiFetch } from "@/lib/utils/fetcher";
 import { gameEventBus } from "@/lib/game/eventBus";
+import { sendTradeInvite } from "@/lib/realtime/socketClient";
+import type { OnlinePlayer } from "@/lib/realtime/types";
 import type { PublicFarmResponse } from "@/types/game-data";
 
 type SearchUser = {
@@ -27,17 +29,19 @@ type SearchResponse = { users: SearchUser[] };
 
 export function VisitFarmOverlay({
   open,
-  onOpenChange
+  onOpenChange,
+  onlinePlayers = []
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onlinePlayers?: OnlinePlayer[];
 }) {
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { data } = useQuery({
     queryKey: ["farm-search", query],
     queryFn: () => apiFetch<SearchResponse>(`/api/farms/search?query=${encodeURIComponent(query)}`),
-    enabled: open && query.trim().length > 0
+    enabled: open
   });
 
   const visitMutation = useMutation({
@@ -52,15 +56,48 @@ export function VisitFarmOverlay({
   });
 
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Visit Other Farms" description="Search by Discord username. MVP visits are read-only.">
+    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Farm Visit Portal" description="Find online farmers and popular farms.">
       {error ? <div className="mb-3"><ErrorState message={error} /></div> : null}
+      {onlinePlayers.length > 0 ? (
+        <div className="mb-4 space-y-2">
+          <div className="text-sm font-bold">Online nearby</div>
+          {onlinePlayers.slice(0, 5).map((player) => (
+            <Card key={player.userId} className="bg-white/82">
+              <CardContent className="flex items-center gap-3 p-3">
+                <Avatar className="h-9 w-9 rounded-md">
+                  <AvatarImage src={player.avatarUrl || undefined} />
+                  <AvatarFallback className="rounded-md">{player.username.slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-black">{player.username}</div>
+                  <div className="text-xs text-muted-foreground">{player.currentRoom}</div>
+                </div>
+                <Button size="sm" variant="secondary" onClick={() => visitMutation.mutate(player.userId)}>
+                  <Sprout className="h-4 w-4" />
+                  Visit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => gameEventBus.emit("openOverlay", { overlay: "profilePreview", payload: player })}
+                >
+                  <UserRound className="h-4 w-4" />
+                </Button>
+                <Button size="sm" onClick={() => sendTradeInvite(player.userId, player.currentRoom)}>
+                  <Handshake className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : null}
       <Command shouldFilter={false}>
         <CommandInput placeholder="Search farmers..." value={query} onValueChange={setQuery} />
         <CommandList>
           <CommandEmpty>
-            {query ? "No farmers found." : "Type a username to search."}
+            {query ? "No farmers found." : "No popular farms yet."}
           </CommandEmpty>
-          <CommandGroup heading="Farmers">
+          <CommandGroup heading={query ? "Farmers" : "Popular farms"}>
             {(data?.users || []).map((user) => (
               <CommandItem key={user.id} value={user.username} onSelect={() => visitMutation.mutate(user.id)}>
                 <Avatar className="mr-2 h-8 w-8">
@@ -81,7 +118,7 @@ export function VisitFarmOverlay({
           </CommandGroup>
         </CommandList>
       </Command>
-      {!query ? (
+      {!query && !data?.users.length ? (
         <Card className="mt-4 bg-white/75">
           <CardContent className="flex items-center gap-3 p-4">
             <span className="grid h-10 w-10 place-items-center rounded-md bg-secondary text-primary">

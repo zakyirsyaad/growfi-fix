@@ -1,9 +1,10 @@
 "use client";
 
+import { memo } from "react";
 import { Keyboard, MousePointerClick } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export function InteractionPrompt({
+export const InteractionPrompt = memo(function InteractionPrompt({
   visible,
   label
 }: {
@@ -23,4 +24,4 @@ export function InteractionPrompt({
       </Badge>
     </div>
   );
-}
+});

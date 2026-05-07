@@ -160,7 +160,9 @@ async function ensureDailyQuestProgressTx(tx: Tx, userId: string, questDate = st
     where: { userId, questDate },
     orderBy: { createdAt: "asc" }
   });
-  const definitionByKey = new Map(DAILY_QUEST_DEFINITIONS.map((quest) => [quest.key, quest]));
+  const definitionByKey = new Map<string, (typeof DAILY_QUEST_DEFINITIONS)[number]>(
+    DAILY_QUEST_DEFINITIONS.map((quest) => [quest.key, quest])
+  );
 
   return progress.map((item) => {
     const definition = definitionByKey.get(item.questKey);
@@ -1945,14 +1947,11 @@ export async function getTransactions(userId: string) {
 
 export async function searchPublicFarms(userId: string, query: string) {
   const normalized = query.trim();
-  if (!normalized) {
-    return { users: [] };
-  }
 
   const users = await prisma.user.findMany({
     where: {
       id: { not: userId },
-      username: { contains: normalized, mode: "insensitive" },
+      ...(normalized ? { username: { contains: normalized, mode: "insensitive" } } : {}),
       garden: { isNot: null }
     },
     select: {

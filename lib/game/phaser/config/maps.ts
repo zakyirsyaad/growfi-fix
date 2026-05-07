@@ -22,7 +22,7 @@ export const MAPS: Record<"farm" | "town", GrowFiMapConfig> = {
     background: "grass"
   },
   town: {
-    area: "Town Area",
+    area: "Town Social Hub",
     width: 1480,
     height: 1000,
     spawn: { x: 700, y: 810 },

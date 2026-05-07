@@ -1,6 +1,6 @@
 "use client";
 
-import { Handshake, Sprout, UserRound } from "lucide-react";
+import { Handshake, MessageCircle, Sprout, UserRound, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,6 +64,7 @@ export function PlayerInteractionOverlay({
               onClick={() => {
                 sendTradeInvite(player.userId, player.currentRoom);
                 toast.success(`Trade invite sent to ${player.username}`);
+                onOpenChange(false);
               }}
             >
               <Handshake className="h-4 w-4" />
@@ -77,9 +78,28 @@ export function PlayerInteractionOverlay({
               <Sprout className="h-4 w-4" />
               Visit Farm
             </Button>
-            <Button variant="secondary" onClick={() => gameEventBus.emit("openOverlay", { overlay: "profile" })}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                gameEventBus.emit("openOverlay", { overlay: "profilePreview", payload: player });
+              }}
+            >
               <UserRound className="h-4 w-4" />
-              View My Profile
+              View Profile
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                gameEventBus.emit("openOverlay", { overlay: "localChat" });
+                onOpenChange(false);
+              }}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Whisper / Chat
+            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <X className="h-4 w-4" />
+              Cancel
             </Button>
           </div>
         </div>
