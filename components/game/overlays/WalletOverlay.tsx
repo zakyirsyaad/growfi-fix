@@ -11,7 +11,7 @@ export function WalletOverlay({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Wallet" description="Deposit, withdraw, and inspect $GROW transactions." wide>
+    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Wallet" description="Inspect real devnet SOL and $GROW balances." wide>
       <WalletDashboard compact />
     </ResponsivePanel>
   );

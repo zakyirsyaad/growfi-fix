@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { AuthGate } from "@/components/layout/AuthGate";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { apiFetch } from "@/lib/utils/fetcher";
 type TradesResponse = { trades: TradeView[] };
 type InventoryResponse = { fruits: FruitStackView[]; seeds: unknown[] };
 type MeResponse = { user: { id: string; availableGrow: number } };
+type ConfirmTradeResponse = { trade: TradeView };
 
 function TradeContent() {
   const queryClient = useQueryClient();
@@ -50,7 +52,8 @@ function TradeContent() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["trades"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
-      queryClient.invalidateQueries({ queryKey: ["me"] })
+      queryClient.invalidateQueries({ queryKey: ["me"] }),
+      queryClient.invalidateQueries({ queryKey: ["activity"] })
     ]);
   };
 
@@ -96,11 +99,14 @@ function TradeContent() {
   });
   const confirmMutation = useMutation({
     mutationFn: (tradeId: string) =>
-      apiFetch("/api/trades/confirm", {
+      apiFetch<ConfirmTradeResponse>("/api/trades/confirm", {
         method: "POST",
         body: JSON.stringify({ tradeId })
       }),
-    onSuccess: invalidate,
+    onSuccess: async (result) => {
+      toast.success(result.trade.status === "COMPLETED" ? "Trade completed" : "Trade confirmed");
+      await invalidate();
+    },
     onError: (err) => setError(err instanceof Error ? err.message : "Confirm failed")
   });
   const cancelMutation = useMutation({

@@ -1,5 +1,6 @@
 import type {
   ChatMessagePayload,
+  GlobalChatMessagePayload,
   OnlinePlayer,
   TradeInviteDeclinedPayload,
   TradeInvitePayload,
@@ -52,7 +53,8 @@ export type GameOverlayKey =
   | "farmUpgrade"
   | "questBoard"
   | "onlinePlayers"
-  | "playerInteraction";
+  | "playerInteraction"
+  | "tutorial";
 
 export type GameBusEvents = {
   openOverlay: { overlay: GameOverlayKey; payload?: unknown };
@@ -79,26 +81,41 @@ export type GameBusEvents = {
   tradeInviteDeclined: TradeInviteDeclinedPayload;
   tradeSessionCreated: TradeSessionCreatedPayload;
   localChatMessage: ChatMessagePayload;
-  socketReady: { connected: boolean };
+  globalChatHistory: { messages: GlobalChatMessagePayload[] };
+  globalChatMessage: GlobalChatMessagePayload;
+  globalChatError: { message: string };
+  socketReady: {
+    connected: boolean;
+    status?:
+      | "connecting"
+      | "connected"
+      | "reconnecting"
+      | "disconnected"
+      | "error";
+    message?: string;
+    url?: string;
+  };
   joystickMove: { x: number; y: number };
   joystickEnd: undefined;
+  gameInputLockChanged: { source: string; locked: boolean };
+  goTown: undefined;
   actionToast: { title: string; description?: string; variant?: "success" | "error" };
 };
 
 type Listener<T> = (payload: T) => void;
 
 class GrowFiEventBus {
-  private listeners = new Map<keyof GameBusEvents, Set<Listener<any>>>();
+  private listeners = new Map<keyof GameBusEvents, Set<Listener<unknown>>>();
 
   on<K extends keyof GameBusEvents>(event: K, listener: Listener<GameBusEvents[K]>) {
-    const set = this.listeners.get(event) || new Set<Listener<any>>();
-    set.add(listener);
+    const set = this.listeners.get(event) || new Set<Listener<unknown>>();
+    set.add(listener as Listener<unknown>);
     this.listeners.set(event, set);
     return () => this.off(event, listener);
   }
 
   off<K extends keyof GameBusEvents>(event: K, listener: Listener<GameBusEvents[K]>) {
-    this.listeners.get(event)?.delete(listener);
+    this.listeners.get(event)?.delete(listener as Listener<unknown>);
   }
 
   emit<K extends keyof GameBusEvents>(

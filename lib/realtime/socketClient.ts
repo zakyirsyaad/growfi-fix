@@ -4,6 +4,7 @@ import { io, type Socket } from "socket.io-client";
 import { gameEventBus } from "@/lib/game/eventBus";
 import type {
   ChatMessagePayload,
+  GlobalChatMessagePayload,
   MovementPayload,
   OnlinePlayer,
   RealtimeRoom,
@@ -23,6 +24,9 @@ type ServerToClientEvents = {
   "trade:invite_declined": (payload: TradeInviteDeclinedPayload) => void;
   "trade:session_created": (payload: TradeSessionCreatedPayload) => void;
   "chat:message": (message: ChatMessagePayload) => void;
+  "chat:global:history": (payload: { messages: GlobalChatMessagePayload[] }) => void;
+  "chat:global:message": (message: GlobalChatMessagePayload) => void;
+  "chat:global:error": (payload: { message: string }) => void;
   "presence:update": (payload: { room: RealtimeRoom; players: OnlinePlayer[] }) => void;
 };
 
@@ -37,11 +41,58 @@ type ClientToServerEvents = {
   "trade:accept_invite": (payload: { inviteId: string }) => void;
   "trade:decline_invite": (payload: { inviteId: string }) => void;
   "chat:message": (payload: { room: RealtimeRoom; message: string }) => void;
+  "chat:global:join": () => void;
+  "chat:global:message": (payload: { message: string }) => void;
 };
+
+export type RealtimeConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "disconnected"
+  | "error";
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 let currentPlayers: OnlinePlayer[] = [];
 let currentRoom: RealtimeRoom | null = null;
+let realtimeStatus: {
+  connected: boolean;
+  status: RealtimeConnectionStatus;
+  message?: string;
+  url: string;
+} = {
+  connected: false,
+  status: "disconnected",
+  url: ""
+};
+
+function resolveRealtimeUrl() {
+  const explicit =
+    process.env.NEXT_PUBLIC_REALTIME_URL || process.env.NEXT_PUBLIC_SOCKET_URL;
+  if (explicit) {
+    return explicit;
+  }
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  return "http://localhost:3000";
+}
+
+function emitSocketStatus(
+  status: RealtimeConnectionStatus,
+  message?: string
+) {
+  realtimeStatus = {
+    connected: status === "connected",
+    status,
+    message,
+    url: realtimeStatus.url || resolveRealtimeUrl()
+  };
+  gameEventBus.emit("socketReady", realtimeStatus);
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[GrowFi] realtime socket", realtimeStatus);
+  }
+}
 
 function broadcastPlayers(room: RealtimeRoom, players = currentPlayers) {
   currentPlayers = players;
@@ -61,20 +112,38 @@ export function getRealtimeSocket() {
     return socket;
   }
 
-  socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3003", {
+  const url = resolveRealtimeUrl();
+  realtimeStatus = { ...realtimeStatus, url };
+  emitSocketStatus("connecting", `Connecting to ${url}`);
+
+  socket = io(url, {
     withCredentials: true,
     transports: ["websocket", "polling"],
     autoConnect: true
   });
 
   socket.on("connect", () => {
-    gameEventBus.emit("socketReady", { connected: true });
+    emitSocketStatus("connected");
+    joinGlobalChat();
   });
-  socket.on("disconnect", () => {
-    gameEventBus.emit("socketReady", { connected: false });
+  socket.on("connect_error", (error) => {
+    emitSocketStatus("error", error.message);
+  });
+  socket.io.on("reconnect_attempt", (attempt) => {
+    emitSocketStatus("reconnecting", `Reconnect attempt ${attempt}`);
+  });
+  socket.io.on("reconnect", () => {
+    emitSocketStatus("connected");
+  });
+  socket.on("disconnect", (reason) => {
+    emitSocketStatus("disconnected", reason);
   });
   socket.on("room:players", ({ room, players }) => broadcastPlayers(room, players));
-  socket.on("presence:update", ({ room, players }) => broadcastPlayers(room, players));
+  socket.on("presence:update", ({ room, players }) => {
+    if (!currentRoom || currentRoom === room) {
+      broadcastPlayers(room, players);
+    }
+  });
   socket.on("player:joined", (player) => {
     if (currentRoom !== player.currentRoom) {
       return;
@@ -89,6 +158,9 @@ export function getRealtimeSocket() {
     });
   });
   socket.on("player:left", ({ userId, room }) => {
+    if (currentRoom !== room) {
+      return;
+    }
     broadcastPlayers(room, currentPlayers.filter((item) => item.userId !== userId));
   });
   socket.on("player:moved", (player) => {
@@ -120,8 +192,21 @@ export function getRealtimeSocket() {
   socket.on("chat:message", (message) => {
     gameEventBus.emit("localChatMessage", message);
   });
+  socket.on("chat:global:history", (payload) => {
+    gameEventBus.emit("globalChatHistory", payload);
+  });
+  socket.on("chat:global:message", (message) => {
+    gameEventBus.emit("globalChatMessage", message);
+  });
+  socket.on("chat:global:error", (payload) => {
+    gameEventBus.emit("globalChatError", payload);
+  });
 
   return socket;
+}
+
+export function getRealtimeSocketStatus() {
+  return realtimeStatus;
 }
 
 export function joinRealtimeRoom(room: RealtimeRoom, x: number, y: number) {
@@ -164,4 +249,12 @@ export function sendLocalChatMessage(message: string, room?: RealtimeRoom | stri
   }
 
   getRealtimeSocket().emit("chat:message", { room: targetRoom, message });
+}
+
+export function joinGlobalChat() {
+  getRealtimeSocket().emit("chat:global:join");
+}
+
+export function sendGlobalChatMessage(message: string) {
+  getRealtimeSocket().emit("chat:global:message", { message });
 }

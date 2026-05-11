@@ -10,6 +10,7 @@ export class PlayerController {
   private keys?: Record<"w" | "a" | "s" | "d" | "shift", Phaser.Input.Keyboard.Key>;
   private joystick = new Phaser.Math.Vector2(0, 0);
   private destroyed = false;
+  private inputLocks = new Set<string>();
   private cleanup: Array<() => void> = [];
 
   constructor(private scene: Phaser.Scene, private player: Player) {
@@ -33,6 +34,13 @@ export class PlayerController {
       }),
       gameEventBus.on("joystickEnd", () => {
         this.joystick.set(0, 0);
+      }),
+      gameEventBus.on("gameInputLockChanged", ({ source, locked }) => {
+        if (locked) {
+          this.inputLocks.add(source);
+        } else {
+          this.inputLocks.delete(source);
+        }
       })
     );
   }
@@ -40,6 +48,12 @@ export class PlayerController {
   update() {
     const body = this.player.body as Phaser.Physics.Arcade.Body | null;
     if (!body) {
+      return;
+    }
+
+    if (this.inputLocks.size > 0 || this.textInputFocused()) {
+      body.setVelocity(0, 0);
+      this.player.faceVelocity();
       return;
     }
 
@@ -71,5 +85,22 @@ export class PlayerController {
     this.destroyed = true;
     this.cleanup.forEach((fn) => fn());
     scenesWithPlayerController.delete(this.scene);
+  }
+
+  private textInputFocused() {
+    if (typeof document === "undefined") {
+      return false;
+    }
+    const element = document.activeElement;
+    if (!element) {
+      return false;
+    }
+    const tagName = element.tagName.toLowerCase();
+    return (
+      tagName === "input" ||
+      tagName === "textarea" ||
+      tagName === "select" ||
+      (element as HTMLElement).isContentEditable
+    );
   }
 }

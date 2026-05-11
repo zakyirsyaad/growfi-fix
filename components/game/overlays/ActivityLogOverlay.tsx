@@ -24,7 +24,7 @@ export function ActivityLogOverlay({
   });
 
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Activity Log" description="Mailbox updates from farming, wallet, marketplace, and trades.">
+    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Mailbox & Activity" description="Notification history from farming, wallet, marketplace, quests, and trades.">
       {isLoading || !data ? (
         <LoadingState label="Loading activity" />
       ) : data.logs.length === 0 ? (

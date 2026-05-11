@@ -15,11 +15,13 @@ type Quest = {
   id: string;
   questKey: string;
   title: string;
+  description: string;
   progress: number;
   target: number;
   rewardGrow: number;
   claimed: boolean;
   completed: boolean;
+  expiresAt: string;
 };
 
 type QuestResponse = { quests: Quest[] };
@@ -49,7 +51,8 @@ export function QuestBoardOverlay({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["quests"] }),
         queryClient.invalidateQueries({ queryKey: ["garden"] }),
-        queryClient.invalidateQueries({ queryKey: ["me"] })
+        queryClient.invalidateQueries({ queryKey: ["me"] }),
+        queryClient.invalidateQueries({ queryKey: ["activity"] })
       ]);
     },
     onError: (err) => {
@@ -93,7 +96,11 @@ export function QuestBoardOverlay({
                       {quest.rewardGrow}
                     </Badge>
                   </div>
+                  <p className="text-sm text-muted-foreground">{quest.description}</p>
                   <Progress value={(Math.min(quest.progress, quest.target) / quest.target) * 100} />
+                  <div className="text-xs font-semibold text-muted-foreground">
+                    Expires {new Date(quest.expiresAt).toLocaleTimeString()}
+                  </div>
                   <Button
                     className="w-full"
                     variant={quest.claimed ? "secondary" : "default"}

@@ -9,12 +9,17 @@ import {
   Transaction
 } from "@solana/web3.js";
 import {
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
   createAssociatedTokenAccountInstruction,
+  createMintToCheckedInstruction,
   createTransferCheckedInstruction,
   getAccount,
   getAssociatedTokenAddress,
   getMint
 } from "@solana/spl-token";
+import { validateDevnetServerEnv } from "@/lib/env/solana";
 import { GameError } from "@/lib/game/errors";
 
 export function isMockTokenMode() {
@@ -26,11 +31,17 @@ export function getSolanaConnection() {
 }
 
 function parseTreasuryKeypair() {
-  const secret = process.env.TREASURY_WALLET_PRIVATE_KEY;
+  const secret =
+    process.env.TREASURY_WALLET_SECRET_KEY ||
+    process.env.TREASURY_WALLET_PRIVATE_KEY;
   if (!secret) {
     throw new GameError("Treasury private key is not configured.", 500);
   }
 
+  return parseKeypairSecret(secret);
+}
+
+function parseKeypairSecret(secret: string) {
   try {
     const parsed = JSON.parse(secret) as number[];
     return Keypair.fromSecretKey(Uint8Array.from(parsed));
@@ -39,8 +50,36 @@ function parseTreasuryKeypair() {
   }
 }
 
+function parseMintAuthorityKeypair() {
+  const secret =
+    process.env.MINT_AUTHORITY_SECRET_KEY ||
+    process.env.TREASURY_WALLET_SECRET_KEY ||
+    process.env.TREASURY_WALLET_PRIVATE_KEY;
+  if (!secret) {
+    throw new GameError(
+      "Devnet mint authority is not configured. Add MINT_AUTHORITY_SECRET_KEY or TREASURY_WALLET_SECRET_KEY on the server.",
+      503
+    );
+  }
+  return parseKeypairSecret(secret);
+}
+
 function bigintPow10(decimals: number) {
   return BigInt(10) ** BigInt(decimals);
+}
+
+async function getMintProgram(connection: Connection, mint: PublicKey) {
+  const account = await connection.getAccountInfo(mint, "confirmed");
+  if (!account) {
+    throw new GameError("Configured $GROW mint was not found on devnet.", 500);
+  }
+  if (
+    account.owner.equals(TOKEN_PROGRAM_ID) ||
+    account.owner.equals(TOKEN_2022_PROGRAM_ID)
+  ) {
+    return account.owner;
+  }
+  throw new GameError("Configured $GROW mint is not an SPL token mint.", 500);
 }
 
 export async function verifyGrowDeposit(params: {
@@ -164,4 +203,68 @@ export async function sendGrowWithdrawal(params: {
   return sendAndConfirmTransaction(connection, transaction, [treasury], {
     commitment: "confirmed"
   });
+}
+
+export async function mintDevnetGrow(params: {
+  walletAddress: string;
+  amount?: number;
+}) {
+  if (process.env.NODE_ENV === "production") {
+    throw new GameError("Devnet minting is disabled in production.", 403);
+  }
+  validateDevnetServerEnv();
+  if (!process.env.GROW_TOKEN_MINT) {
+    throw new GameError("GROW_TOKEN_MINT is not configured on the server.", 503);
+  }
+
+  const connection = getSolanaConnection();
+  const mint = new PublicKey(process.env.GROW_TOKEN_MINT);
+  const destinationOwner = new PublicKey(params.walletAddress);
+  const authority = parseMintAuthorityKeypair();
+  const tokenProgram = await getMintProgram(connection, mint);
+  const mintInfo = await getMint(connection, mint, "confirmed", tokenProgram);
+  const amount = Math.max(
+    1,
+    Math.floor(params.amount || Number(process.env.DEVNET_GROW_MINT_AMOUNT || 1000))
+  );
+  const rawAmount = BigInt(amount) * bigintPow10(mintInfo.decimals);
+  const destinationAta = await getAssociatedTokenAddress(
+    mint,
+    destinationOwner,
+    true,
+    tokenProgram
+  );
+  const transaction = new Transaction().add(
+    createAssociatedTokenAccountIdempotentInstruction(
+      authority.publicKey,
+      destinationAta,
+      destinationOwner,
+      mint,
+      tokenProgram
+    ),
+    createMintToCheckedInstruction(
+      mint,
+      destinationAta,
+      authority.publicKey,
+      rawAmount,
+      mintInfo.decimals,
+      [],
+      tokenProgram
+    )
+  );
+
+  const signature = await sendAndConfirmTransaction(
+    connection,
+    transaction,
+    [authority],
+    { commitment: "confirmed" }
+  );
+
+  return {
+    signature,
+    amount,
+    rawAmount: rawAmount.toString(),
+    mint: mint.toBase58(),
+    ata: destinationAta.toBase58(),
+  };
 }

@@ -1,0 +1,6230 @@
+{
+  "address": "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz",
+  "metadata": {
+    "name": "growfi_core",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "GrowFi on-chain core game economy"
+  },
+  "instructions": [
+    {
+      "name": "buy_decoration",
+      "discriminator": [
+        24,
+        119,
+        255,
+        111,
+        250,
+        142,
+        187,
+        156
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "decoration_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  99,
+                  111,
+                  114,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "buyer_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "decoration_id",
+          "type": "u64"
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "buy_listing",
+      "discriminator": [
+        115,
+        149,
+        42,
+        108,
+        44,
+        49,
+        140,
+        153
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.seller",
+                "account": "MarketplaceListing"
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "MarketplaceListing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller_fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.seller",
+                "account": "MarketplaceListing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer_fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "seller"
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "buyer_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "seller_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "buy_seed",
+      "discriminator": [
+        168,
+        73,
+        207,
+        115,
+        151,
+        123,
+        183,
+        193
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "shop_rotation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  111,
+                  112,
+                  95,
+                  114,
+                  111,
+                  116,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "rotation_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "shop_item",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  111,
+                  112,
+                  95,
+                  105,
+                  116,
+                  101,
+                  109
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "rotation_id"
+              },
+              {
+                "kind": "arg",
+                "path": "seed_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "seed_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "shop_purchase",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  111,
+                  112,
+                  95,
+                  112,
+                  117,
+                  114,
+                  99,
+                  104,
+                  97,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              },
+              {
+                "kind": "arg",
+                "path": "rotation_id"
+              },
+              {
+                "kind": "arg",
+                "path": "seed_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "buyer_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "rotation_id",
+          "type": "u64"
+        },
+        {
+          "name": "seed_id",
+          "type": "u64"
+        },
+        {
+          "name": "quantity",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "cancel_listing",
+      "discriminator": [
+        41,
+        183,
+        50,
+        232,
+        230,
+        233,
+        157,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "MarketplaceListing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_trade",
+      "discriminator": [
+        124,
+        66,
+        91,
+        59,
+        175,
+        107,
+        208,
+        120
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "trade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.initiator",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.recipient",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.trade_id",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initiator_fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.initiator",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "recipient_fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.recipient",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_challenge_reward",
+      "discriminator": [
+        78,
+        11,
+        211,
+        227,
+        27,
+        91,
+        119,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenge",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "challenge.creator",
+                "account": "Challenge"
+              },
+              {
+                "kind": "account",
+                "path": "challenge.challenge_id",
+                "account": "Challenge"
+              }
+            ]
+          }
+        },
+        {
+          "name": "progress",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  95,
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  101,
+                  115,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "challenge"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "player_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "complete_trade",
+      "discriminator": [
+        110,
+        126,
+        235,
+        45,
+        59,
+        46,
+        215,
+        13
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "trade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.initiator",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.recipient",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.trade_id",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initiator_fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.initiator",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "recipient_fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.recipient",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initiator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "recipient",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "initiator_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "recipient_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "confirm_trade",
+      "discriminator": [
+        64,
+        163,
+        150,
+        61,
+        125,
+        237,
+        159,
+        121
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "trade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.initiator",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.recipient",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.trade_id",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_challenge",
+      "discriminator": [
+        170,
+        244,
+        47,
+        1,
+        1,
+        15,
+        173,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenge",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "challenge_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "challenge_id",
+          "type": "u64"
+        },
+        {
+          "name": "objective_type",
+          "type": "u8"
+        },
+        {
+          "name": "target",
+          "type": "u64"
+        },
+        {
+          "name": "reward_grow",
+          "type": "u64"
+        },
+        {
+          "name": "starts_at",
+          "type": "i64"
+        },
+        {
+          "name": "ends_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "create_farm",
+      "discriminator": [
+        74,
+        59,
+        128,
+        160,
+        87,
+        174,
+        153,
+        194
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "player"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_initial_plots",
+      "discriminator": [
+        52,
+        52,
+        146,
+        187,
+        192,
+        72,
+        255,
+        38
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "plot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm"
+              },
+              {
+                "kind": "arg",
+                "path": "x"
+              },
+              {
+                "kind": "arg",
+                "path": "y"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "relations": [
+            "farm"
+          ]
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "x",
+          "type": "u16"
+        },
+        {
+          "name": "y",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "create_listing",
+      "discriminator": [
+        18,
+        168,
+        45,
+        24,
+        191,
+        31,
+        117,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              },
+              {
+                "kind": "arg",
+                "path": "listing_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "listing_id",
+          "type": "u64"
+        },
+        {
+          "name": "fruit_id",
+          "type": "u64"
+        },
+        {
+          "name": "mutation",
+          "type": {
+            "defined": {
+              "name": "MutationKind"
+            }
+          }
+        },
+        {
+          "name": "quantity",
+          "type": "u64"
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "create_player",
+      "discriminator": [
+        19,
+        178,
+        189,
+        216,
+        159,
+        134,
+        0,
+        192
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "decoration_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  99,
+                  111,
+                  114,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "discord_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "username_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_seed_catalog",
+      "discriminator": [
+        180,
+        213,
+        35,
+        200,
+        141,
+        38,
+        100,
+        50
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "seed_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "seed_id",
+          "type": "u64"
+        },
+        {
+          "name": "fruit_id",
+          "type": "u64"
+        },
+        {
+          "name": "name_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "rarity",
+          "type": {
+            "defined": {
+              "name": "RarityKind"
+            }
+          }
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "grow_time_seconds",
+          "type": "i64"
+        },
+        {
+          "name": "regrow_time_seconds",
+          "type": "i64"
+        },
+        {
+          "name": "min_yield",
+          "type": "u16"
+        },
+        {
+          "name": "max_yield",
+          "type": "u16"
+        },
+        {
+          "name": "max_harvests",
+          "type": "u16"
+        },
+        {
+          "name": "mutation_chance_bps",
+          "type": "u16"
+        },
+        {
+          "name": "required_garden_level",
+          "type": "u8"
+        },
+        {
+          "name": "base_sell_price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_shop_item",
+      "discriminator": [
+        85,
+        239,
+        80,
+        181,
+        119,
+        142,
+        1,
+        233
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "shop_rotation",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  111,
+                  112,
+                  95,
+                  114,
+                  111,
+                  116,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "rotation_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "seed_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "shop_item",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  111,
+                  112,
+                  95,
+                  105,
+                  116,
+                  101,
+                  109
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "rotation_id"
+              },
+              {
+                "kind": "arg",
+                "path": "seed_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "rotation_id",
+          "type": "u64"
+        },
+        {
+          "name": "seed_id",
+          "type": "u64"
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "stock_total",
+          "type": "u64"
+        },
+        {
+          "name": "max_buy_per_user",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_shop_rotation",
+      "discriminator": [
+        163,
+        126,
+        158,
+        230,
+        123,
+        76,
+        154,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "shop_rotation",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  104,
+                  111,
+                  112,
+                  95,
+                  114,
+                  111,
+                  116,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "rotation_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "rotation_id",
+          "type": "u64"
+        },
+        {
+          "name": "starts_at",
+          "type": "i64"
+        },
+        {
+          "name": "ends_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "create_trade",
+      "discriminator": [
+        183,
+        82,
+        24,
+        245,
+        248,
+        30,
+        204,
+        246
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "trade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "initiator"
+              },
+              {
+                "kind": "account",
+                "path": "recipient"
+              },
+              {
+                "kind": "arg",
+                "path": "trade_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initiator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "trade_id",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "enable_creator",
+      "discriminator": [
+        220,
+        113,
+        204,
+        160,
+        98,
+        225,
+        50,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  97,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "profile_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "harvest_plant",
+      "discriminator": [
+        42,
+        45,
+        9,
+        238,
+        222,
+        229,
+        193,
+        50
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seed_catalog.seed_id",
+                "account": "SeedCatalog"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "plot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm"
+              },
+              {
+                "kind": "account",
+                "path": "plot.x",
+                "account": "Plot"
+              },
+              {
+                "kind": "account",
+                "path": "plot.y",
+                "account": "Plot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_config",
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint"
+        },
+        {
+          "name": "treasury_vault"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "marketplace_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "trade_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "creator_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "burn_fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "join_challenge",
+      "discriminator": [
+        41,
+        104,
+        214,
+        73,
+        32,
+        168,
+        76,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenge",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "challenge.creator",
+                "account": "Challenge"
+              },
+              {
+                "kind": "account",
+                "path": "challenge.challenge_id",
+                "account": "Challenge"
+              }
+            ]
+          }
+        },
+        {
+          "name": "progress",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  95,
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  101,
+                  115,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "challenge"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "like_farm",
+      "discriminator": [
+        140,
+        145,
+        244,
+        148,
+        121,
+        210,
+        197,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm.owner",
+                "account": "Farm"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  97,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm.owner",
+                "account": "Farm"
+              }
+            ]
+          }
+        },
+        {
+          "name": "liker",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "place_decoration",
+      "discriminator": [
+        44,
+        238,
+        101,
+        66,
+        33,
+        183,
+        184,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "decoration_inventory",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  99,
+                  111,
+                  114,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "placement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  99,
+                  111,
+                  114,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm"
+              },
+              {
+                "kind": "arg",
+                "path": "placement_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "placement_id",
+          "type": "u64"
+        },
+        {
+          "name": "decoration_id",
+          "type": "u64"
+        },
+        {
+          "name": "x",
+          "type": "u16"
+        },
+        {
+          "name": "y",
+          "type": "u16"
+        },
+        {
+          "name": "rotation",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "plant_seed",
+      "discriminator": [
+        139,
+        66,
+        41,
+        202,
+        41,
+        145,
+        173,
+        204
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seed_catalog.seed_id",
+                "account": "SeedCatalog"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "plot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm"
+              },
+              {
+                "kind": "account",
+                "path": "plot.x",
+                "account": "Plot"
+              },
+              {
+                "kind": "account",
+                "path": "plot.y",
+                "account": "Plot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "refill_water",
+      "discriminator": [
+        141,
+        108,
+        122,
+        162,
+        218,
+        82,
+        248,
+        75
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "remove_decoration",
+      "discriminator": [
+        192,
+        156,
+        80,
+        154,
+        131,
+        163,
+        153,
+        21
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "placement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  99,
+                  111,
+                  114,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm"
+              },
+              {
+                "kind": "account",
+                "path": "placement.placement_id",
+                "account": "DecorationPlacement"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "sell_fruit_to_system",
+      "discriminator": [
+        53,
+        41,
+        239,
+        236,
+        40,
+        123,
+        150,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seed_catalog.seed_id",
+                "account": "SeedCatalog"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "user_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "mutation",
+          "type": {
+            "defined": {
+              "name": "MutationKind"
+            }
+          }
+        },
+        {
+          "name": "quantity",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_pause",
+      "discriminator": [
+        63,
+        32,
+        154,
+        2,
+        56,
+        103,
+        79,
+        45
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "tip_creator",
+      "discriminator": [
+        48,
+        126,
+        181,
+        9,
+        20,
+        187,
+        187,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  97,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator_owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tipper",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "creator_owner"
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "tipper_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "creator_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_config",
+      "discriminator": [
+        29,
+        158,
+        252,
+        191,
+        10,
+        83,
+        219,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "admin",
+          "type": "pubkey"
+        },
+        {
+          "name": "treasury_vault",
+          "type": "pubkey"
+        },
+        {
+          "name": "marketplace_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "trade_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "creator_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "burn_fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "update_creator_profile_hash",
+      "discriminator": [
+        69,
+        46,
+        69,
+        40,
+        121,
+        43,
+        220,
+        68
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  97,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "profile_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_progress",
+      "discriminator": [
+        135,
+        47,
+        78,
+        113,
+        27,
+        158,
+        21,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenge",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "challenge.creator",
+                "account": "Challenge"
+              },
+              {
+                "kind": "account",
+                "path": "challenge.challenge_id",
+                "account": "Challenge"
+              }
+            ]
+          }
+        },
+        {
+          "name": "progress",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  108,
+                  108,
+                  101,
+                  110,
+                  103,
+                  101,
+                  95,
+                  112,
+                  114,
+                  111,
+                  103,
+                  114,
+                  101,
+                  115,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "challenge"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_seed_catalog",
+      "discriminator": [
+        152,
+        27,
+        242,
+        19,
+        219,
+        139,
+        51,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seed_catalog",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  101,
+                  100,
+                  95,
+                  99,
+                  97,
+                  116,
+                  97,
+                  108,
+                  111,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seed_catalog.seed_id",
+                "account": "SeedCatalog"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "grow_time_seconds",
+          "type": "i64"
+        },
+        {
+          "name": "regrow_time_seconds",
+          "type": "i64"
+        },
+        {
+          "name": "min_yield",
+          "type": "u16"
+        },
+        {
+          "name": "max_yield",
+          "type": "u16"
+        },
+        {
+          "name": "max_harvests",
+          "type": "u16"
+        },
+        {
+          "name": "mutation_chance_bps",
+          "type": "u16"
+        },
+        {
+          "name": "required_garden_level",
+          "type": "u8"
+        },
+        {
+          "name": "base_sell_price",
+          "type": "u64"
+        },
+        {
+          "name": "active",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "update_trade_offer",
+      "discriminator": [
+        160,
+        0,
+        194,
+        40,
+        181,
+        179,
+        220,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "trade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "trade.initiator",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.recipient",
+                "account": "Trade"
+              },
+              {
+                "kind": "account",
+                "path": "trade.trade_id",
+                "account": "Trade"
+              }
+            ]
+          }
+        },
+        {
+          "name": "fruit_inventory",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  114,
+                  117,
+                  105,
+                  116,
+                  95,
+                  105,
+                  110,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "grow_amount",
+          "type": "u64"
+        },
+        {
+          "name": "items",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "TradeItem"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "upgrade_farm",
+      "discriminator": [
+        110,
+        239,
+        193,
+        1,
+        165,
+        101,
+        54,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "grow_mint",
+          "writable": true
+        },
+        {
+          "name": "user_grow_ata",
+          "writable": true
+        },
+        {
+          "name": "treasury_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "water_plant",
+      "discriminator": [
+        18,
+        60,
+        106,
+        105,
+        240,
+        199,
+        162,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "farm",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  114,
+                  109
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "plot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "farm"
+              },
+              {
+                "kind": "account",
+                "path": "plot.x",
+                "account": "Plot"
+              },
+              {
+                "kind": "account",
+                "path": "plot.y",
+                "account": "Plot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Challenge",
+      "discriminator": [
+        119,
+        250,
+        161,
+        121,
+        119,
+        81,
+        22,
+        208
+      ]
+    },
+    {
+      "name": "ChallengeProgress",
+      "discriminator": [
+        210,
+        58,
+        32,
+        189,
+        232,
+        251,
+        233,
+        153
+      ]
+    },
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "CreatorProfile",
+      "discriminator": [
+        251,
+        250,
+        184,
+        111,
+        214,
+        178,
+        32,
+        221
+      ]
+    },
+    {
+      "name": "DecorationInventory",
+      "discriminator": [
+        28,
+        156,
+        213,
+        94,
+        240,
+        56,
+        248,
+        58
+      ]
+    },
+    {
+      "name": "DecorationPlacement",
+      "discriminator": [
+        110,
+        17,
+        81,
+        55,
+        118,
+        78,
+        60,
+        146
+      ]
+    },
+    {
+      "name": "Farm",
+      "discriminator": [
+        161,
+        156,
+        211,
+        253,
+        250,
+        64,
+        53,
+        250
+      ]
+    },
+    {
+      "name": "FruitInventory",
+      "discriminator": [
+        33,
+        249,
+        43,
+        251,
+        24,
+        150,
+        111,
+        121
+      ]
+    },
+    {
+      "name": "MarketplaceListing",
+      "discriminator": [
+        211,
+        106,
+        229,
+        109,
+        73,
+        75,
+        97,
+        122
+      ]
+    },
+    {
+      "name": "Player",
+      "discriminator": [
+        205,
+        222,
+        112,
+        7,
+        165,
+        155,
+        206,
+        218
+      ]
+    },
+    {
+      "name": "Plot",
+      "discriminator": [
+        83,
+        82,
+        6,
+        254,
+        46,
+        4,
+        206,
+        230
+      ]
+    },
+    {
+      "name": "SeedCatalog",
+      "discriminator": [
+        148,
+        191,
+        181,
+        233,
+        74,
+        207,
+        122,
+        103
+      ]
+    },
+    {
+      "name": "SeedInventory",
+      "discriminator": [
+        72,
+        134,
+        181,
+        148,
+        122,
+        47,
+        85,
+        242
+      ]
+    },
+    {
+      "name": "ShopItem",
+      "discriminator": [
+        252,
+        183,
+        166,
+        160,
+        217,
+        170,
+        182,
+        16
+      ]
+    },
+    {
+      "name": "ShopPurchase",
+      "discriminator": [
+        42,
+        227,
+        66,
+        40,
+        3,
+        37,
+        99,
+        157
+      ]
+    },
+    {
+      "name": "ShopRotation",
+      "discriminator": [
+        158,
+        49,
+        16,
+        74,
+        121,
+        234,
+        31,
+        0
+      ]
+    },
+    {
+      "name": "Trade",
+      "discriminator": [
+        132,
+        139,
+        123,
+        31,
+        157,
+        196,
+        244,
+        190
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ChallengeJoinedEvent",
+      "discriminator": [
+        99,
+        82,
+        213,
+        109,
+        50,
+        225,
+        84,
+        184
+      ]
+    },
+    {
+      "name": "ChallengeRewardClaimedEvent",
+      "discriminator": [
+        99,
+        126,
+        52,
+        26,
+        49,
+        71,
+        155,
+        19
+      ]
+    },
+    {
+      "name": "ConfigUpdatedEvent",
+      "discriminator": [
+        245,
+        158,
+        129,
+        99,
+        60,
+        100,
+        214,
+        220
+      ]
+    },
+    {
+      "name": "CreatorEnabledEvent",
+      "discriminator": [
+        98,
+        139,
+        164,
+        86,
+        81,
+        208,
+        53,
+        103
+      ]
+    },
+    {
+      "name": "CreatorTippedEvent",
+      "discriminator": [
+        0,
+        44,
+        166,
+        73,
+        24,
+        206,
+        140,
+        52
+      ]
+    },
+    {
+      "name": "DecorationBoughtEvent",
+      "discriminator": [
+        110,
+        192,
+        194,
+        245,
+        63,
+        64,
+        204,
+        162
+      ]
+    },
+    {
+      "name": "DecorationPlacedEvent",
+      "discriminator": [
+        212,
+        67,
+        94,
+        173,
+        143,
+        61,
+        228,
+        218
+      ]
+    },
+    {
+      "name": "FarmCreatedEvent",
+      "discriminator": [
+        3,
+        239,
+        91,
+        239,
+        46,
+        105,
+        45,
+        172
+      ]
+    },
+    {
+      "name": "FarmUpgradedEvent",
+      "discriminator": [
+        189,
+        131,
+        34,
+        81,
+        31,
+        133,
+        66,
+        229
+      ]
+    },
+    {
+      "name": "FruitSoldEvent",
+      "discriminator": [
+        150,
+        28,
+        135,
+        41,
+        11,
+        221,
+        143,
+        11
+      ]
+    },
+    {
+      "name": "HarvestEvent",
+      "discriminator": [
+        33,
+        112,
+        85,
+        175,
+        175,
+        39,
+        21,
+        88
+      ]
+    },
+    {
+      "name": "ListingBoughtEvent",
+      "discriminator": [
+        228,
+        106,
+        175,
+        179,
+        178,
+        114,
+        190,
+        158
+      ]
+    },
+    {
+      "name": "ListingCancelledEvent",
+      "discriminator": [
+        203,
+        204,
+        24,
+        205,
+        33,
+        24,
+        151,
+        195
+      ]
+    },
+    {
+      "name": "ListingCreatedEvent",
+      "discriminator": [
+        73,
+        147,
+        169,
+        146,
+        121,
+        205,
+        118,
+        3
+      ]
+    },
+    {
+      "name": "ListingStatusChangedEvent",
+      "discriminator": [
+        115,
+        239,
+        130,
+        3,
+        136,
+        233,
+        39,
+        41
+      ]
+    },
+    {
+      "name": "PlantWateredEvent",
+      "discriminator": [
+        69,
+        42,
+        44,
+        195,
+        116,
+        72,
+        225,
+        152
+      ]
+    },
+    {
+      "name": "PlayerCreatedEvent",
+      "discriminator": [
+        156,
+        8,
+        73,
+        44,
+        121,
+        161,
+        177,
+        223
+      ]
+    },
+    {
+      "name": "SeedBoughtEvent",
+      "discriminator": [
+        66,
+        6,
+        228,
+        122,
+        205,
+        123,
+        242,
+        68
+      ]
+    },
+    {
+      "name": "SeedPlantedEvent",
+      "discriminator": [
+        227,
+        19,
+        171,
+        69,
+        83,
+        36,
+        132,
+        186
+      ]
+    },
+    {
+      "name": "TradeCompletedEvent",
+      "discriminator": [
+        119,
+        244,
+        1,
+        176,
+        116,
+        180,
+        141,
+        76
+      ]
+    },
+    {
+      "name": "TradeCreatedEvent",
+      "discriminator": [
+        36,
+        143,
+        131,
+        237,
+        166,
+        44,
+        137,
+        206
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "GamePaused",
+      "msg": "The game is paused."
+    },
+    {
+      "code": 6001,
+      "name": "Unauthorized",
+      "msg": "The signer is not authorized for this action."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMint",
+      "msg": "The supplied token mint is not the configured $GROW mint."
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientBalance",
+      "msg": "Insufficient $GROW balance."
+    },
+    {
+      "code": 6004,
+      "name": "InsufficientSeed",
+      "msg": "Insufficient seed balance."
+    },
+    {
+      "code": 6005,
+      "name": "InsufficientFruit",
+      "msg": "Insufficient fruit balance."
+    },
+    {
+      "code": 6006,
+      "name": "FruitLocked",
+      "msg": "Fruit quantity is locked."
+    },
+    {
+      "code": 6007,
+      "name": "PlotNotEmpty",
+      "msg": "The plot is not empty."
+    },
+    {
+      "code": 6008,
+      "name": "PlotEmpty",
+      "msg": "The plot has no active plant."
+    },
+    {
+      "code": 6009,
+      "name": "PlantNotReady",
+      "msg": "The plant is not ready."
+    },
+    {
+      "code": 6010,
+      "name": "GardenLevelTooLow",
+      "msg": "Garden level is too low."
+    },
+    {
+      "code": 6011,
+      "name": "InsufficientStamina",
+      "msg": "Insufficient stamina."
+    },
+    {
+      "code": 6012,
+      "name": "InsufficientWater",
+      "msg": "Insufficient water charges."
+    },
+    {
+      "code": 6013,
+      "name": "ShopExpired",
+      "msg": "The shop rotation is expired or not active."
+    },
+    {
+      "code": 6014,
+      "name": "ShopOutOfStock",
+      "msg": "The shop item is out of stock."
+    },
+    {
+      "code": 6015,
+      "name": "MaxBuyReached",
+      "msg": "The per-user buy limit has been reached."
+    },
+    {
+      "code": 6016,
+      "name": "ListingInactive",
+      "msg": "The listing is not active."
+    },
+    {
+      "code": 6017,
+      "name": "ListingExpired",
+      "msg": "The listing has expired."
+    },
+    {
+      "code": 6018,
+      "name": "TradeExpired",
+      "msg": "The trade has expired."
+    },
+    {
+      "code": 6019,
+      "name": "TradeNotConfirmed",
+      "msg": "The trade is not confirmed by both users."
+    },
+    {
+      "code": 6020,
+      "name": "InvalidTradeState",
+      "msg": "Invalid trade state."
+    },
+    {
+      "code": 6021,
+      "name": "AlreadyClaimed",
+      "msg": "This reward or action has already been claimed."
+    },
+    {
+      "code": 6022,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount."
+    },
+    {
+      "code": 6023,
+      "name": "MathOverflow",
+      "msg": "Math overflow."
+    },
+    {
+      "code": 6024,
+      "name": "InventoryFull",
+      "msg": "Inventory vector is full."
+    },
+    {
+      "code": 6025,
+      "name": "InvalidAccountState",
+      "msg": "Invalid account state."
+    }
+  ],
+  "types": [
+    {
+      "name": "Challenge",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "objective_type",
+            "type": "u8"
+          },
+          {
+            "name": "target",
+            "type": "u64"
+          },
+          {
+            "name": "reward_grow",
+            "type": "u64"
+          },
+          {
+            "name": "starts_at",
+            "type": "i64"
+          },
+          {
+            "name": "ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChallengeJoinedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge",
+            "type": "pubkey"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChallengeProgress",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge",
+            "type": "pubkey"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "progress",
+            "type": "u64"
+          },
+          {
+            "name": "joined_at",
+            "type": "i64"
+          },
+          {
+            "name": "claimed",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChallengeRewardClaimedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "challenge",
+            "type": "pubkey"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "reward_grow",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "grow_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "marketplace_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "trade_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "creator_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "burn_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfigUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "grow_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreatorEnabledEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreatorProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "profile_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "total_visits",
+            "type": "u64"
+          },
+          {
+            "name": "total_likes",
+            "type": "u64"
+          },
+          {
+            "name": "total_earnings",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreatorTippedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tipper",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DecorationBoughtEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "decoration_id",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DecorationInventory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "balances",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ItemBalance"
+                }
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DecorationPlacedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "farm",
+            "type": "pubkey"
+          },
+          {
+            "name": "placement_id",
+            "type": "u64"
+          },
+          {
+            "name": "decoration_id",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DecorationPlacement",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "farm",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "placement_id",
+            "type": "u64"
+          },
+          {
+            "name": "decoration_id",
+            "type": "u64"
+          },
+          {
+            "name": "x",
+            "type": "u16"
+          },
+          {
+            "name": "y",
+            "type": "u16"
+          },
+          {
+            "name": "rotation",
+            "type": "u16"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Farm",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "level",
+            "type": "u8"
+          },
+          {
+            "name": "width",
+            "type": "u8"
+          },
+          {
+            "name": "height",
+            "type": "u8"
+          },
+          {
+            "name": "plot_count",
+            "type": "u16"
+          },
+          {
+            "name": "total_visits",
+            "type": "u64"
+          },
+          {
+            "name": "total_likes",
+            "type": "u64"
+          },
+          {
+            "name": "is_public",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FarmCreatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "farm",
+            "type": "pubkey"
+          },
+          {
+            "name": "width",
+            "type": "u8"
+          },
+          {
+            "name": "height",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FarmUpgradedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "level",
+            "type": "u8"
+          },
+          {
+            "name": "width",
+            "type": "u8"
+          },
+          {
+            "name": "height",
+            "type": "u8"
+          },
+          {
+            "name": "cost",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FruitBalance",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "locked_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FruitInventory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "balances",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "FruitBalance"
+                }
+              }
+            }
+          },
+          {
+            "name": "daily_sold_at",
+            "type": "i64"
+          },
+          {
+            "name": "daily_sold_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FruitSoldEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "quantity",
+            "type": "u64"
+          },
+          {
+            "name": "payout",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "HarvestEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "plot",
+            "type": "pubkey"
+          },
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "quantity",
+            "type": "u64"
+          },
+          {
+            "name": "harvest_count",
+            "type": "u16"
+          },
+          {
+            "name": "plant_spent",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ItemBalance",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "item_id",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingBoughtEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingCancelledEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingCreatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "quantity",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Sold"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Expired"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingStatusChangedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "listing",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ListingStatus"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketplaceListing",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "listing_id",
+            "type": "u64"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "quantity",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ListingStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MutationKind",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Normal"
+          },
+          {
+            "name": "Big"
+          },
+          {
+            "name": "Sweet"
+          },
+          {
+            "name": "Golden"
+          },
+          {
+            "name": "Crystal"
+          },
+          {
+            "name": "Rainbow"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlantWateredEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "plot",
+            "type": "pubkey"
+          },
+          {
+            "name": "water_level",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Player",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "discord_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "username_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "farm",
+            "type": "pubkey"
+          },
+          {
+            "name": "garden_level",
+            "type": "u8"
+          },
+          {
+            "name": "stamina",
+            "type": "u16"
+          },
+          {
+            "name": "max_stamina",
+            "type": "u16"
+          },
+          {
+            "name": "water_charges",
+            "type": "u16"
+          },
+          {
+            "name": "max_water_charges",
+            "type": "u16"
+          },
+          {
+            "name": "last_stamina_update",
+            "type": "i64"
+          },
+          {
+            "name": "total_harvests",
+            "type": "u64"
+          },
+          {
+            "name": "total_trades",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerCreatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Plot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "farm",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "x",
+            "type": "u16"
+          },
+          {
+            "name": "y",
+            "type": "u16"
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": {
+                "name": "PlotState"
+              }
+            }
+          },
+          {
+            "name": "seed_id",
+            "type": "u64"
+          },
+          {
+            "name": "planted_at",
+            "type": "i64"
+          },
+          {
+            "name": "grow_complete_at",
+            "type": "i64"
+          },
+          {
+            "name": "next_harvest_at",
+            "type": "i64"
+          },
+          {
+            "name": "harvest_count",
+            "type": "u16"
+          },
+          {
+            "name": "max_harvests",
+            "type": "u16"
+          },
+          {
+            "name": "water_level",
+            "type": "u8"
+          },
+          {
+            "name": "health",
+            "type": "u8"
+          },
+          {
+            "name": "permanent_mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlotState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Empty"
+          },
+          {
+            "name": "Growing"
+          },
+          {
+            "name": "Ready"
+          },
+          {
+            "name": "Regrowing"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "Withered"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RarityKind",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Common"
+          },
+          {
+            "name": "Uncommon"
+          },
+          {
+            "name": "Rare"
+          },
+          {
+            "name": "Epic"
+          },
+          {
+            "name": "Legendary"
+          },
+          {
+            "name": "Mythic"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeedBoughtEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "seed_id",
+            "type": "u64"
+          },
+          {
+            "name": "quantity",
+            "type": "u64"
+          },
+          {
+            "name": "total_price",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeedCatalog",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seed_id",
+            "type": "u64"
+          },
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "name_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "rarity",
+            "type": {
+              "defined": {
+                "name": "RarityKind"
+              }
+            }
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "grow_time_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "regrow_time_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "min_yield",
+            "type": "u16"
+          },
+          {
+            "name": "max_yield",
+            "type": "u16"
+          },
+          {
+            "name": "max_harvests",
+            "type": "u16"
+          },
+          {
+            "name": "mutation_chance_bps",
+            "type": "u16"
+          },
+          {
+            "name": "required_garden_level",
+            "type": "u8"
+          },
+          {
+            "name": "base_sell_price",
+            "type": "u64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeedInventory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "balances",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ItemBalance"
+                }
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeedPlantedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "plot",
+            "type": "pubkey"
+          },
+          {
+            "name": "seed_id",
+            "type": "u64"
+          },
+          {
+            "name": "grow_complete_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ShopItem",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "rotation_id",
+            "type": "u64"
+          },
+          {
+            "name": "seed_id",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "stock_total",
+            "type": "u64"
+          },
+          {
+            "name": "stock_remaining",
+            "type": "u64"
+          },
+          {
+            "name": "max_buy_per_user",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ShopPurchase",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "rotation_id",
+            "type": "u64"
+          },
+          {
+            "name": "seed_id",
+            "type": "u64"
+          },
+          {
+            "name": "amount_bought",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ShopRotation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "rotation_id",
+            "type": "u64"
+          },
+          {
+            "name": "starts_at",
+            "type": "i64"
+          },
+          {
+            "name": "ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Trade",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "trade_id",
+            "type": "u64"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "TradeStatus"
+              }
+            }
+          },
+          {
+            "name": "initiator_confirmed",
+            "type": "bool"
+          },
+          {
+            "name": "recipient_confirmed",
+            "type": "bool"
+          },
+          {
+            "name": "initiator_grow_amount",
+            "type": "u64"
+          },
+          {
+            "name": "recipient_grow_amount",
+            "type": "u64"
+          },
+          {
+            "name": "initiator_items",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "TradeItem"
+                }
+              }
+            }
+          },
+          {
+            "name": "recipient_items",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "TradeItem"
+                }
+              }
+            }
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeCompletedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "trade",
+            "type": "pubkey"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "TradeStatus"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeCreatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "trade",
+            "type": "pubkey"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeItem",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fruit_id",
+            "type": "u64"
+          },
+          {
+            "name": "mutation",
+            "type": {
+              "defined": {
+                "name": "MutationKind"
+              }
+            }
+          },
+          {
+            "name": "quantity",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "Completed"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Expired"
+          }
+        ]
+      }
+    }
+  ]
+}

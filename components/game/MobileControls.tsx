@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react";
-import { memo, useRef, useState } from "react";
-import { Backpack, Hand, Handshake, Map, ShoppingBasket, Sprout, Store, Wallet } from "lucide-react";
+import { memo, useEffect, useRef } from "react";
+import { Backpack, Hand, Handshake, HelpCircle, Map, ShoppingBasket, Sprout, Store, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gameEventBus, type GameOverlayKey } from "@/lib/game/eventBus";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,26 @@ function QuickButton({
 
 export const MobileControls = memo(function MobileControls() {
   const padRef = useRef<HTMLDivElement | null>(null);
-  const [thumb, setThumb] = useState({ x: 0, y: 0, active: false });
+  const thumbRef = useRef<HTMLSpanElement | null>(null);
+  const activeRef = useRef(false);
+  const frameRef = useRef<number | null>(null);
+
+  const moveThumb = (x: number, y: number, active: boolean) => {
+    const thumb = thumbRef.current;
+    if (!thumb) {
+      return;
+    }
+
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+    }
+
+    frameRef.current = requestAnimationFrame(() => {
+      thumb.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+      thumb.dataset.active = active ? "true" : "false";
+      frameRef.current = null;
+    });
+  };
 
   const updateVector = (clientX: number, clientY: number) => {
     const rect = padRef.current?.getBoundingClientRect();
@@ -46,36 +65,48 @@ export const MobileControls = memo(function MobileControls() {
     const angle = Math.atan2(dy, dx);
     const x = Math.cos(angle) * distance;
     const y = Math.sin(angle) * distance;
-    setThumb({ x, y, active: true });
+    activeRef.current = true;
+    moveThumb(x, y, true);
     gameEventBus.emit("joystickMove", { x: x / 38, y: y / 38 });
   };
 
   const end = () => {
-    setThumb({ x: 0, y: 0, active: false });
+    activeRef.current = false;
+    moveThumb(0, 0, false);
     gameEventBus.emit("joystickEnd");
   };
 
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+      gameEventBus.emit("joystickEnd");
+    };
+  }, []);
+
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-6 gap-2 px-3 pb-3">
+      <div className="mx-auto grid max-w-xl grid-cols-7 gap-2 px-3 pb-3">
         <QuickButton icon={Backpack} label="Bag" overlay="inventory" />
         <QuickButton icon={ShoppingBasket} label="Shop" overlay="seedShop" />
         <QuickButton icon={Store} label="Market" overlay="marketplace" />
         <QuickButton icon={Wallet} label="Wallet" overlay="wallet" />
         <QuickButton icon={Handshake} label="Trade" overlay="trade" />
         <QuickButton icon={Sprout} label="Farm" overlay="farmUpgrade" />
+        <QuickButton icon={HelpCircle} label="Help" overlay="tutorial" />
       </div>
 
       <div className="pointer-events-none absolute bottom-24 left-5">
         <div
           ref={padRef}
-          className="pointer-events-auto relative h-28 w-28 rounded-full border border-white/60 bg-white/35 shadow-sm backdrop-blur"
+          className="pointer-events-auto relative h-28 w-28 touch-none rounded-full border border-white/60 bg-white/35 shadow-sm backdrop-blur"
           onPointerDown={(event) => {
             event.currentTarget.setPointerCapture(event.pointerId);
             updateVector(event.clientX, event.clientY);
           }}
           onPointerMove={(event) => {
-            if (thumb.active) {
+            if (activeRef.current) {
               updateVector(event.clientX, event.clientY);
             }
           }}
@@ -83,11 +114,12 @@ export const MobileControls = memo(function MobileControls() {
           onPointerCancel={end}
         >
           <span
+            ref={thumbRef}
+            data-active="false"
             className={cn(
-              "absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary text-primary-foreground shadow",
-              thumb.active && "bg-primary/90"
+              "absolute left-1/2 top-1/2 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow transition-colors data-[active=true]:bg-primary/90"
             )}
-            style={{ transform: `translate(calc(-50% + ${thumb.x}px), calc(-50% + ${thumb.y}px))` }}
+            style={{ transform: "translate(-50%, -50%)" }}
           >
             <Map className="h-5 w-5" />
           </span>

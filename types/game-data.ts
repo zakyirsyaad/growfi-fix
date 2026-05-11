@@ -68,6 +68,9 @@ export type GardenResponse = {
     totalTrades?: number;
     marketplaceSales?: number;
     walletAddress?: string | null;
+    tutorialCompletedAt?: string | null;
+    tutorialSkippedAt?: string | null;
+    tutorialRewardedAt?: string | null;
   };
   garden: {
     id: string;
@@ -91,12 +94,63 @@ export type GardenResponse = {
     cost?: number;
     maxLevel: number;
   };
+  progression?: {
+    currentGardenLevel: number;
+    farmSize: string;
+    nextFarmUpgradeCost: number | null;
+    seedsUnlockedCurrentLevel: string[];
+    seedsUnlockedNextLevel: string[];
+    totalPlots: number;
+    activePlants: number;
+    readyToHarvestCount: number;
+    dailyQuestProgress: {
+      completed: number;
+      claimed: number;
+      total: number;
+      progress: number;
+      target: number;
+    };
+    suggestedNextAction: string;
+  };
   seeds: Array<{
     id: string;
     seedId: string;
     quantity: number;
     seed: SeedView;
   }>;
+  dailyQuests?: Array<{
+    id: string;
+    questKey: string;
+    title: string;
+    description: string;
+    action: string;
+    progress: number;
+    target: number;
+    rewardGrow: number;
+    completed: boolean;
+    claimed: boolean;
+    expiresAt: string;
+  }>;
+  tutorial?: {
+    steps: Array<{
+      id: string;
+      stepKey: string;
+      title: string;
+      description: string;
+      action: string;
+      progress: number;
+      target: number;
+      completed: boolean;
+      completedAt?: string | null;
+    }>;
+    completed: boolean;
+    skipped: boolean;
+    rewarded: boolean;
+    reward: {
+      grow: number;
+      starterSeeds: Array<{ seedSlug: string; quantity: number }>;
+    };
+  };
 };
 
 export type InventoryResponse = {

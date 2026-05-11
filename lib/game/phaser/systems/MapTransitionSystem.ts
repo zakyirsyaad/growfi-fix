@@ -1,4 +1,5 @@
 import * as Phaser from "phaser";
+import { gameEventBus } from "@/lib/game/eventBus";
 
 type TransitionZone = {
   id: string;
@@ -9,14 +10,29 @@ type TransitionZone = {
 export class MapTransitionSystem {
   private zones: TransitionZone[] = [];
   private cooldownUntil = 0;
+  private inputLocks = new Set<string>();
+  private cleanup: Array<() => void> = [];
 
-  constructor(private scene: Phaser.Scene, private player: Phaser.GameObjects.GameObject) {}
+  constructor(private scene: Phaser.Scene, private player: Phaser.GameObjects.GameObject) {
+    this.cleanup.push(
+      gameEventBus.on("gameInputLockChanged", ({ source, locked }) => {
+        if (locked) {
+          this.inputLocks.add(source);
+        } else {
+          this.inputLocks.delete(source);
+        }
+      })
+    );
+  }
 
   add(zone: TransitionZone) {
     this.zones.push(zone);
   }
 
   update() {
+    if (this.inputLocks.size > 0) {
+      return;
+    }
     if (this.scene.time.now < this.cooldownUntil) {
       return;
     }
@@ -27,5 +43,11 @@ export class MapTransitionSystem {
       this.cooldownUntil = this.scene.time.now + 900;
       zone.onEnter();
     }
+  }
+
+  destroy() {
+    this.cleanup.forEach((fn) => fn());
+    this.cleanup = [];
+    this.zones = [];
   }
 }

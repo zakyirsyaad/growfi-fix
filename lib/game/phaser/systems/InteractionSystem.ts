@@ -28,6 +28,7 @@ export class InteractionSystem {
   private key?: Phaser.Input.Keyboard.Key;
   private spaceKey?: Phaser.Input.Keyboard.Key;
   private cycleKey?: Phaser.Input.Keyboard.Key;
+  private inputLocks = new Set<string>();
   private destroyed = false;
   private cleanup: Array<() => void> = [];
   private onInteractKey = () => this.activate();
@@ -57,7 +58,17 @@ export class InteractionSystem {
     this.key?.on("down", this.onInteractKey);
     this.spaceKey?.on("down", this.onInteractKey);
     this.cycleKey?.on("down", this.onCycleKey);
-    this.cleanup.push(gameEventBus.on("interact", () => this.activate()));
+    this.cleanup.push(
+      gameEventBus.on("interact", () => this.activate()),
+      gameEventBus.on("gameInputLockChanged", ({ source, locked }) => {
+        if (locked) {
+          this.inputLocks.add(source);
+          this.setActive(null);
+        } else {
+          this.inputLocks.delete(source);
+        }
+      })
+    );
   }
 
   setPlayer(player: Player) {
@@ -145,6 +156,12 @@ export class InteractionSystem {
   }
 
   update() {
+    if (this.inputLocks.size > 0) {
+      this.setActive(null);
+      this.text.setVisible(false);
+      return;
+    }
+
     const now = this.scene.time.now;
     if (now >= this.nextCheckAt) {
       this.nextCheckAt = now + INTERACTION_CHECK_INTERVAL_MS;
@@ -159,7 +176,7 @@ export class InteractionSystem {
   }
 
   activate() {
-    if (!this.active) {
+    if (this.inputLocks.size > 0 || !this.active) {
       return;
     }
 
@@ -218,6 +235,11 @@ export class InteractionSystem {
   }
 
   private checkProximity(now: number) {
+    if (this.inputLocks.size > 0) {
+      this.setActive(null);
+      return;
+    }
+
     if (this.cacheDirty) {
       this.interactableCache = [
         ...this.staticInteractables.values(),

@@ -6,7 +6,7 @@ export default function WalletPage() {
     <AuthGate>
       <div className="space-y-5">
         <div>
-          <p className="text-sm font-semibold text-muted-foreground">$GROW bridge</p>
+          <p className="text-sm font-semibold text-muted-foreground">Devnet wallet</p>
           <h1 className="text-3xl font-black text-leaf-950">Wallet</h1>
         </div>
         <WalletDashboard />

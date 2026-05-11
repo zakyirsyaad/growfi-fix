@@ -6,6 +6,7 @@ import {
   Droplets,
   Hand,
   Handshake,
+  HelpCircle,
   Home,
   MapPin,
   Menu,
@@ -27,10 +28,16 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ProgressionPanel } from "@/components/game/ProgressionPanel";
 import { BalanceCard } from "@/components/game/shared/BalanceCard";
 import { CountdownBadge } from "@/components/game/shared/CountdownBadge";
 import { StaminaBar } from "@/components/game/shared/StaminaBar";
 import { gameEventBus, type GameArea, type GameOverlayKey } from "@/lib/game/eventBus";
+import {
+  clientGrowMintFromConfig,
+  useWalletBalances,
+} from "@/lib/solana/useWalletBalances";
+import { useGrowfiOnchainState } from "@/lib/solana/useGrowfiProgram";
 import type { GardenResponse } from "@/types/game-data";
 
 const quickActions: Array<{ overlay: GameOverlayKey; label: string; icon: typeof Backpack }> = [
@@ -48,15 +55,22 @@ export const GameHUD = memo(function GameHUD({
   area,
   shopEndsAt,
   ownerName,
-  visitorMode
+  visitorMode,
+  onlineCount
 }: {
   garden?: GardenResponse;
   area: GameArea;
   shopEndsAt?: string;
   ownerName?: string;
   visitorMode?: boolean;
+  onlineCount?: number;
 }) {
   const user = garden?.user;
+  const onchain = useGrowfiOnchainState();
+  const balances = useWalletBalances({
+    mintAddress: clientGrowMintFromConfig(onchain.data?.config),
+  });
+  const walletGrowBalance = balances.data?.grow?.balance;
 
   return (
     <TooltipProvider>
@@ -79,12 +93,19 @@ export const GameHUD = memo(function GameHUD({
                       {visitorMode && ownerName ? ownerName : area}
                     </Badge>
                     {visitorMode ? <Badge variant="secondary">read-only visit</Badge> : null}
+                    <Badge variant="outline" className="gap-1 bg-white/75">
+                      <Users className="h-3.5 w-3.5" />
+                      Online in area: {onlineCount ?? 1}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-2 md:grid-cols-[150px_220px]">
-              <BalanceCard balance={user?.availableGrow ?? 0} locked={user?.lockedGrowBalance} />
+              <BalanceCard
+                balance={walletGrowBalance ?? user?.availableGrow ?? 0}
+                locked={undefined}
+              />
               <Card className="bg-white/88">
                 <CardContent className="space-y-2 p-3">
                   <StaminaBar stamina={user?.stamina ?? 0} maxStamina={user?.maxStamina ?? 100} />
@@ -98,6 +119,36 @@ export const GameHUD = memo(function GameHUD({
                 </CardContent>
               </Card>
             </div>
+            <div className="hidden md:block">
+              <ProgressionPanel garden={garden} compact />
+            </div>
+            {visitorMode ? (
+              <Card className="bg-white/90 shadow-sm backdrop-blur">
+                <CardContent className="space-y-2 p-3">
+                  <div className="text-sm font-black">
+                    Viewing {ownerName || "another farmer"}&apos;s Farm
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => gameEventBus.emit("returnHome")}
+                    >
+                      <Home className="h-4 w-4" />
+                      Back to My Farm
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => gameEventBus.emit("goTown")}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      Go to Town
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
 
           <div className="pointer-events-auto hidden items-center gap-2 md:flex">
@@ -130,13 +181,21 @@ export const GameHUD = memo(function GameHUD({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "tutorial" })}>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Tutorial
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "questBoard" })}>
+                  <Sprout className="mr-2 h-4 w-4" />
+                  Daily Quests
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "profile" })}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "activityLog" })}>
                   <Home className="mr-2 h-4 w-4" />
-                  Activity Log
+                  Mailbox & Activity
                 </DropdownMenuItem>
                 {visitorMode ? (
                   <DropdownMenuItem onClick={() => gameEventBus.emit("returnHome")}>

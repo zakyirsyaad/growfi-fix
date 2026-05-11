@@ -1,13 +1,9 @@
 import {
   ActivityType,
-  ListingStatus,
-  Mutation,
-  OfferItemType,
   PlantState,
   PlotState,
   Prisma,
   Rarity,
-  RotationStatus,
   TradeStatus,
   TransactionStatus,
   TransactionType
@@ -19,13 +15,24 @@ import {
   type DailyQuestAction,
   DAILY_SYSTEM_SELL_CAP,
   GARDEN_EXPANSIONS,
+  HARVEST_HEALTH_GAIN,
   MARKETPLACE_FEE_BPS,
+  MARKETPLACE_LISTING_DURATION_SECONDS,
   MAX_WATER_LEVEL,
+  SHOP_PRICE_JITTER_MAX_PERCENT,
+  SHOP_PRICE_JITTER_MIN_PERCENT,
   SHOP_RARITY_WEIGHTS,
   SHOP_REFRESH_SECONDS,
+  SHOP_STOCK_BY_RARITY,
+  TUTORIAL_REWARDS,
+  TUTORIAL_STEP_DEFINITIONS,
+  type TutorialAction,
   TRADE_EXPIRY_SECONDS,
   WATER_COOLDOWN_SECONDS,
-  WATER_GROWTH_BOOST_SECONDS
+  WATER_GROWTH_BOOST_SECONDS,
+  WATER_HEALTH_GAIN,
+  WATER_MAX_GROWTH_BOOST_RATIO,
+  WATER_MIN_REMAINING_SECONDS_AFTER_BOOST
 } from "@/lib/game/constants";
 import { assertGame, GameError } from "@/lib/game/errors";
 import { calculateFruitSellPrice, rollInteger, rollMutation } from "@/lib/game/mutation";
@@ -33,6 +40,11 @@ import { calculateStamina, consumeStamina, lockUser, refreshStamina } from "@/li
 import { sendGrowWithdrawal, verifyGrowDeposit } from "@/lib/solana/token";
 
 type Tx = Prisma.TransactionClient;
+
+const GARDEN_STATE_TRANSACTION_OPTIONS = {
+  maxWait: 10_000,
+  timeout: 15_000
+};
 
 const publicUserSelect = {
   id: true,
@@ -50,6 +62,9 @@ const publicUserSelect = {
   totalHarvests: true,
   totalTrades: true,
   marketplaceSales: true,
+  tutorialCompletedAt: true,
+  tutorialSkippedAt: true,
+  tutorialRewardedAt: true,
   createdAt: true,
   updatedAt: true
 } satisfies Prisma.UserSelect;
@@ -132,24 +147,28 @@ function startOfQuestDay(date = new Date()) {
   return day;
 }
 
+function endOfQuestDay(date = new Date()) {
+  const day = startOfQuestDay(date);
+  day.setDate(day.getDate() + 1);
+  return day;
+}
+
 async function ensureDailyQuestProgressTx(tx: Tx, userId: string, questDate = startOfQuestDay()) {
+  await tx.dailyQuestProgress.createMany({
+    data: DAILY_QUEST_DEFINITIONS.map((quest) => ({
+      userId,
+      questKey: quest.key,
+      questDate,
+      target: quest.target,
+      rewardGrow: quest.rewardGrow
+    })),
+    skipDuplicates: true
+  });
+
   for (const quest of DAILY_QUEST_DEFINITIONS) {
-    await tx.dailyQuestProgress.upsert({
-      where: {
-        userId_questKey_questDate: {
-          userId,
-          questKey: quest.key,
-          questDate
-        }
-      },
-      create: {
-        userId,
-        questKey: quest.key,
-        questDate,
-        target: quest.target,
-        rewardGrow: quest.rewardGrow
-      },
-      update: {
+    await tx.dailyQuestProgress.updateMany({
+      where: { userId, questKey: quest.key, questDate },
+      data: {
         target: quest.target,
         rewardGrow: quest.rewardGrow
       }
@@ -169,9 +188,11 @@ async function ensureDailyQuestProgressTx(tx: Tx, userId: string, questDate = st
     return {
       ...item,
       title: definition?.title || item.questKey,
+      description: definition?.description || "",
       action: definition?.action || "harvest",
       progress: Math.min(item.progress, item.target),
-      completed: item.progress >= item.target
+      completed: item.progress >= item.target,
+      expiresAt: endOfQuestDay(questDate)
     };
   });
 }
@@ -185,9 +206,28 @@ async function updateDailyQuestProgressTx(
   const questDate = startOfQuestDay();
   await ensureDailyQuestProgressTx(tx, userId, questDate);
   const quests = DAILY_QUEST_DEFINITIONS.filter((quest) => quest.action === action);
+  const updates: Array<{
+    questKey: string;
+    title: string;
+    progress: number;
+    target: number;
+    completed: boolean;
+    newlyCompleted: boolean;
+  }> = [];
 
   for (const quest of quests) {
-    await tx.dailyQuestProgress.update({
+    const before = await tx.dailyQuestProgress.findUnique({
+      where: {
+        userId_questKey_questDate: {
+          userId,
+          questKey: quest.key,
+          questDate
+        }
+      }
+    });
+    const wasCompleted = !!before && before.progress >= before.target;
+    const nextProgress = Math.min((before?.progress || 0) + amount, quest.target);
+    const updated = await tx.dailyQuestProgress.update({
       where: {
         userId_questKey_questDate: {
           userId,
@@ -196,12 +236,214 @@ async function updateDailyQuestProgressTx(
         }
       },
       data: {
-        progress: { increment: amount },
+        progress: nextProgress,
         target: quest.target,
         rewardGrow: quest.rewardGrow
       }
     });
+    const completed = updated.progress >= updated.target;
+    const newlyCompleted = completed && !wasCompleted;
+    if (newlyCompleted) {
+      await activity(tx, {
+        actorId: userId,
+        type: "QUEST_COMPLETED",
+        message: `Completed daily quest: ${quest.title}.`,
+        metadata: { questKey: quest.key, rewardGrow: quest.rewardGrow }
+      });
+    }
+    updates.push({
+      questKey: quest.key,
+      title: quest.title,
+      progress: Math.min(updated.progress, updated.target),
+      target: updated.target,
+      completed,
+      newlyCompleted
+    });
   }
+
+  return updates;
+}
+
+async function ensureTutorialProgressTx(tx: Tx, userId: string) {
+  await tx.tutorialProgress.createMany({
+    data: TUTORIAL_STEP_DEFINITIONS.map((step) => ({
+      userId,
+      stepKey: step.key,
+      target: step.target
+    })),
+    skipDuplicates: true
+  });
+
+  for (const step of TUTORIAL_STEP_DEFINITIONS) {
+    await tx.tutorialProgress.updateMany({
+      where: { userId, stepKey: step.key },
+      data: {
+        target: step.target
+      }
+    });
+  }
+
+  const progress = await tx.tutorialProgress.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" }
+  });
+  const definitionByKey = new Map<string, (typeof TUTORIAL_STEP_DEFINITIONS)[number]>(
+    TUTORIAL_STEP_DEFINITIONS.map((step) => [step.key, step])
+  );
+
+  return progress.map((item) => {
+    const definition = definitionByKey.get(item.stepKey);
+    return {
+      ...item,
+      title: definition?.title || item.stepKey,
+      description: definition?.description || "",
+      action: definition?.action || item.stepKey,
+      progress: Math.min(item.progress, item.target),
+      completed: item.progress >= item.target || !!item.completedAt
+    };
+  });
+}
+
+async function grantTutorialRewardIfReadyTx(tx: Tx, userId: string) {
+  const steps = await ensureTutorialProgressTx(tx, userId);
+  const completed = steps.every((step) => step.completed);
+  if (!completed) {
+    return { completed: false, rewarded: false };
+  }
+
+  await lockUser(tx, userId);
+  const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+  if (user.tutorialRewardedAt) {
+    if (!user.tutorialCompletedAt) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { tutorialCompletedAt: new Date() }
+      });
+    }
+    return { completed: true, rewarded: false };
+  }
+
+  const now = new Date();
+  await tx.user.update({
+    where: { id: userId },
+    data: {
+      growBalance: { increment: TUTORIAL_REWARDS.grow },
+      tutorialCompletedAt: now,
+      tutorialRewardedAt: now
+    }
+  });
+
+  for (const reward of TUTORIAL_REWARDS.starterSeeds) {
+    const seed = await tx.seedCatalog.findUnique({ where: { slug: reward.seedSlug } });
+    if (!seed) {
+      continue;
+    }
+
+    await tx.userSeed.upsert({
+      where: { userId_seedId: { userId, seedId: seed.id } },
+      create: { userId, seedId: seed.id, quantity: reward.quantity },
+      update: { quantity: { increment: reward.quantity } }
+    });
+  }
+
+  await transaction(tx, {
+    userId,
+    type: "TUTORIAL_REWARD",
+    amount: TUTORIAL_REWARDS.grow,
+    metadata: {
+      grow: TUTORIAL_REWARDS.grow,
+      starterSeeds: TUTORIAL_REWARDS.starterSeeds.map((seed) => ({ ...seed }))
+    }
+  });
+  await activity(tx, {
+    actorId: userId,
+    type: "TUTORIAL_COMPLETED",
+    message: `Completed onboarding tutorial and earned ${TUTORIAL_REWARDS.grow} $GROW.`,
+    metadata: {
+      grow: TUTORIAL_REWARDS.grow,
+      starterSeeds: TUTORIAL_REWARDS.starterSeeds.map((seed) => ({ ...seed }))
+    }
+  });
+
+  return { completed: true, rewarded: true };
+}
+
+async function updateTutorialProgressTx(
+  tx: Tx,
+  userId: string,
+  action: TutorialAction,
+  amount = 1
+) {
+  await ensureTutorialProgressTx(tx, userId);
+  const steps = TUTORIAL_STEP_DEFINITIONS.filter((step) => step.action === action);
+  const updates: Array<{
+    stepKey: string;
+    title: string;
+    progress: number;
+    target: number;
+    completed: boolean;
+    newlyCompleted: boolean;
+  }> = [];
+
+  for (const step of steps) {
+    const before = await tx.tutorialProgress.findUnique({
+      where: { userId_stepKey: { userId, stepKey: step.key } }
+    });
+    const wasCompleted = !!before && before.progress >= before.target;
+    const nextProgress = Math.min((before?.progress || 0) + amount, step.target);
+    const completedAt = nextProgress >= step.target ? before?.completedAt || new Date() : null;
+    const updated = await tx.tutorialProgress.update({
+      where: { userId_stepKey: { userId, stepKey: step.key } },
+      data: {
+        progress: nextProgress,
+        target: step.target,
+        completedAt
+      }
+    });
+    const completed = updated.progress >= updated.target || !!updated.completedAt;
+    const newlyCompleted = completed && !wasCompleted;
+    if (step.action === "open_upgrade" && newlyCompleted) {
+      await activity(tx, {
+        actorId: userId,
+        type: "FARM_UPGRADE_OPENED",
+        message: "Opened Farm Management.",
+        metadata: { stepKey: step.key }
+      });
+    }
+    updates.push({
+      stepKey: step.key,
+      title: step.title,
+      progress: Math.min(updated.progress, updated.target),
+      target: updated.target,
+      completed,
+      newlyCompleted
+    });
+  }
+
+  const reward = await grantTutorialRewardIfReadyTx(tx, userId);
+  return { updates, reward };
+}
+
+async function tutorialStatusTx(tx: Tx, userId: string) {
+  const [user, steps] = await Promise.all([
+    tx.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: {
+        tutorialCompletedAt: true,
+        tutorialSkippedAt: true,
+        tutorialRewardedAt: true
+      }
+    }),
+    ensureTutorialProgressTx(tx, userId)
+  ]);
+  const completed = !!user.tutorialCompletedAt || steps.every((step) => step.completed);
+  return {
+    steps,
+    completed,
+    skipped: !!user.tutorialSkippedAt,
+    rewarded: !!user.tutorialRewardedAt,
+    reward: TUTORIAL_REWARDS
+  };
 }
 
 function visualStageForPlant(
@@ -268,6 +510,82 @@ function gardenStats(
     readyToHarvest: plots.filter((plot) => plot.state === "READY" || plot.plant?.state === "READY").length,
     growingPlants: plots.filter((plot) => plot.state === "GROWING" || plot.plant?.state === "GROWING").length,
     regrowingPlants: plots.filter((plot) => plot.state === "REGROWING" || plot.plant?.state === "REGROWING").length
+  };
+}
+
+function progressionSummary(input: {
+  garden: { level: number; width: number; height: number };
+  plots: Array<{
+    state: PlotState;
+    plant?: { state: PlantState; waterLevel?: number } | null;
+  }>;
+  seedStacks: Array<{ quantity: number; seed: { name: string } }>;
+  fruitStacks: Array<{ quantity: number; lockedQuantity: number }>;
+  seedCatalog: Array<{ name: string; requiredGardenLevel: number }>;
+  upgrade: ReturnType<typeof gardenUpgradeSummary>;
+  availableGrow: number;
+  dailyQuests: Array<{ completed: boolean; claimed: boolean; progress: number; target: number }>;
+}) {
+  const stats = gardenStats(input.plots);
+  const currentSeeds = input.seedCatalog
+    .filter((seed) => seed.requiredGardenLevel <= input.garden.level)
+    .map((seed) => seed.name);
+  const nextSeeds = input.upgrade.nextLevel
+    ? input.seedCatalog
+        .filter((seed) => seed.requiredGardenLevel === input.upgrade.nextLevel)
+        .map((seed) => seed.name)
+    : [];
+  const ownedSeed = input.seedStacks.find((stack) => stack.quantity > 0);
+  const unlockedFruitCount = input.fruitStacks.reduce(
+    (sum, stack) => sum + Math.max(0, stack.quantity - stack.lockedQuantity),
+    0
+  );
+  const emptyPlotCount = input.plots.filter((plot) => plot.state === "EMPTY" && !plot.plant).length;
+  const growingNeedsWater = input.plots.some(
+    (plot) =>
+      (plot.state === "GROWING" || plot.plant?.state === "GROWING") &&
+      (plot.plant?.waterLevel || 0) < MAX_WATER_LEVEL
+  );
+  const dailyQuestProgress = {
+    completed: input.dailyQuests.filter((quest) => quest.completed).length,
+    claimed: input.dailyQuests.filter((quest) => quest.claimed).length,
+    total: input.dailyQuests.length,
+    progress: input.dailyQuests.reduce(
+      (sum, quest) => sum + Math.min(quest.progress, quest.target),
+      0
+    ),
+    target: input.dailyQuests.reduce((sum, quest) => sum + quest.target, 0)
+  };
+
+  let suggestedNextAction = "Buy your first seed";
+  if (stats.readyToHarvest > 0) {
+    suggestedNextAction = "Harvest your ready crops";
+  } else if (ownedSeed && emptyPlotCount > 0) {
+    suggestedNextAction = `Plant your ${ownedSeed.seed.name}`;
+  } else if (growingNeedsWater) {
+    suggestedNextAction = "Water your growing plant";
+  } else if (unlockedFruitCount > 0) {
+    suggestedNextAction = "Sell fruits to earn $GROW";
+  } else if (input.upgrade.nextLevel && input.availableGrow >= (input.upgrade.cost || 0)) {
+    suggestedNextAction =
+      nextSeeds.length > 0
+        ? `Upgrade to Level ${input.upgrade.nextLevel} to unlock ${nextSeeds.join(" and ")}`
+        : `Upgrade to Level ${input.upgrade.nextLevel} for more plots`;
+  } else if (stats.activePlants > 0) {
+    suggestedNextAction = "Wait for crops to grow";
+  }
+
+  return {
+    currentGardenLevel: input.garden.level,
+    farmSize: `${input.garden.width}x${input.garden.height}`,
+    nextFarmUpgradeCost: input.upgrade.cost ?? null,
+    seedsUnlockedCurrentLevel: currentSeeds,
+    seedsUnlockedNextLevel: nextSeeds,
+    totalPlots: stats.totalPlots,
+    activePlants: stats.activePlants,
+    readyToHarvestCount: stats.readyToHarvest,
+    dailyQuestProgress,
+    suggestedNextAction
   };
 }
 
@@ -370,7 +688,7 @@ export async function getGardenState(userId: string) {
     await refreshStamina(tx, userId);
     await syncGardenStateTx(tx, userId);
 
-    const [user, garden, seeds, dailyQuests] = await Promise.all([
+    const [user, garden, seeds, fruits, seedCatalog, dailyQuests, tutorial] = await Promise.all([
       tx.user.findUniqueOrThrow({ where: { id: userId }, select: publicUserSelect }),
       tx.garden.findUniqueOrThrow({
         where: { userId },
@@ -394,7 +712,16 @@ export async function getGardenState(userId: string) {
         include: { seed: true },
         orderBy: { updatedAt: "desc" }
       }),
-      ensureDailyQuestProgressTx(tx, userId)
+      tx.userFruit.findMany({
+        where: { userId, quantity: { gt: 0 } },
+        select: { quantity: true, lockedQuantity: true }
+      }),
+      tx.seedCatalog.findMany({
+        select: { id: true, name: true, requiredGardenLevel: true },
+        orderBy: [{ requiredGardenLevel: "asc" }, { basePrice: "asc" }]
+      }),
+      ensureDailyQuestProgressTx(tx, userId),
+      ensureTutorialProgressTx(tx, userId)
     ]);
 
     const stamina = calculateStamina(user);
@@ -409,6 +736,9 @@ export async function getGardenState(userId: string) {
         : null
     }));
 
+    const upgrades = gardenUpgradeSummary(garden);
+    const farmStats = gardenStats(plots);
+
     return {
       user: {
         ...user,
@@ -420,12 +750,29 @@ export async function getGardenState(userId: string) {
         ...garden,
         plots
       },
-      farmStats: gardenStats(plots),
-      upgrades: gardenUpgradeSummary(garden),
+      farmStats,
+      upgrades,
+      progression: progressionSummary({
+        garden,
+        plots,
+        seedStacks: seeds,
+        fruitStacks: fruits,
+        seedCatalog,
+        upgrade: upgrades,
+        availableGrow: availableGrow(user),
+        dailyQuests
+      }),
       seeds,
-      dailyQuests
+      dailyQuests,
+      tutorial: {
+        steps: tutorial,
+        completed: !!user.tutorialCompletedAt || tutorial.every((step) => step.completed),
+        skipped: !!user.tutorialSkippedAt,
+        rewarded: !!user.tutorialRewardedAt,
+        reward: TUTORIAL_REWARDS
+      }
     };
-  });
+  }, GARDEN_STATE_TRANSACTION_OPTIONS);
 }
 
 export async function plantSeed(userId: string, input: { plotId: string; seedId: string }) {
@@ -484,6 +831,7 @@ export async function plantSeed(userId: string, input: { plotId: string; seedId:
       message: `Planted ${seed.name}.`,
       metadata: { plotId: plot.id, seedId: seed.id }
     });
+    await updateTutorialProgressTx(tx, userId, "plant_seed", 1);
 
     return plant;
   });
@@ -523,13 +871,13 @@ export async function waterPlant(userId: string, input: { plotId: string }) {
       0,
       Math.floor((plant.growCompleteAt.getTime() - now.getTime()) / 1000)
     );
-    const maxBoost = Math.floor(plant.seed.growTimeSeconds * 0.2);
+    const maxBoost = Math.floor(plant.seed.growTimeSeconds * WATER_MAX_GROWTH_BOOST_RATIO);
     const boost = Math.max(
       0,
       Math.min(
         WATER_GROWTH_BOOST_SECONDS,
         maxBoost - plant.waterBoostSeconds,
-        Math.max(0, remainingSeconds - 5)
+        Math.max(0, remainingSeconds - WATER_MIN_REMAINING_SECONDS_AFTER_BOOST)
       )
     );
     const growCompleteAt = new Date(plant.growCompleteAt.getTime() - boost * 1000);
@@ -550,7 +898,7 @@ export async function waterPlant(userId: string, input: { plotId: string }) {
         lastWateredAt: now,
         waterLevel: { increment: 1 },
         waterBoostSeconds: { increment: boost },
-        health: Math.min(100, plant.health + 4),
+        health: Math.min(100, plant.health + WATER_HEALTH_GAIN),
         growCompleteAt,
         state
       },
@@ -569,6 +917,7 @@ export async function waterPlant(userId: string, input: { plotId: string }) {
       metadata: { plantId: plant.id, boost }
     });
     await updateDailyQuestProgressTx(tx, userId, "water", 1);
+    await updateTutorialProgressTx(tx, userId, "water_plant", 1);
 
     return updated;
   });
@@ -577,6 +926,7 @@ export async function waterPlant(userId: string, input: { plotId: string }) {
 export async function harvestPlant(userId: string, input: { plotId: string }) {
   return prisma.$transaction(async (tx) => {
     await syncGardenStateTx(tx, userId);
+    await consumeStamina(tx, userId, ACTION_STAMINA_COST.harvest);
 
     const plot = await tx.gardenPlot.findUnique({
       where: { id: input.plotId },
@@ -602,9 +952,8 @@ export async function harvestPlant(userId: string, input: { plotId: string }) {
       plant.state === "READY" ||
       plant.growCompleteAt <= now ||
       (plant.nextHarvestAt ? plant.nextHarvestAt <= now : false);
+    assertGame(plant.state !== "DEAD" && plot.state !== "EMPTY", "Plant not found.", 404);
     assertGame(ready, "This plant is not ready to harvest.", 409);
-
-    await consumeStamina(tx, userId, ACTION_STAMINA_COST.harvest);
 
     const quantity = rollInteger(seed.minYield, seed.maxYield);
     const mutation = rollMutation(seed.mutationChanceBps, seed.rarity, plant.waterLevel);
@@ -654,7 +1003,7 @@ export async function harvestPlant(userId: string, input: { plotId: string }) {
           harvestCount: nextHarvestCount,
           nextHarvestAt,
           waterLevel: 0,
-          health: Math.min(100, plant.health + 2)
+          health: Math.min(100, plant.health + HARVEST_HEALTH_GAIN)
         }
       });
 
@@ -684,6 +1033,7 @@ export async function harvestPlant(userId: string, input: { plotId: string }) {
       }
     });
     await updateDailyQuestProgressTx(tx, userId, "harvest", quantity);
+    await updateTutorialProgressTx(tx, userId, "harvest_fruit", quantity);
 
     return { fruit, mutation, quantity, nextHarvestAt, plantSpent, harvestCount: nextHarvestCount, maxHarvests };
   });
@@ -825,6 +1175,46 @@ export async function claimDailyQuest(userId: string, questKey: string) {
   });
 }
 
+export async function trackDailyQuestAction(
+  userId: string,
+  action: DailyQuestAction,
+  amount = 1
+) {
+  return prisma.$transaction((tx) => updateDailyQuestProgressTx(tx, userId, action, amount));
+}
+
+export async function getTutorialStatus(userId: string) {
+  return prisma.$transaction((tx) => tutorialStatusTx(tx, userId));
+}
+
+export async function skipTutorial(userId: string) {
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.user.update({
+      where: { id: userId },
+      data: { tutorialSkippedAt: new Date() },
+      select: publicUserSelect
+    });
+    return {
+      user: updated,
+      tutorial: await tutorialStatusTx(tx, userId)
+    };
+  });
+}
+
+export async function trackTutorialAction(
+  userId: string,
+  action: TutorialAction,
+  amount = 1
+) {
+  return prisma.$transaction(async (tx) => {
+    const result = await updateTutorialProgressTx(tx, userId, action, amount);
+    return {
+      ...result,
+      tutorial: await tutorialStatusTx(tx, userId)
+    };
+  });
+}
+
 function weightedSeed<T extends { rarity: Rarity }>(seeds: T[]) {
   const total = seeds.reduce((sum, seed) => sum + SHOP_RARITY_WEIGHTS[seed.rarity], 0);
   let roll = rollInteger(1, total);
@@ -838,15 +1228,7 @@ function weightedSeed<T extends { rarity: Rarity }>(seeds: T[]) {
 }
 
 function stockForRarity(rarity: Rarity) {
-  const map: Record<Rarity, { stock: number; max: number }> = {
-    COMMON: { stock: 100, max: 20 },
-    UNCOMMON: { stock: 60, max: 12 },
-    RARE: { stock: 25, max: 6 },
-    EPIC: { stock: 10, max: 3 },
-    LEGENDARY: { stock: 4, max: 1 },
-    MYTHIC: { stock: 2, max: 1 }
-  };
-  return map[rarity];
+  return SHOP_STOCK_BY_RARITY[rarity];
 }
 
 async function getOrCreateCurrentRotationTx(tx: Tx) {
@@ -903,14 +1285,17 @@ async function getOrCreateCurrentRotationTx(tx: Tx) {
       items: {
         create: Array.from(selected.values()).map((seed) => {
           const stock = stockForRarity(seed.rarity);
-          const priceJitter = rollInteger(90, 115);
+          const priceJitter = rollInteger(
+            SHOP_PRICE_JITTER_MIN_PERCENT,
+            SHOP_PRICE_JITTER_MAX_PERCENT
+          );
           const price = Math.max(1, Math.floor((seed.basePrice * priceJitter) / 100));
           return {
             seedId: seed.id,
             price,
             stockTotal: stock.stock,
             stockRemaining: stock.stock,
-            maxBuyPerUser: stock.max
+            maxBuyPerUser: stock.maxBuyPerUser
           };
         })
       }
@@ -1028,6 +1413,7 @@ export async function buyShopItem(
       metadata: { shopItemId: shopItem.id, totalPrice }
     });
     await updateDailyQuestProgressTx(tx, userId, "buy_seed", input.quantity);
+    await updateTutorialProgressTx(tx, userId, "buy_seed", input.quantity);
 
     return { seed: shopItem.seed, quantity: input.quantity, totalPrice };
   });
@@ -1117,6 +1503,7 @@ export async function sellFruitToSystem(
       metadata: { payout }
     });
     await updateDailyQuestProgressTx(tx, userId, "sell_fruit", input.quantity);
+    await updateTutorialProgressTx(tx, userId, "sell_fruit", input.quantity);
 
     return { payout };
   });
@@ -1125,7 +1512,8 @@ export async function sellFruitToSystem(
 async function expireMarketplaceListingsTx(tx: Tx) {
   const now = new Date();
   const expired = await tx.marketplaceListing.findMany({
-    where: { status: "ACTIVE", expiresAt: { lte: now } }
+    where: { status: "ACTIVE", expiresAt: { lte: now } },
+    include: { fruit: true }
   });
 
   for (const listing of expired) {
@@ -1144,6 +1532,12 @@ async function expireMarketplaceListingsTx(tx: Tx) {
         data: { lockedQuantity: { decrement: Math.min(stack.lockedQuantity, listing.quantity) } }
       });
     }
+    await activity(tx, {
+      actorId: listing.sellerId,
+      type: "MARKETPLACE_EXPIRED",
+      message: `Marketplace listing expired: ${listing.quantity} ${listing.fruit.name}.`,
+      metadata: { listingId: listing.id, quantity: listing.quantity }
+    });
   }
 
   if (expired.length) {
@@ -1157,6 +1551,9 @@ async function expireMarketplaceListingsTx(tx: Tx) {
 export async function getMarketplace(userId?: string) {
   return prisma.$transaction(async (tx) => {
     await expireMarketplaceListingsTx(tx);
+    if (userId) {
+      await updateDailyQuestProgressTx(tx, userId, "open_marketplace", 1);
+    }
     const [listings, myListings] = await Promise.all([
       tx.marketplaceListing.findMany({
         where: { status: "ACTIVE", expiresAt: { gt: new Date() } },
@@ -1206,7 +1603,7 @@ export async function listFruitOnMarketplace(
         mutation: userFruit.mutation,
         quantity: input.quantity,
         price: input.price,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        expiresAt: new Date(Date.now() + MARKETPLACE_LISTING_DURATION_SECONDS * 1000)
       },
       include: { fruit: true }
     });
@@ -1395,10 +1792,13 @@ async function unlockTradeItemsTx(tx: Tx, tradeId: string) {
   const items = await tx.tradeOfferItem.findMany({ where: { tradeId } });
   for (const item of items) {
     if (item.type === "GROW") {
-      await tx.user.update({
-        where: { id: item.userId },
-        data: { lockedGrowBalance: { decrement: item.growAmount } }
-      });
+      const user = await tx.user.findUnique({ where: { id: item.userId } });
+      if (user) {
+        await tx.user.update({
+          where: { id: item.userId },
+          data: { lockedGrowBalance: { decrement: Math.min(user.lockedGrowBalance, item.growAmount) } }
+        });
+      }
     } else if (item.fruitId && item.mutation) {
       const stack = await tx.userFruit.findUnique({
         where: {
@@ -1434,7 +1834,50 @@ async function expireTradesForUserTx(tx: Tx, userId: string) {
       where: { id: trade.id },
       data: { status: "EXPIRED", initiatorConfirmed: false, recipientConfirmed: false }
     });
+    await activity(tx, {
+      actorId: trade.initiatorId,
+      targetUserId: trade.recipientId,
+      type: "TRADE_EXPIRED",
+      message: "A direct trade expired.",
+      metadata: { tradeId: trade.id }
+    });
+    await activity(tx, {
+      actorId: trade.recipientId,
+      targetUserId: trade.initiatorId,
+      type: "TRADE_EXPIRED",
+      message: "A direct trade expired.",
+      metadata: { tradeId: trade.id }
+    });
   }
+}
+
+async function expireTradeTx(
+  tx: Tx,
+  trade: { id: string; initiatorId: string; recipientId: string; status: TradeStatus }
+) {
+  if (!["PENDING", "ACTIVE", "LOCKED"].includes(trade.status)) {
+    return;
+  }
+
+  await unlockTradeItemsTx(tx, trade.id);
+  await tx.trade.update({
+    where: { id: trade.id },
+    data: { status: "EXPIRED", initiatorConfirmed: false, recipientConfirmed: false }
+  });
+  await activity(tx, {
+    actorId: trade.initiatorId,
+    targetUserId: trade.recipientId,
+    type: "TRADE_EXPIRED",
+    message: "A direct trade expired.",
+    metadata: { tradeId: trade.id }
+  });
+  await activity(tx, {
+    actorId: trade.recipientId,
+    targetUserId: trade.initiatorId,
+    type: "TRADE_EXPIRED",
+    message: "A direct trade expired.",
+    metadata: { tradeId: trade.id }
+  });
 }
 
 function assertTradeParticipant(trade: { initiatorId: string; recipientId: string }, userId: string) {
@@ -1523,12 +1966,15 @@ export async function addTradeItem(
     await lockTrade(tx, input.tradeId);
     const trade = await tx.trade.findUniqueOrThrow({ where: { id: input.tradeId } });
     assertTradeParticipant(trade, userId);
+    if (trade.expiresAt <= new Date()) {
+      await expireTradeTx(tx, trade);
+      assertGame(false, "This trade has expired.", 409);
+    }
     assertGame(
       ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status),
       "This trade can no longer be changed.",
       409
     );
-    assertGame(trade.expiresAt > new Date(), "This trade has expired.", 409);
 
     let item;
     if (input.type === "FRUIT") {
@@ -1602,6 +2048,10 @@ export async function removeTradeItem(
     await lockTradeItem(tx, input.itemId);
     const trade = await tx.trade.findUniqueOrThrow({ where: { id: input.tradeId } });
     assertTradeParticipant(trade, userId);
+    if (trade.expiresAt <= new Date()) {
+      await expireTradeTx(tx, trade);
+      assertGame(false, "This trade has expired.", 409);
+    }
     const item = await tx.tradeOfferItem.findUnique({ where: { id: input.itemId } });
     assertGame(item && item.tradeId === trade.id && item.userId === userId, "Offer item not found.", 404);
     assertGame(
@@ -1611,9 +2061,10 @@ export async function removeTradeItem(
     );
 
     if (item.type === "GROW") {
+      const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
       await tx.user.update({
         where: { id: userId },
-        data: { lockedGrowBalance: { decrement: item.growAmount } }
+        data: { lockedGrowBalance: { decrement: Math.min(user.lockedGrowBalance, item.growAmount) } }
       });
     } else if (item.fruitId && item.mutation) {
       const stack = await tx.userFruit.findUnique({
@@ -1638,6 +2089,13 @@ export async function removeTradeItem(
       where: { id: trade.id },
       data: { initiatorConfirmed: false, recipientConfirmed: false, status: "ACTIVE" }
     });
+    await activity(tx, {
+      actorId: userId,
+      targetUserId: otherTradeUser(trade, userId),
+      type: "TRADE_UPDATED",
+      message: "Removed an item from a trade offer.",
+      metadata: { tradeId: trade.id, itemId: item.id }
+    });
 
     return { itemId: item.id };
   });
@@ -1652,19 +2110,22 @@ export async function confirmTrade(userId: string, tradeId: string) {
     });
     assertGame(trade, "Trade not found.", 404);
     assertTradeParticipant(trade, userId);
+    if (trade.expiresAt <= new Date()) {
+      await expireTradeTx(tx, trade);
+      assertGame(false, "This trade has expired.", 409);
+    }
     assertGame(
       ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status),
       "This trade can no longer be confirmed.",
       409
     );
-    assertGame(trade.expiresAt > new Date(), "This trade has expired.", 409);
     assertGame(trade.items.length > 0, "Add at least one item before confirming.", 409);
 
     const initiatorConfirmed = trade.initiatorId === userId ? true : trade.initiatorConfirmed;
     const recipientConfirmed = trade.recipientId === userId ? true : trade.recipientConfirmed;
 
     if (!initiatorConfirmed || !recipientConfirmed) {
-      return tx.trade.update({
+      const updated = await tx.trade.update({
         where: { id: trade.id },
         data: {
           initiatorConfirmed,
@@ -1677,6 +2138,14 @@ export async function confirmTrade(userId: string, tradeId: string) {
           recipient: { select: { id: true, username: true } }
         }
       });
+      await activity(tx, {
+        actorId: userId,
+        targetUserId: otherTradeUser(trade, userId),
+        type: "TRADE_UPDATED",
+        message: "Confirmed a direct trade offer.",
+        metadata: { tradeId: trade.id }
+      });
+      return updated;
     }
 
     for (const item of trade.items) {
@@ -1715,7 +2184,7 @@ export async function confirmTrade(userId: string, tradeId: string) {
         });
       } else {
         assertGame(item.fruitId && item.mutation, "Trade fruit item is invalid.", 500);
-        const stack = await tx.userFruit.findUnique({
+        const stackLookup = await tx.userFruit.findUnique({
           where: {
             userId_fruitId_mutation: {
               userId: item.userId,
@@ -1724,6 +2193,9 @@ export async function confirmTrade(userId: string, tradeId: string) {
             }
           }
         });
+        assertGame(stackLookup, "A trade participant no longer has that fruit stack.", 409);
+        await lockUserFruit(tx, stackLookup.id);
+        const stack = await tx.userFruit.findUnique({ where: { id: stackLookup.id } });
         assertGame(
           stack &&
             stack.lockedQuantity >= item.quantity &&
@@ -1800,6 +2272,10 @@ export async function cancelTrade(userId: string, tradeId: string) {
     const trade = await tx.trade.findUnique({ where: { id: tradeId } });
     assertGame(trade, "Trade not found.", 404);
     assertTradeParticipant(trade, userId);
+    if (trade.expiresAt <= new Date()) {
+      await expireTradeTx(tx, trade);
+      assertGame(false, "This trade has expired.", 409);
+    }
     assertGame(
       ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status),
       "This trade can no longer be cancelled.",
@@ -1834,11 +2310,6 @@ export async function verifyDeposit(
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   assertGame(user.walletAddress, "Connect a wallet before depositing.", 409);
 
-  const existing = await prisma.transaction.findFirst({
-    where: { signature: input.signature, type: "DEPOSIT", status: "CONFIRMED" }
-  });
-  assertGame(!existing, "That deposit signature has already been credited.", 409);
-
   const verified = await verifyGrowDeposit({
     signature: input.signature,
     userWallet: user.walletAddress,
@@ -1846,7 +2317,17 @@ export async function verifyDeposit(
   });
 
   return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${input.signature}))`;
     await lockUser(tx, userId);
+    const existing = await tx.transaction.findFirst({
+      where: {
+        signature: input.signature,
+        status: { in: ["PENDING", "CONFIRMED"] }
+      },
+      select: { id: true }
+    });
+    assertGame(!existing, "That deposit signature has already been credited.", 409);
+
     await tx.user.update({
       where: { id: userId },
       data: { growBalance: { increment: input.amount } }

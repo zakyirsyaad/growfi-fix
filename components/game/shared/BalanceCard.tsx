@@ -1,7 +1,15 @@
 import { Coins } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function BalanceCard({ balance, locked }: { balance: number; locked?: number }) {
+export function BalanceCard({
+  balance,
+  locked,
+  label = "Wallet $GROW",
+}: {
+  balance: number;
+  locked?: number;
+  label?: string;
+}) {
   return (
     <Card className="bg-white/88">
       <CardContent className="flex items-center gap-3 p-3">
@@ -9,7 +17,7 @@ export function BalanceCard({ balance, locked }: { balance: number; locked?: num
           <Coins className="h-5 w-5" />
         </span>
         <span>
-          <span className="block text-xs font-semibold text-muted-foreground">$GROW</span>
+          <span className="block text-xs font-semibold text-muted-foreground">{label}</span>
           <span className="block text-lg font-bold leading-none">{balance}</span>
           {locked ? <span className="text-xs text-muted-foreground">{locked} locked</span> : null}
         </span>

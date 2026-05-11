@@ -8,89 +8,108 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Stat } from "@/components/ui/stat";
-import { GardenGrid, GardenPlotView, PlotSummary } from "@/components/garden/GardenGrid";
+import {
+  GardenGrid,
+  PlotSummary,
+} from "@/components/garden/GardenGrid";
 import { apiFetch } from "@/lib/utils/fetcher";
+import {
+  decodeGrowfiError,
+  mergeOnchainGarden,
+  useGrowfiActions,
+  useGrowfiOnchainState,
+} from "@/lib/solana/useGrowfiProgram";
 import { useGameStore } from "@/store/useGameStore";
-
-type GardenResponse = {
-  user: {
-    growBalance: number;
-    availableGrow: number;
-    stamina: number;
-    maxStamina: number;
-    gardenLevel: number;
-    nextStaminaAt?: string | null;
-  };
-  garden: {
-    id: string;
-    width: number;
-    height: number;
-    level: number;
-    plots: GardenPlotView[];
-  };
-  seeds: Array<{
-    id: string;
-    seedId: string;
-    quantity: number;
-    seed: { id: string; name: string; iconUrl: string; rarity: string };
-  }>;
-};
+import type { GardenResponse } from "@/types/game-data";
 
 function PlayContent() {
   const queryClient = useQueryClient();
-  const { selectedPlotId, setSelectedPlotId, selectedSeedId, setSelectedSeedId } = useGameStore();
+  const growfiActions = useGrowfiActions();
+  const onchain = useGrowfiOnchainState();
+  const {
+    selectedPlotId,
+    setSelectedPlotId,
+    selectedSeedId,
+    setSelectedSeedId,
+  } = useGameStore();
   const [error, setError] = useState<string | null>(null);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["garden"],
     queryFn: () => apiFetch<GardenResponse>("/api/garden"),
-    refetchInterval: 10_000
+    refetchInterval: 10_000,
   });
+  const displayData = useMemo(
+    () => mergeOnchainGarden(data, onchain.data),
+    [data, onchain.data]
+  );
 
   const selectedPlot = useMemo(() => {
-    if (!data?.garden.plots.length) {
+    if (!displayData?.garden.plots.length) {
       return null;
     }
-    return data.garden.plots.find((plot) => plot.id === selectedPlotId) || data.garden.plots[0];
-  }, [data, selectedPlotId]);
+    return (
+      displayData.garden.plots.find((plot) => plot.id === selectedPlotId) ||
+      displayData.garden.plots[0]
+    );
+  }, [displayData, selectedPlotId]);
 
-  const selectedSeed = data?.seeds.find((seed) => seed.seedId === selectedSeedId) || data?.seeds[0];
+  const selectedSeed =
+    displayData?.seeds.find((seed) => seed.seedId === selectedSeedId) ||
+    displayData?.seeds[0];
 
   const invalidate = async () => {
     await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
       queryClient.invalidateQueries({ queryKey: ["garden"] }),
-      queryClient.invalidateQueries({ queryKey: ["me"] })
+      queryClient.invalidateQueries({ queryKey: ["me"] }),
     ]);
   };
 
-  const makeMutation = (url: string, body: Record<string, unknown>) =>
-    apiFetch(url, { method: "POST", body: JSON.stringify(body) });
-
   const plantMutation = useMutation({
-    mutationFn: () =>
-      makeMutation("/api/garden/plant", {
-        plotId: selectedPlot?.id,
-        seedId: selectedSeed?.seedId
-      }),
+    mutationFn: () => {
+      if (!selectedPlot || !selectedSeed) {
+        throw new Error("Select a plot and seed first.");
+      }
+      return growfiActions.plantSeed({
+        x: selectedPlot.x,
+        y: selectedPlot.y,
+        seed: selectedSeed.seed.name,
+      });
+    },
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Planting failed")
+    onError: (err) => setError(decodeGrowfiError(err)),
   });
   const waterMutation = useMutation({
-    mutationFn: () => makeMutation("/api/garden/water", { plotId: selectedPlot?.id }),
+    mutationFn: () => {
+      if (!selectedPlot) {
+        throw new Error("Select a plot first.");
+      }
+      return growfiActions.waterPlant({ x: selectedPlot.x, y: selectedPlot.y });
+    },
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Watering failed")
+    onError: (err) => setError(decodeGrowfiError(err)),
   });
   const harvestMutation = useMutation({
-    mutationFn: () => makeMutation("/api/garden/harvest", { plotId: selectedPlot?.id }),
+    mutationFn: () => {
+      if (!selectedPlot) {
+        throw new Error("Select a plot first.");
+      }
+      return growfiActions.harvestPlant({
+        x: selectedPlot.x,
+        y: selectedPlot.y,
+        seed: selectedPlot.plant?.seed.name,
+      });
+    },
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Harvest failed")
+    onError: (err) => setError(decodeGrowfiError(err)),
   });
   const expandMutation = useMutation({
-    mutationFn: () => apiFetch("/api/garden/expand", { method: "POST" }),
+    mutationFn: () => growfiActions.upgradeFarm(),
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Expansion failed")
+    onError: (err) => setError(decodeGrowfiError(err)),
   });
 
-  if (isLoading || !data) {
+  if (isLoading || !displayData) {
     return <Card className="font-bold text-leaf-800">Loading garden...</Card>;
   }
 
@@ -101,10 +120,21 @@ function PlayContent() {
         eyebrow="Personal grow grid"
         actions={
           <>
-            <Button variant="secondary" onClick={() => refetch()}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                refetch();
+                queryClient.invalidateQueries({
+                  queryKey: ["growfi-onchain-state"],
+                });
+              }}
+            >
               <RefreshCw size={16} /> Refresh
             </Button>
-            <Button onClick={() => expandMutation.mutate()} disabled={expandMutation.isPending}>
+            <Button
+              onClick={() => expandMutation.mutate()}
+              disabled={expandMutation.isPending}
+            >
               <Plus size={16} /> Expand
             </Button>
           </>
@@ -112,10 +142,16 @@ function PlayContent() {
       />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
-        <Stat label="$GROW" value={data.user.availableGrow} />
-        <Stat label="Stamina" value={`${data.user.stamina}/${data.user.maxStamina}`} />
-        <Stat label="Garden" value={`${data.garden.width}x${data.garden.height}`} />
-        <Stat label="Level" value={data.garden.level} />
+        <Stat label="$GROW" value={displayData.user.availableGrow} />
+        <Stat
+          label="Stamina"
+          value={`${displayData.user.stamina}/${displayData.user.maxStamina}`}
+        />
+        <Stat
+          label="Garden"
+          value={`${displayData.garden.width}x${displayData.garden.height}`}
+        />
+        <Stat label="Level" value={displayData.garden.level} />
       </div>
 
       {error ? (
@@ -126,8 +162,8 @@ function PlayContent() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <GardenGrid
-          width={data.garden.width}
-          plots={data.garden.plots}
+          width={displayData.garden.width}
+          plots={displayData.garden.plots}
           selectedPlotId={selectedPlot?.id}
           onSelect={(plot) => {
             setError(null);
@@ -146,8 +182,10 @@ function PlayContent() {
                 value={selectedSeed?.seedId || ""}
                 onChange={(event) => setSelectedSeedId(event.target.value)}
               >
-                {data.seeds.length === 0 ? <option value="">No seeds</option> : null}
-                {data.seeds.map((stack) => (
+                {displayData.seeds.length === 0 ? (
+                  <option value="">No seeds</option>
+                ) : null}
+                {displayData.seeds.map((stack) => (
                   <option key={stack.id} value={stack.seedId}>
                     {stack.seed.iconUrl} {stack.seed.name} x{stack.quantity}
                   </option>

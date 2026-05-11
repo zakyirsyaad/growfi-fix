@@ -57,3 +57,10 @@ export type ChatMessagePayload = {
   message: string;
   createdAt: number;
 };
+
+export type GlobalChatMessagePayload = {
+  id: string;
+  from: Pick<OnlinePlayer, "userId" | "username" | "avatarUrl">;
+  message: string;
+  createdAt: number;
+};

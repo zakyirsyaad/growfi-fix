@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { GameHUD } from "@/components/game/GameHUD";
+import { GlobalChatWidget } from "@/components/game/GlobalChatWidget";
 import { InteractionPrompt } from "@/components/game/InteractionPrompt";
 import { MobileControls } from "@/components/game/MobileControls";
+import { TutorialOnboardingDialog } from "@/components/game/TutorialOnboardingDialog";
+import { TutorialQuestOverlay } from "@/components/game/TutorialQuestOverlay";
 import { ActivityLogOverlay } from "@/components/game/overlays/ActivityLogOverlay";
 import { CommunityBoardOverlay } from "@/components/game/overlays/CommunityBoardOverlay";
 import { EventBoardOverlay } from "@/components/game/overlays/EventBoardOverlay";
@@ -75,15 +78,43 @@ export function GameOverlay({
   const [currentRoom, setCurrentRoom] = useState("home:unknown");
   const [incomingInvite, setIncomingInvite] = useState<TradeInvitePayload | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessagePayload[]>([]);
+  const autoTutorialShown = useRef(false);
 
-  const refreshGameQueries = async () => {
+  const refreshGameQueries = useCallback(async () => {
     await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
       queryClient.invalidateQueries({ queryKey: ["garden"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       queryClient.invalidateQueries({ queryKey: ["me"] }),
-      queryClient.invalidateQueries({ queryKey: ["quests"] })
+      queryClient.invalidateQueries({ queryKey: ["quests"] }),
+      queryClient.invalidateQueries({ queryKey: ["tutorial"] })
     ]);
-  };
+  }, [queryClient]);
+
+  const trackQuestAction = useCallback(async (action: "visit_town" | "open_marketplace") => {
+    await apiFetch("/api/quests/progress", {
+      method: "POST",
+      body: JSON.stringify({ action, amount: 1 })
+    });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["quests"] }),
+      queryClient.invalidateQueries({ queryKey: ["garden"] })
+    ]);
+  }, [queryClient]);
+
+  const trackTutorialAction = useCallback(async (action: "open_upgrade") => {
+    await apiFetch("/api/tutorial", {
+      method: "POST",
+      body: JSON.stringify({ action, amount: 1 })
+    });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["garden"] }),
+      queryClient.invalidateQueries({ queryKey: ["inventory"] }),
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    ]);
+  }, [queryClient]);
 
   const refillWaterMutation = useMutation({
     mutationFn: () => apiFetch("/api/garden/refill-water", { method: "POST" }),
@@ -102,8 +133,14 @@ export function GameOverlay({
     return gameEventBus.on("openOverlay", ({ overlay, payload }) => {
       setPayloads((current) => ({ ...current, [overlay]: payload }));
       setOverlays((current) => ({ ...current, [overlay]: true }));
+      if (overlay === "farmUpgrade") {
+        trackTutorialAction("open_upgrade").catch(() => undefined);
+      }
+      if (overlay === "marketplace") {
+        trackQuestAction("open_marketplace").catch(() => undefined);
+      }
     });
-  }, []);
+  }, [trackQuestAction, trackTutorialAction]);
 
   useEffect(() => {
     return gameEventBus.on("closeOverlay", ({ overlay }) => {
@@ -137,8 +174,11 @@ export function GameOverlay({
       setArea((current) => (current === nextArea ? current : nextArea));
       setOwnerName((current) => (current === nextOwner ? current : nextOwner));
       setVisitorMode((current) => (current === !!isVisitor ? current : !!isVisitor));
+      if (nextArea === "Town Social Hub" && !isVisitor) {
+        trackQuestAction("visit_town").catch(() => undefined);
+      }
     });
-  }, []);
+  }, [trackQuestAction]);
 
   useEffect(() => {
     return gameEventBus.on("actionToast", ({ title, description, variant }) => {
@@ -154,7 +194,7 @@ export function GameOverlay({
     return gameEventBus.on("refreshFarmState", () => {
       refreshGameQueries();
     });
-  }, []);
+  }, [refreshGameQueries]);
 
   useEffect(() => {
     return gameEventBus.on("refillWater", () => {
@@ -174,6 +214,9 @@ export function GameOverlay({
   useEffect(() => {
     return gameEventBus.on("tradeInviteReceived", (invite) => {
       setIncomingInvite(invite);
+      toast("Trade invite received", {
+        description: `${invite.from.username} wants to trade.`
+      });
     });
   }, []);
 
@@ -218,22 +261,48 @@ export function GameOverlay({
     setOverlays((current) => ({ ...current, [overlay]: open }));
   };
 
+  useEffect(() => {
+    const locallySkipped =
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("growfi:tutorial-skipped") === "1";
+    if (
+      autoTutorialShown.current ||
+      !garden?.tutorial ||
+      garden.tutorial.completed ||
+      garden.tutorial.skipped ||
+      locallySkipped ||
+      area !== "Home Farm" ||
+      visitorMode
+    ) {
+      return;
+    }
+
+    autoTutorialShown.current = true;
+    setOverlays((current) => ({ ...current, tutorial: true }));
+  }, [area, garden?.tutorial, visitorMode]);
+
   const shared = useMemo(
     () => ({
       garden,
       area,
       ownerName,
       visitorMode,
-      shopEndsAt
+      shopEndsAt,
+      onlineCount: onlinePlayers.length + 1
     }),
-    [area, garden, ownerName, shopEndsAt, visitorMode]
+    [area, garden, onlinePlayers.length, ownerName, shopEndsAt, visitorMode]
   );
 
   return (
     <>
       <GameHUD {...shared} />
+      <GlobalChatWidget />
       <InteractionPrompt visible={prompt.visible} label={prompt.label} />
       <MobileControls />
+      <TutorialQuestOverlay
+        garden={garden}
+        visible={area === "Home Farm" && !visitorMode}
+      />
 
       <SeedSelectModal
         open={!!overlays.seedSelect}
@@ -293,6 +362,11 @@ export function GameOverlay({
         open={!!overlays.profilePreview}
         onOpenChange={(open) => setOverlay("profilePreview", open)}
         player={payloads.profilePreview as OnlinePlayer | undefined}
+      />
+      <TutorialOnboardingDialog
+        open={!!overlays.tutorial}
+        onOpenChange={(open) => setOverlay("tutorial", open)}
+        garden={garden}
       />
       <IncomingTradeInviteDialog invite={incomingInvite} onClose={() => setIncomingInvite(null)} />
     </>

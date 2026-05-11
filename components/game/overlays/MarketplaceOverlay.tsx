@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Filter, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,29 +19,21 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/game/shared/S
 import { RarityBadge } from "@/components/game/shared/RarityBadge";
 import { MutationBadge } from "@/components/game/shared/MutationBadge";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import {
+  isMineMarketplaceListing,
+  mergeMarketplaceListings,
+  type MarketplaceListingResponse,
+  type MarketplaceListingView,
+} from "@/lib/marketplace/listingViews";
 import { apiFetch } from "@/lib/utils/fetcher";
-import type { InventoryResponse, Mutation, Rarity } from "@/types/game-data";
-
-type ListingView = {
-  id: string;
-  sellerId: string;
-  quantity: number;
-  price: number;
-  mutation: Mutation;
-  status: "ACTIVE" | "SOLD" | "CANCELLED" | "EXPIRED";
-  expiresAt: string;
-  fruit: {
-    name: string;
-    iconUrl: string;
-    rarity: Rarity;
-  };
-  seller?: { id: string; username: string; avatarUrl?: string | null };
-};
-
-type MarketplaceResponse = {
-  listings: ListingView[];
-  myListings: ListingView[];
-};
+import type { InventoryResponse } from "@/types/game-data";
+import {
+  decodeGrowfiError,
+  mergeOnchainInventory,
+  useGrowfiActions,
+  useGrowfiMarketplaceListings,
+  useGrowfiOnchainState,
+} from "@/lib/solana/useGrowfiProgram";
 
 type MeResponse = { user: { id: string; availableGrow: number } };
 
@@ -51,7 +44,7 @@ function ListingCard({
   onBuy,
   onCancel
 }: {
-  listing: ListingView;
+  listing: MarketplaceListingView;
   mine?: boolean;
   busy?: boolean;
   onBuy?: () => void;
@@ -118,6 +111,10 @@ export function MarketplaceOverlay({
   payload?: unknown;
 }) {
   const queryClient = useQueryClient();
+  const { publicKey } = useWallet();
+  const growfiActions = useGrowfiActions();
+  const onchain = useGrowfiOnchainState(open);
+  const onchainMarketplace = useGrowfiMarketplaceListings(open);
   const mobile = useMediaQuery("(max-width: 767px)");
   const [tab, setTab] = useState("browse");
   const [selectedFruitId, setSelectedFruitId] = useState("");
@@ -125,12 +122,13 @@ export function MarketplaceOverlay({
   const [price, setPrice] = useState(10);
   const [rarityFilter, setRarityFilter] = useState("ALL");
   const [mutationFilter, setMutationFilter] = useState("ALL");
-  const [confirmListing, setConfirmListing] = useState<ListingView | null>(null);
+  const [confirmListing, setConfirmListing] =
+    useState<MarketplaceListingView | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["marketplace"],
-    queryFn: () => apiFetch<MarketplaceResponse>("/api/marketplace"),
+    queryFn: () => apiFetch<MarketplaceListingResponse>("/api/marketplace"),
     refetchInterval: 20_000,
     enabled: open
   });
@@ -139,11 +137,17 @@ export function MarketplaceOverlay({
     queryFn: () => apiFetch<InventoryResponse>("/api/inventory"),
     enabled: open
   });
+  const displayInventory = mergeOnchainInventory(inventory, onchain.data);
   const { data: me } = useQuery({
     queryKey: ["me"],
     queryFn: () => apiFetch<MeResponse>("/api/me"),
     enabled: open
   });
+  const walletAddress = publicKey?.toBase58() || null;
+  const marketplaceData = useMemo(
+    () => mergeMarketplaceListings(data, onchainMarketplace.data),
+    [data, onchainMarketplace.data]
+  );
 
   useEffect(() => {
     const value = payload as { create?: boolean; fruit?: { id: string; fruit: { baseSellPrice?: number } } } | undefined;
@@ -157,58 +161,133 @@ export function MarketplaceOverlay({
   const invalidate = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["marketplace"] }),
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-marketplace"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
-      queryClient.invalidateQueries({ queryKey: ["me"] })
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet-balances"] }),
+      queryClient.invalidateQueries({ queryKey: ["me"] }),
+      queryClient.invalidateQueries({ queryKey: ["activity"] }),
+      queryClient.invalidateQueries({ queryKey: ["quests"] })
     ]);
   };
 
   const listMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/api/marketplace/list", {
+    mutationFn: () => {
+      const selectedFruit = displayInventory?.fruits.find(
+        (fruit) => fruit.id === selectedFruitId
+      );
+      if (!selectedFruit) {
+        throw new Error("Choose a fruit to list.");
+      }
+      const available = selectedFruit.quantity - selectedFruit.lockedQuantity;
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        throw new Error("Enter at least 1 fruit.");
+      }
+      if (quantity > available) {
+        throw new Error(`You only have ${available} available.`);
+      }
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new Error("Enter a price greater than 0.");
+      }
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[GrowFi] marketplace overlay listing submit", {
+          selectedFruitId,
+          fruit: selectedFruit.fruit.name,
+          mutation: selectedFruit.mutation,
+          ownedQty: selectedFruit.quantity,
+          lockedQty: selectedFruit.lockedQuantity,
+          amount: quantity,
+          price
+        });
+      }
+      if (selectedFruit.id.startsWith("onchain-fruit-")) {
+        return growfiActions.createListing({
+          fruit: selectedFruit.fruit,
+          mutation: selectedFruit.mutation,
+          quantity,
+          price
+        });
+      }
+      return apiFetch("/api/marketplace/list", {
         method: "POST",
         body: JSON.stringify({ userFruitId: selectedFruitId, quantity, price })
-      }),
-    onSuccess: async () => {
+      });
+    },
+    onSuccess: async (result) => {
       setError(null);
       setSelectedFruitId("");
-      toast.success("Listing created");
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[GrowFi] marketplace overlay listing success", result);
+      }
+      toast.success("Marketplace listing created", {
+        description: `${quantity} fruit listed for ${price} $GROW.`
+      });
       await invalidate();
       setTab("my");
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Listing failed")
+    onError: (err) => setError(err instanceof Error ? decodeGrowfiError(err) : "Listing failed")
   });
 
   const buyMutation = useMutation({
-    mutationFn: (listingId: string) =>
-      apiFetch("/api/marketplace/buy", {
+    mutationFn: (listing: MarketplaceListingView) => {
+      if (listing.source === "onchain" && listing.address) {
+        return growfiActions.buyListing({ address: listing.address });
+      }
+      return apiFetch("/api/marketplace/buy", {
         method: "POST",
-        body: JSON.stringify({ listingId })
-      }),
+        body: JSON.stringify({ listingId: listing.id })
+      });
+    },
     onSuccess: async () => {
       setError(null);
       setConfirmListing(null);
-      toast.success("Listing bought");
+      toast.success("Marketplace listing bought");
       await invalidate();
     },
     onError: (err) => setError(err instanceof Error ? err.message : "Purchase failed")
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (listingId: string) =>
-      apiFetch("/api/marketplace/cancel", {
+    mutationFn: (listing: MarketplaceListingView) => {
+      if (listing.source === "onchain" && listing.address) {
+        return growfiActions.cancelListing({ address: listing.address });
+      }
+      return apiFetch("/api/marketplace/cancel", {
         method: "POST",
-        body: JSON.stringify({ listingId })
-      }),
+        body: JSON.stringify({ listingId: listing.id })
+      });
+    },
     onSuccess: async () => {
       setError(null);
-      toast.success("Listing cancelled");
+      toast.success("Listing cancelled", {
+        description: "Locked fruit returned to inventory."
+      });
       await invalidate();
     },
     onError: (err) => setError(err instanceof Error ? err.message : "Cancel failed")
   });
 
+  useEffect(() => {
+    if (!open || process.env.NODE_ENV !== "development") {
+      return;
+    }
+    console.debug("[GrowFi] marketplace overlay listings view", {
+      browseListingsLoaded: marketplaceData.listings.length,
+      myListingsLoaded: marketplaceData.myListings.length,
+      connectedSellerWallet: walletAddress,
+      filters: { rarityFilter, mutationFilter },
+    });
+  }, [
+    open,
+    marketplaceData.listings.length,
+    marketplaceData.myListings.length,
+    walletAddress,
+    rarityFilter,
+    mutationFilter,
+  ]);
+
   const filteredListings = useMemo(() => {
-    return (data?.listings || []).filter((listing) => {
+    return marketplaceData.listings.filter((listing) => {
       if (rarityFilter !== "ALL" && listing.fruit.rarity !== rarityFilter) {
         return false;
       }
@@ -217,15 +296,33 @@ export function MarketplaceOverlay({
       }
       return true;
     });
-  }, [data, rarityFilter, mutationFilter]);
+  }, [marketplaceData.listings, rarityFilter, mutationFilter]);
 
-  const fruitOptions = inventory?.fruits || [];
+  const fruitOptions = useMemo(() => {
+    const fruits = (displayInventory?.fruits || []).filter(
+      (fruit) => fruit.quantity - fruit.lockedQuantity > 0
+    );
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[GrowFi] marketplace overlay loaded fruit balances", displayInventory?.fruits || []);
+      console.debug("[GrowFi] marketplace overlay mapped fruit options", fruits);
+    }
+    return fruits;
+  }, [displayInventory?.fruits]);
+  const selectedFruit = fruitOptions.find((fruit) => fruit.id === selectedFruitId);
+  const selectedAvailable = selectedFruit ? selectedFruit.quantity - selectedFruit.lockedQuantity : 0;
+  const createInvalid =
+    !selectedFruit ||
+    !Number.isInteger(quantity) ||
+    quantity < 1 ||
+    quantity > selectedAvailable ||
+    !Number.isFinite(price) ||
+    price <= 0;
 
   return (
     <>
       <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Marketplace" description="Browse, list, buy, and cancel fruit listings." wide>
         {error ? <div className="mb-3"><ErrorState message={error} /></div> : null}
-        {isLoading || !data ? (
+        {(isLoading || onchainMarketplace.isLoading) && !data ? (
           <LoadingState label="Loading marketplace" />
         ) : (
           <Tabs value={tab} onValueChange={setTab}>
@@ -275,10 +372,14 @@ export function MarketplaceOverlay({
                     <ListingCard
                       key={listing.id}
                       listing={listing}
-                      mine={listing.sellerId === me?.user.id}
+                      mine={isMineMarketplaceListing(
+                        listing,
+                        me?.user.id,
+                        walletAddress
+                      )}
                       busy={buyMutation.isPending || cancelMutation.isPending}
                       onBuy={() => setConfirmListing(listing)}
-                      onCancel={() => cancelMutation.mutate(listing.id)}
+                      onCancel={() => cancelMutation.mutate(listing)}
                     />
                   ))}
                 </div>
@@ -297,7 +398,11 @@ export function MarketplaceOverlay({
                   </TableHeader>
                   <TableBody>
                     {filteredListings.map((listing) => {
-                      const mine = listing.sellerId === me?.user.id;
+                      const mine = isMineMarketplaceListing(
+                        listing,
+                        me?.user.id,
+                        walletAddress
+                      );
                       return (
                         <TableRow key={listing.id}>
                           <TableCell className="font-semibold">{listing.fruit.iconUrl} {listing.fruit.name}</TableCell>
@@ -308,7 +413,7 @@ export function MarketplaceOverlay({
                           <TableCell>{listing.seller?.username || "You"}</TableCell>
                           <TableCell className="text-right">
                             {mine ? (
-                              <Button size="sm" variant="secondary" onClick={() => cancelMutation.mutate(listing.id)} disabled={cancelMutation.isPending}>Cancel</Button>
+                              <Button size="sm" variant="secondary" onClick={() => cancelMutation.mutate(listing)} disabled={cancelMutation.isPending}>Cancel</Button>
                             ) : (
                               <Button size="sm" onClick={() => setConfirmListing(listing)} disabled={buyMutation.isPending}>Buy</Button>
                             )}
@@ -321,17 +426,17 @@ export function MarketplaceOverlay({
               )}
             </TabsContent>
             <TabsContent value="my" className="mt-4">
-              {(data.myListings || []).length === 0 ? (
+              {marketplaceData.myListings.length === 0 ? (
                 <EmptyState title="No listings yet" />
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {data.myListings.map((listing) => (
+                  {marketplaceData.myListings.map((listing) => (
                     <ListingCard
                       key={listing.id}
                       listing={listing}
                       mine
                       busy={cancelMutation.isPending}
-                      onCancel={() => cancelMutation.mutate(listing.id)}
+                      onCancel={() => cancelMutation.mutate(listing)}
                     />
                   ))}
                 </div>
@@ -349,22 +454,38 @@ export function MarketplaceOverlay({
                           <SelectItem value="none">Choose fruit</SelectItem>
                           {fruitOptions.map((stack) => (
                             <SelectItem key={stack.id} value={stack.id}>
-                              {stack.fruit.iconUrl} {stack.mutation.toLowerCase()} {stack.fruit.name} x{stack.quantity - stack.lockedQuantity}
+                              {stack.fruit.iconUrl} {stack.mutation.toLowerCase()} {stack.fruit.name} x{stack.quantity - stack.lockedQuantity} · {stack.fruit.rarity}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {!fruitOptions.length ? (
+                        <div className="mt-2 text-xs font-semibold text-muted-foreground">
+                          No fruits available to list. Harvest fruits first.
+                        </div>
+                      ) : null}
                     </div>
                     <div>
                       <Label>Quantity</Label>
                       <Input type="number" min={1} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} />
+                      {selectedFruit ? (
+                        <Button
+                          className="mt-2 w-full"
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setQuantity(selectedAvailable)}
+                        >
+                          Max {selectedAvailable}
+                        </Button>
+                      ) : null}
                     </div>
                     <div>
                       <Label>Price</Label>
                       <Input type="number" min={1} value={price} onChange={(event) => setPrice(Number(event.target.value))} />
                     </div>
                     <div className="flex items-end">
-                      <Button className="w-full" disabled={!selectedFruitId || listMutation.isPending} onClick={() => listMutation.mutate()}>
+                      <Button className="w-full" disabled={createInvalid || listMutation.isPending} onClick={() => listMutation.mutate()}>
                         Create Listing
                       </Button>
                     </div>
@@ -386,7 +507,7 @@ export function MarketplaceOverlay({
         }
         confirmLabel="Buy"
         busy={buyMutation.isPending}
-        onConfirm={() => confirmListing && buyMutation.mutate(confirmListing.id)}
+        onConfirm={() => confirmListing && buyMutation.mutate(confirmListing)}
       />
     </>
   );

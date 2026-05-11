@@ -1,6 +1,12 @@
 import * as Phaser from "phaser";
 import { gameEventBus } from "@/lib/game/eventBus";
-import { joinRealtimeRoom, leaveRealtimeRoom, sendMovement, sendStop } from "@/lib/realtime/socketClient";
+import {
+  getRealtimeSocketStatus,
+  joinRealtimeRoom,
+  leaveRealtimeRoom,
+  sendMovement,
+  sendStop,
+} from "@/lib/realtime/socketClient";
 import type { Player } from "@/lib/game/phaser/objects/Player";
 import type { RemotePlayerSystem } from "@/lib/game/phaser/systems/RemotePlayerSystem";
 import type { PlayerDirection, RealtimeRoom } from "@/lib/realtime/types";
@@ -26,6 +32,13 @@ export class MultiplayerSystem {
       gameEventBus.on("roomPlayersUpdated", ({ room, players }) => {
         if (room === this.room) {
           this.remotePlayers.setPlayers(players);
+          if (process.env.NODE_ENV === "development") {
+            console.debug("[GrowFi] room players updated", {
+              room,
+              playerCount: players.length,
+              remotePlayerIds: players.map((player) => player.userId),
+            });
+          }
         }
       }),
       gameEventBus.on("remotePlayerMoved", ({ room, player }) => {
@@ -54,11 +67,17 @@ export class MultiplayerSystem {
     this.lastY = this.player.y;
     this.lastDirection = "idle";
     this.lastMoving = false;
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[GrowFi] joining realtime room", {
+        room,
+        socketConnected: getRealtimeSocketStatus().connected,
+      });
+    }
     joinRealtimeRoom(room, this.player.x, this.player.y);
   }
 
   update() {
-    if (!this.room) {
+    if (!this.room || !getRealtimeSocketStatus().connected) {
       return;
     }
 
@@ -102,7 +121,7 @@ export class MultiplayerSystem {
   }
 
   stop() {
-    if (!this.room) {
+    if (!this.room || !getRealtimeSocketStatus().connected) {
       return;
     }
 

@@ -37,6 +37,21 @@ const FARM_OBJECTS = {
 
 let activeFarmSceneInstances = 0;
 
+function destroyStaticGroup(group?: Phaser.Physics.Arcade.StaticGroup) {
+  const liveGroup = group as
+    | (Phaser.GameObjects.Group & {
+        scene?: Phaser.Scene;
+        children?: Phaser.Structs.Set<Phaser.GameObjects.GameObject>;
+      })
+    | undefined;
+
+  if (!liveGroup?.scene || !liveGroup.children) {
+    return;
+  }
+
+  liveGroup.destroy(true, true);
+}
+
 export class FarmScene extends Phaser.Scene {
   private player!: Player;
   private controller!: PlayerController;
@@ -153,8 +168,18 @@ export class FarmScene extends Phaser.Scene {
       }),
       gameEventBus.on("returnHome", () => {
         this.scene.start("FarmScene", { visitorMode: false });
+      }),
+      gameEventBus.on("goTown", () => {
+        this.scene.start("TownScene");
       })
     );
+
+    if (this.visitorMode) {
+      const escapeKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+      const returnHome = () => this.scene.start("FarmScene", { visitorMode: false });
+      escapeKey?.on("down", returnHome);
+      this.cleanup.push(() => escapeKey?.off("down", returnHome));
+    }
 
     if (this.visitorMode && this.visitorFarm) {
       this.add.text(585, 238, `${this.visitorFarm.owner.username}'s Farm`, {
@@ -178,7 +203,7 @@ export class FarmScene extends Phaser.Scene {
         }
       });
       this.plotSystem.renderGarden(this.visitorFarm, true);
-      this.multiplayer.join(`farm:${this.visitorFarm.owner.id}`);
+      this.multiplayer.join(`home:${this.visitorFarm.owner.id}`);
       gameEventBus.emit("areaChanged", {
         area: "Other User Farm",
         visitorMode: true,
@@ -199,12 +224,12 @@ export class FarmScene extends Phaser.Scene {
       this.cleanup = [];
       this.controller?.destroy();
       this.plotSystem?.destroy();
+      this.transitions?.destroy();
       this.multiplayer?.destroy();
       this.presence?.destroy();
       this.interactionSystem?.destroy();
       this.fpsText?.destroy();
-      this.obstacles?.clear(true, true);
-      this.obstacles?.destroy();
+      destroyStaticGroup(this.obstacles);
       activeFarmSceneInstances = Math.max(0, activeFarmSceneInstances - 1);
     });
   }

@@ -44,6 +44,7 @@ type TradeView = {
 
 type TradesResponse = { trades: TradeView[] };
 type MeResponse = { user: { id: string; availableGrow: number } };
+type ConfirmTradeResponse = { trade: TradeView };
 
 function OfferColumn({
   title,
@@ -161,7 +162,8 @@ export function TradeOverlay({
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["trades"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
-      queryClient.invalidateQueries({ queryKey: ["me"] })
+      queryClient.invalidateQueries({ queryKey: ["me"] }),
+      queryClient.invalidateQueries({ queryKey: ["activity"] })
     ]);
   };
 
@@ -222,13 +224,13 @@ export function TradeOverlay({
 
   const confirmMutation = useMutation({
     mutationFn: (tradeId: string) =>
-      apiFetch("/api/trades/confirm", {
+      apiFetch<ConfirmTradeResponse>("/api/trades/confirm", {
         method: "POST",
         body: JSON.stringify({ tradeId })
       }),
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       setError(null);
-      toast.success("Trade confirmed");
+      toast.success(result.trade.status === "COMPLETED" ? "Trade completed" : "Trade confirmed");
       await invalidate();
     },
     onError: (err) => setError(err instanceof Error ? err.message : "Confirm failed")

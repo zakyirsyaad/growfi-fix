@@ -78,6 +78,7 @@ enum TransactionType {
   TRADE_TRANSFER
   GARDEN_EXPAND
   DAILY_QUEST_REWARD
+  TUTORIAL_REWARD
   MOCK_CREDIT
 }
 
@@ -97,14 +98,20 @@ enum ActivityType {
   MARKETPLACE_LISTED
   MARKETPLACE_SOLD
   MARKETPLACE_CANCELLED
+  MARKETPLACE_EXPIRED
   TRADE_CREATED
   TRADE_UPDATED
   TRADE_COMPLETED
   TRADE_CANCELLED
+  TRADE_EXPIRED
   DEPOSIT
   WITHDRAW
   GARDEN_EXPANDED
   DAILY_QUEST_CLAIMED
+  QUEST_COMPLETED
+  TUTORIAL_COMPLETED
+  TRADE_INVITE_RECEIVED
+  FARM_UPGRADE_OPENED
   WALLET_CONNECTED
 }
 
@@ -125,6 +132,9 @@ model User {
   totalHarvests        Int          @default(0)
   totalTrades          Int          @default(0)
   marketplaceSales     Int          @default(0)
+  tutorialCompletedAt  DateTime?
+  tutorialSkippedAt    DateTime?
+  tutorialRewardedAt   DateTime?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 
@@ -140,6 +150,7 @@ model User {
   tradeOfferItems      TradeOfferItem[]
   transactions         Transaction[]
   dailyQuests          DailyQuestProgress[]
+  tutorialProgress     TutorialProgress[]
   activityLogs         ActivityLog[] @relation("ActorActivity")
   targetedActivityLogs ActivityLog[] @relation("TargetActivity")
 
@@ -454,6 +465,22 @@ model DailyQuestProgress {
 
   @@unique([userId, questKey, questDate])
   @@index([userId, questDate])
+}
+
+model TutorialProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  stepKey     String
+  progress    Int       @default(0)
+  target      Int
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stepKey])
+  @@index([userId])
 }
 
 model SystemConfig {

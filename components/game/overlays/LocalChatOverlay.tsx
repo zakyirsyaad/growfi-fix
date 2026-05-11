@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
+import { gameEventBus } from "@/lib/game/eventBus";
 import { sendLocalChatMessage } from "@/lib/realtime/socketClient";
 import type { ChatMessagePayload } from "@/lib/realtime/types";
 
@@ -73,6 +74,18 @@ export function LocalChatOverlay({
             value={message}
             maxLength={180}
             placeholder="Message nearby farmers"
+            onFocus={() =>
+              gameEventBus.emit("gameInputLockChanged", {
+                source: "local-chat",
+                locked: true,
+              })
+            }
+            onBlur={() =>
+              gameEventBus.emit("gameInputLockChanged", {
+                source: "local-chat",
+                locked: false,
+              })
+            }
             onChange={(event) => setMessage(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {

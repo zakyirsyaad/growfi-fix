@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,92 +16,152 @@ import { ConfirmActionDialog } from "@/components/game/shared/ConfirmActionDialo
 import { EmptyState, ErrorState, LoadingState } from "@/components/game/shared/StatusStates";
 import { MutationBadge } from "@/components/game/shared/MutationBadge";
 import { RarityBadge } from "@/components/game/shared/RarityBadge";
+import {
+  isMineMarketplaceListing,
+  mergeMarketplaceListings,
+  type MarketplaceListingResponse,
+  type MarketplaceListingView,
+} from "@/lib/marketplace/listingViews";
 import { apiFetch } from "@/lib/utils/fetcher";
-import type { InventoryResponse, Mutation, Rarity } from "@/types/game-data";
-
-type ListingView = {
-  id: string;
-  sellerId: string;
-  quantity: number;
-  price: number;
-  mutation: Mutation;
-  status: "ACTIVE" | "SOLD" | "CANCELLED" | "EXPIRED";
-  expiresAt: string;
-  fruit: { name: string; iconUrl: string; rarity: Rarity };
-  seller?: { id: string; username: string; avatarUrl?: string | null };
-};
-
-type MarketplaceResponse = {
-  listings: ListingView[];
-  myListings: ListingView[];
-};
+import type { InventoryResponse } from "@/types/game-data";
+import {
+  decodeGrowfiError,
+  mergeOnchainInventory,
+  useGrowfiActions,
+  useGrowfiMarketplaceListings,
+  useGrowfiOnchainState,
+} from "@/lib/solana/useGrowfiProgram";
 
 type MeResponse = { user: { id: string } };
 
 export function MarketplaceDashboard() {
   const queryClient = useQueryClient();
+  const { publicKey } = useWallet();
+  const growfiActions = useGrowfiActions();
+  const onchain = useGrowfiOnchainState();
+  const onchainMarketplace = useGrowfiMarketplaceListings();
   const [selectedFruitId, setSelectedFruitId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(10);
-  const [confirmListing, setConfirmListing] = useState<ListingView | null>(null);
+  const [confirmListing, setConfirmListing] =
+    useState<MarketplaceListingView | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["marketplace"],
-    queryFn: () => apiFetch<MarketplaceResponse>("/api/marketplace"),
+    queryFn: () => apiFetch<MarketplaceListingResponse>("/api/marketplace"),
     refetchInterval: 20_000
   });
   const { data: inventory } = useQuery({
     queryKey: ["inventory"],
     queryFn: () => apiFetch<InventoryResponse>("/api/inventory")
   });
+  const displayInventory = mergeOnchainInventory(inventory, onchain.data);
   const { data: me } = useQuery({
     queryKey: ["me"],
     queryFn: () => apiFetch<MeResponse>("/api/me")
   });
+  const walletAddress = publicKey?.toBase58() || null;
+  const marketplaceData = useMemo(
+    () => mergeMarketplaceListings(data, onchainMarketplace.data),
+    [data, onchainMarketplace.data]
+  );
 
   const invalidate = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["marketplace"] }),
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-marketplace"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
-      queryClient.invalidateQueries({ queryKey: ["me"] })
+      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet-balances"] }),
+      queryClient.invalidateQueries({ queryKey: ["me"] }),
+      queryClient.invalidateQueries({ queryKey: ["activity"] }),
+      queryClient.invalidateQueries({ queryKey: ["quests"] })
     ]);
   };
 
   const listMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/api/marketplace/list", {
+    mutationFn: () => {
+      const selectedFruit = displayInventory?.fruits.find(
+        (fruit) => fruit.id === selectedFruitId
+      );
+      if (!selectedFruit) {
+        throw new Error("Choose a fruit to list.");
+      }
+      const available = selectedFruit.quantity - selectedFruit.lockedQuantity;
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        throw new Error("Enter at least 1 fruit.");
+      }
+      if (quantity > available) {
+        throw new Error(`You only have ${available} available.`);
+      }
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new Error("Enter a price greater than 0.");
+      }
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[GrowFi] marketplace listing submit", {
+          selectedFruitId,
+          fruit: selectedFruit.fruit.name,
+          mutation: selectedFruit.mutation,
+          ownedQty: selectedFruit.quantity,
+          lockedQty: selectedFruit.lockedQuantity,
+          amount: quantity,
+          price,
+        });
+      }
+      if (selectedFruit.id.startsWith("onchain-fruit-")) {
+        return growfiActions.createListing({
+          fruit: selectedFruit.fruit,
+          mutation: selectedFruit.mutation,
+          quantity,
+          price,
+        });
+      }
+      return apiFetch("/api/marketplace/list", {
         method: "POST",
         body: JSON.stringify({ userFruitId: selectedFruitId, quantity, price })
-      }),
-    onSuccess: async () => {
+      });
+    },
+    onSuccess: async (result) => {
       setError(null);
       setSelectedFruitId("");
-      toast.success("Listing created");
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[GrowFi] marketplace listing success", result);
+      }
+      toast.success("Marketplace listing created");
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Listing failed")
+    onError: (err) =>
+      setError(err instanceof Error ? decodeGrowfiError(err) : "Listing failed")
   });
   const buyMutation = useMutation({
-    mutationFn: (listingId: string) =>
-      apiFetch("/api/marketplace/buy", {
+    mutationFn: (listing: MarketplaceListingView) => {
+      if (listing.source === "onchain" && listing.address) {
+        return growfiActions.buyListing({ address: listing.address });
+      }
+      return apiFetch("/api/marketplace/buy", {
         method: "POST",
-        body: JSON.stringify({ listingId })
-      }),
+        body: JSON.stringify({ listingId: listing.id })
+      });
+    },
     onSuccess: async () => {
       setConfirmListing(null);
       setError(null);
-      toast.success("Listing bought");
+      toast.success("Marketplace listing bought");
       await invalidate();
     },
     onError: (err) => setError(err instanceof Error ? err.message : "Purchase failed")
   });
   const cancelMutation = useMutation({
-    mutationFn: (listingId: string) =>
-      apiFetch("/api/marketplace/cancel", {
+    mutationFn: (listing: MarketplaceListingView) => {
+      if (listing.source === "onchain" && listing.address) {
+        return growfiActions.cancelListing({ address: listing.address });
+      }
+      return apiFetch("/api/marketplace/cancel", {
         method: "POST",
-        body: JSON.stringify({ listingId })
-      }),
+        body: JSON.stringify({ listingId: listing.id })
+      });
+    },
     onSuccess: async () => {
       setError(null);
       toast.success("Listing cancelled");
@@ -110,11 +171,49 @@ export function MarketplaceDashboard() {
   });
 
   const activeMyListings = useMemo(
-    () => data?.myListings.filter((listing) => listing.status === "ACTIVE") || [],
-    [data]
+    () =>
+      marketplaceData.myListings.filter((listing) => listing.status === "ACTIVE"),
+    [marketplaceData.myListings]
   );
+  const fruitOptions = useMemo(() => {
+    const fruits = (displayInventory?.fruits || []).filter(
+      (fruit) => fruit.quantity - fruit.lockedQuantity > 0
+    );
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[GrowFi] marketplace loaded fruit balances", displayInventory?.fruits || []);
+      console.debug("[GrowFi] marketplace mapped fruit options", fruits);
+    }
+    return fruits;
+  }, [displayInventory?.fruits]);
+  const selectedFruit = fruitOptions.find((fruit) => fruit.id === selectedFruitId);
+  const selectedAvailable = selectedFruit
+    ? selectedFruit.quantity - selectedFruit.lockedQuantity
+    : 0;
+  const createInvalid =
+    !selectedFruit ||
+    !Number.isInteger(quantity) ||
+    quantity < 1 ||
+    quantity > selectedAvailable ||
+    !Number.isFinite(price) ||
+    price <= 0;
 
-  if (isLoading || !data) {
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") {
+      return;
+    }
+    console.debug("[GrowFi] marketplace dashboard listings view", {
+      browseListingsLoaded: marketplaceData.listings.length,
+      myListingsLoaded: marketplaceData.myListings.length,
+      connectedSellerWallet: walletAddress,
+      filters: { browseStatus: "ACTIVE", myStatus: "ACTIVE" },
+    });
+  }, [
+    marketplaceData.listings.length,
+    marketplaceData.myListings.length,
+    walletAddress,
+  ]);
+
+  if ((isLoading || onchainMarketplace.isLoading) && !data) {
     return <LoadingState label="Loading marketplace" />;
   }
 
@@ -129,7 +228,7 @@ export function MarketplaceDashboard() {
             <TabsTrigger value="create">Create Listing</TabsTrigger>
           </TabsList>
           <TabsContent value="browse" className="mt-4">
-            {data.listings.length === 0 ? (
+            {marketplaceData.listings.length === 0 ? (
               <EmptyState title="No listings yet" />
             ) : (
               <Table>
@@ -145,8 +244,12 @@ export function MarketplaceDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.listings.map((listing) => {
-                    const mine = listing.sellerId === me?.user.id;
+                  {marketplaceData.listings.map((listing) => {
+                    const mine = isMineMarketplaceListing(
+                      listing,
+                      me?.user.id,
+                      walletAddress
+                    );
                     return (
                       <TableRow key={listing.id}>
                         <TableCell className="font-semibold">{listing.fruit.iconUrl} {listing.fruit.name}</TableCell>
@@ -157,7 +260,7 @@ export function MarketplaceDashboard() {
                         <TableCell>{listing.seller?.username || "You"}</TableCell>
                         <TableCell className="text-right">
                           {mine ? (
-                            <Button size="sm" variant="secondary" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(listing.id)}>
+                            <Button size="sm" variant="secondary" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(listing)}>
                               <X className="h-4 w-4" />
                               Cancel
                             </Button>
@@ -192,7 +295,7 @@ export function MarketplaceDashboard() {
                       </div>
                       <div className="text-right">
                         <div className="font-bold">{listing.price} $GROW</div>
-                        <Button size="sm" variant="secondary" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(listing.id)}>Cancel</Button>
+                        <Button size="sm" variant="secondary" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(listing)}>Cancel</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -209,24 +312,40 @@ export function MarketplaceDashboard() {
                     <SelectTrigger><SelectValue placeholder="Choose fruit" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Choose fruit</SelectItem>
-                      {(inventory?.fruits || []).map((fruit) => (
+                      {fruitOptions.map((fruit) => (
                         <SelectItem key={fruit.id} value={fruit.id}>
-                          {fruit.fruit.iconUrl} {fruit.mutation.toLowerCase()} {fruit.fruit.name} x{fruit.quantity - fruit.lockedQuantity}
+                          {fruit.fruit.iconUrl} {fruit.mutation.toLowerCase()} {fruit.fruit.name} x{fruit.quantity - fruit.lockedQuantity} · {fruit.fruit.rarity}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {!fruitOptions.length ? (
+                    <div className="mt-2 text-xs font-semibold text-muted-foreground">
+                      No fruits available to list. Harvest fruits first.
+                    </div>
+                  ) : null}
                 </div>
                 <div>
                   <Label>Quantity</Label>
                   <Input type="number" min={1} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} />
+                  {selectedFruit ? (
+                    <Button
+                      className="mt-2 w-full"
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setQuantity(selectedAvailable)}
+                    >
+                      Max {selectedAvailable}
+                    </Button>
+                  ) : null}
                 </div>
                 <div>
                   <Label>Price</Label>
                   <Input type="number" min={1} value={price} onChange={(event) => setPrice(Number(event.target.value))} />
                 </div>
                 <div className="flex items-end">
-                  <Button disabled={!selectedFruitId || listMutation.isPending} onClick={() => listMutation.mutate()}>
+                  <Button disabled={createInvalid || listMutation.isPending} onClick={() => listMutation.mutate()}>
                     List Fruit
                   </Button>
                 </div>
@@ -242,7 +361,7 @@ export function MarketplaceDashboard() {
         description={confirmListing ? `Buy ${confirmListing.quantity} ${confirmListing.fruit.name} for ${confirmListing.price} $GROW.` : ""}
         confirmLabel="Buy"
         busy={buyMutation.isPending}
-        onConfirm={() => confirmListing && buyMutation.mutate(confirmListing.id)}
+        onConfirm={() => confirmListing && buyMutation.mutate(confirmListing)}
       />
     </>
   );

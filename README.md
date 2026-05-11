@@ -1,8 +1,8 @@
 # GrowFi
 
-GrowFi is a Stardew Valley-inspired browser-based 2D farming GameFi MVP. Players log in with Discord, connect a Solana wallet, enter a Phaser 3 top-down world, walk around their farm and town, buy seeds, plant and water crops, harvest mutated fruit, list or buy fruit in the marketplace, create direct trades, and move `$GROW` through the hybrid game economy.
+GrowFi is a Stardew Valley-inspired browser-based 2D farming GameFi. Players log in with Discord, connect a Solana wallet, enter a Phaser 3 top-down world, walk around their farm and town, buy seeds, plant and water crops, harvest mutated fruit, list or buy fruit in the marketplace, create direct trades, and move `$GROW` through an on-chain Solana economy.
 
-The app keeps the Solana and hybrid architecture from the original GrowFi design: fast gameplay state is validated off-chain in PostgreSQL through Prisma, while `$GROW` deposit and withdrawal paths use Solana SPL token transfers when token configuration is present. If the token mint is not configured, local mock mode lets the game loop run for demos.
+GrowFi is being migrated to an on-chain-first architecture. The Anchor program in `anchor/programs/growfi_core` is the intended source of truth for gameplay economy and ownership: player profiles, farms, plots, seed/fruit inventories, shop stock, marketplace listings, trades, creator profiles, decoration ownership, and challenge reward claims. PostgreSQL/Prisma remains for Discord auth, metadata, indexing/cache, search, notifications, and legacy migration support.
 
 ## Tech Stack
 
@@ -13,7 +13,28 @@ The app keeps the Solana and hybrid architecture from the original GrowFi design
 - Prisma + PostgreSQL, Supabase-compatible
 - NextAuth with Discord OAuth
 - Solana wallet adapter, `@solana/web3.js`, `@solana/spl-token`
+- Anchor smart contracts: `anchor/programs/growfi_core`
+- Frontend Anchor client helpers: `lib/solana/growfiCore.ts`
 - TanStack Query, Zustand, Zod
+
+## On-Chain Architecture
+
+On-chain source of truth:
+
+- `$GROW` SPL token and treasury token vault
+- Config PDA, player PDA, farm PDA, plot PDAs
+- Seed and fruit inventory PDAs
+- Seed catalog, shop rotation, shop item, and shop purchase PDAs
+- Marketplace listing PDAs and direct trade PDAs
+- Creator profile, decoration inventory, decoration placement, challenge, and challenge progress PDAs
+
+Off-chain only:
+
+- Discord OAuth session and username/avatar metadata
+- Phaser rendering, movement, presence, chat, and socket notifications
+- Asset metadata, event indexing/cache, search/filter UI, notification UI
+
+The program uses SPL checked token transfers through `anchor-spl` token interface accounts. Economic actions such as `buy_seed`, `upgrade_farm`, `sell_fruit_to_system`, `buy_listing`, `complete_trade`, `tip_creator`, `buy_decoration`, and `claim_challenge_reward` are designed to move `$GROW` through token accounts rather than trusting client or Prisma balances.
 
 ## How Phaser And React Work Together
 
@@ -59,9 +80,12 @@ Mobile/tablet:
 
 ## MVP Multiplayer Scope
 
-GrowFi does not implement real-time multiplayer movement yet. Each user sees their own local farmer character. Visiting another farm loads that owner’s garden state in read-only mode, and visitors cannot plant, water, harvest, or modify another player’s crops in the MVP.
+GrowFi includes Socket.io realtime presence for public areas and shared farm rooms.
 
-The event bus and scene boundaries are intentionally ready for future WebSocket presence, but full MMO-style movement is not included.
+- Town uses room `town`, so everyone in TownScene can see remote player sprites and username labels.
+- Home farms use room `home:{ownerId}`. A visitor joins the owner’s home room, so both players can see each other if they are in the same farm.
+- Global chat uses `chat:global:*` events and keeps recent messages in memory on the realtime server.
+- Visitors still cannot plant, water, harvest, or modify another player’s crops in the MVP.
 
 ## shadcn/ui Setup
 
@@ -97,16 +121,83 @@ Solana settings:
 
 ```bash
 SOLANA_RPC_URL=https://api.devnet.solana.com
+TOKEN_CLUSTER=devnet
+TOKEN_MODE=devnet
+GROWFI_CORE_PROGRAM_ID=ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz
 GROW_TOKEN_MINT=
+GROW_TOKEN_DECIMALS=9
 TREASURY_WALLET_PUBLIC_KEY=
-TREASURY_WALLET_PRIVATE_KEY=
+TREASURY_TOKEN_ACCOUNT=
+TREASURY_WALLET_SECRET_KEY=
+MINT_AUTHORITY_SECRET_KEY=
 NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_TOKEN_CLUSTER=devnet
+NEXT_PUBLIC_TOKEN_MODE=devnet
+NEXT_PUBLIC_MOCK_TOKEN_MODE=false
+NEXT_PUBLIC_GROWFI_CORE_PROGRAM_ID=ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz
 NEXT_PUBLIC_GROW_TOKEN_MINT=
+NEXT_PUBLIC_GROW_TOKEN_DECIMALS=9
 NEXT_PUBLIC_TREASURY_WALLET_PUBLIC_KEY=
-NEXT_PUBLIC_MOCK_TOKEN_MODE=true
+NEXT_PUBLIC_TREASURY_TOKEN_ACCOUNT=
 ```
 
-When `GROW_TOKEN_MINT` or `TREASURY_WALLET_PUBLIC_KEY` is empty, deposits and withdrawals use mock signatures and in-game balance updates for local testing.
+Realtime settings:
+
+```bash
+NEXT_PUBLIC_REALTIME_URL=http://localhost:3000
+REALTIME_PORT=3000
+REALTIME_CORS_ORIGIN=http://localhost:3000
+```
+
+For production/staging, set `TOKEN_MODE` explicitly to `devnet` or `mainnet`; keep mock mode off unless you are running local demos. Never expose treasury secret keys to the frontend.
+
+If you use ngrok, expose the unified Next.js app origin and set `NEXT_PUBLIC_REALTIME_URL` plus `REALTIME_CORS_ORIGIN` to that same origin.
+
+## Anchor Program
+
+Build the on-chain program:
+
+```bash
+npm run anchor:build
+```
+
+Run the Anchor test harness:
+
+```bash
+cd anchor
+npm install
+anchor test
+```
+
+Anchor CLI `1.0.x` uses Surfpool for its local validator path. If `anchor test` reports that `surfpool` is missing, install the Anchor toolchain dependency or run the IDL-only smoke suite while setting up the local validator:
+
+```bash
+anchor test --skip-build --skip-deploy --skip-local-validator
+```
+
+Deploy to devnet:
+
+```bash
+npm run anchor:deploy:devnet
+```
+
+The default Anchor provider expects `~/.config/solana/id.json`. To use another funded devnet wallet without committing a machine-specific path, pass it at deploy time:
+
+```bash
+cd anchor
+anchor deploy --provider.cluster devnet --provider.wallet ~/.config/solana/<your-devnet-keypair>.json
+```
+
+Devnet setup outline:
+
+1. Create or select a Solana keypair with devnet SOL.
+2. Create the `$GROW` SPL mint.
+3. Derive the `config` PDA from seed `["config"]`.
+4. Create the treasury associated token account with the config PDA as token authority.
+5. Deploy `growfi_core`.
+6. Call `initialize_config` with the `$GROW` mint, treasury vault, and fee bps.
+7. Seed the catalog with `create_seed_catalog`, then create rotations/items with `create_shop_rotation` and `create_shop_item`.
+8. Point the frontend at `NEXT_PUBLIC_GROWFI_CORE_PROGRAM_ID`, `NEXT_PUBLIC_GROW_TOKEN_MINT`, and the devnet RPC URL.
 
 ## Run Locally
 
@@ -117,6 +208,8 @@ npm run prisma:migrate -- --name init
 npm run prisma:seed
 npm run dev
 ```
+
+`npm run dev` starts Next.js and Socket.io on the same `http://localhost:3000` server. `npm run dev:realtime` remains available only for a split-port fallback; set `REALTIME_PORT=3001` and `NEXT_PUBLIC_REALTIME_URL=http://localhost:3001` before using that mode.
 
 Open `http://localhost:3000`.
 

@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { INTERACTION_RADIUS, TILE_SIZE } from "@/lib/game/phaser/config/controls";
 import { ASSET_KEYS } from "@/lib/game/phaser/config/assets";
+import { gameEventBus } from "@/lib/game/eventBus";
 import type { GardenPlotView, GardenResponse, PublicFarmResponse } from "@/types/game-data";
 import type { InteractionSystem } from "@/lib/game/phaser/systems/InteractionSystem";
 
@@ -99,20 +100,13 @@ export class FarmPlotSystem {
     this.renderPlots(data, visitorMode);
   }
 
-  async refreshFarmState() {
+  async refreshFarmState(): Promise<GardenResponse | undefined> {
     if (this.destroyed || !this.isGroupAlive()) {
       return undefined;
     }
 
-    console.debug("[GrowFi] refreshFarmState() called");
-    const response = await fetch("/api/garden", { cache: "no-store" });
-    if (!response.ok) {
-      return undefined;
-    }
-
-    const data = (await response.json()) as GardenResponse;
-    this.renderPlots(data, false);
-    return data;
+    gameEventBus.emit("refreshFarmState");
+    return undefined;
   }
 
   renderPlots(data: GardenResponse | PublicFarmResponse, visitorMode = false) {

@@ -158,6 +158,7 @@ export class TownScene extends Phaser.Scene {
       this.cleanup.forEach((fn) => fn());
       this.cleanup = [];
       this.controller?.destroy();
+      this.transitions?.destroy();
       this.multiplayer?.destroy();
       this.presence?.destroy();
       this.interactionSystem?.destroy();

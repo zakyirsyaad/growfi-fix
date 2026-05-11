@@ -4,6 +4,10 @@ export const connectWalletSchema = z.object({
   walletAddress: z.string().min(32).max(64)
 });
 
+export const devnetMintGrowSchema = z.object({
+  walletAddress: z.string().min(32).max(64)
+});
+
 export const plantSchema = z.object({
   plotId: z.string().min(1),
   seedId: z.string().min(1)
@@ -75,3 +79,23 @@ export const withdrawSchema = z.object({
 export const questClaimSchema = z.object({
   questKey: z.string().min(1).max(80)
 });
+
+export const questProgressSchema = z.object({
+  action: z.enum([
+    "visit_town",
+    "open_marketplace"
+  ]),
+  amount: z.coerce.number().int().min(1).max(100_000).default(1)
+});
+
+export const tutorialProgressSchema = z.object({
+  action: z.enum([
+    "open_upgrade"
+  ]),
+  amount: z.coerce.number().int().min(1).max(100_000).default(1)
+});
+
+export const tutorialUpdateSchema = z.union([
+  z.object({ skip: z.literal(true) }),
+  tutorialProgressSchema
+]);

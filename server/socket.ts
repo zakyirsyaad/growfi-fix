@@ -1,14 +1,23 @@
 import http from "node:http";
 import crypto from "node:crypto";
-import { Server } from "socket.io";
-import { getToken } from "next-auth/jwt";
+import { Server, type Socket } from "socket.io";
+import { loadEnvConfig } from "@next/env";
+import { decode, getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/db/prisma";
-import type { MovementPayload, OnlinePlayer, RealtimeRoom, TradeInvitePayload } from "@/lib/realtime/types";
+import { GAME_BALANCE } from "@/lib/game/balance";
+import type { GlobalChatMessagePayload, MovementPayload, OnlinePlayer, RealtimeRoom, TradeInvitePayload } from "@/lib/realtime/types";
 
-const PORT = Number(process.env.SOCKET_PORT || 3003);
+loadEnvConfig(process.cwd());
+
+const PORT = Number(process.env.REALTIME_PORT || process.env.SOCKET_PORT || 3000);
 const NEARBY_TRADE_DISTANCE = Number(process.env.NEARBY_TRADE_DISTANCE || 64);
-const TRADE_EXPIRY_SECONDS = 5 * 60;
-const allowedOrigins = (process.env.SOCKET_CORS_ORIGIN || "http://localhost:3000,http://localhost:3001,http://localhost:3002")
+const TRADE_EXPIRY_SECONDS = GAME_BALANCE.trade.expirySeconds;
+const TRADE_INVITE_EXPIRY_SECONDS = GAME_BALANCE.trade.inviteExpirySeconds;
+const allowedOrigins = (
+  process.env.REALTIME_CORS_ORIGIN ||
+  process.env.SOCKET_CORS_ORIGIN ||
+  "http://localhost:3000,http://localhost:3001,http://localhost:3002"
+)
   .split(",")
   .map((origin) => origin.trim());
 
@@ -17,18 +26,14 @@ const roomBounds: Record<string, { width: number; height: number }> = {
   farm: { width: 1400, height: 960 }
 };
 
-const server = http.createServer();
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true
-  }
-});
+let io: Server;
 
 const playersBySocket = new Map<string, OnlinePlayer>();
 const lastMoveBySocket = new Map<string, { x: number; y: number; at: number }>();
 const chatRateLimit = new Map<string, number[]>();
+const globalChatRateLimit = new Map<string, number[]>();
 const tradeInviteRateLimit = new Map<string, number[]>();
+const globalChatHistory: GlobalChatMessagePayload[] = [];
 const pendingTradeInvites = new Map<
   string,
   TradeInvitePayload & {
@@ -70,6 +75,8 @@ function leaveCurrentRoom(socketId: string) {
   if (!player) {
     return;
   }
+  const socket = io.sockets.sockets.get(socketId);
+  socket?.leave(player.currentRoom);
 
   for (const [inviteId, invite] of pendingTradeInvites.entries()) {
     if (invite.fromSocketId === socketId || invite.toUserId === player.userId) {
@@ -83,6 +90,14 @@ function leaveCurrentRoom(socketId: string) {
     room: player.currentRoom
   });
   broadcastPresence(player.currentRoom);
+  if (process.env.NODE_ENV === "development") {
+    console.debug("[GrowFi realtime] player left room", {
+      socketId,
+      userId: player.userId,
+      room: player.currentRoom,
+      playerCount: playersInRoom(player.currentRoom).length
+    });
+  }
 }
 
 function socketEntryForUser(userId: string, room: RealtimeRoom) {
@@ -104,6 +119,28 @@ function canSendTradeInvite(socketId: string) {
   }
   recent.push(now);
   tradeInviteRateLimit.set(socketId, recent);
+  return true;
+}
+
+function sanitizeChatMessage(message: string) {
+  return message
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 240);
+}
+
+function canSendGlobalChat(userId: string) {
+  const now = Date.now();
+  const recent = (globalChatRateLimit.get(userId) || []).filter(
+    (time) => now - time < 10_000
+  );
+  if (recent.length >= 5) {
+    globalChatRateLimit.set(userId, recent);
+    return false;
+  }
+  recent.push(now);
+  globalChatRateLimit.set(userId, recent);
   return true;
 }
 
@@ -154,14 +191,66 @@ async function createTradeSession(initiatorId: string, recipientId: string) {
   });
 }
 
-async function authenticateSocket(socket: Parameters<typeof io.use>[0] extends (socket: infer S, next: any) => any ? S : never) {
-  const token = await getToken({
-    req: socket.request as any,
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
-  });
+type NextAuthTokenRequest = Parameters<typeof getToken>[0]["req"];
+
+function parseCookieHeader(header: string | string[] | undefined) {
+  const source = Array.isArray(header) ? header.join("; ") : header || "";
+  return source.split(";").reduce<Record<string, string>>((cookies, entry) => {
+    const [rawName, ...rawValue] = entry.trim().split("=");
+    if (!rawName || rawValue.length === 0) {
+      return cookies;
+    }
+    cookies[rawName] = decodeURIComponent(rawValue.join("="));
+    return cookies;
+  }, {});
+}
+
+async function authenticateSocket(socket: Socket) {
+  const request = socket.request as NextAuthTokenRequest & {
+    cookies?: Record<string, string>;
+  };
+  request.cookies = {
+    ...parseCookieHeader(socket.request.headers.cookie),
+    ...(request.cookies || {}),
+  };
+  const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("NEXTAUTH_SECRET or AUTH_SECRET is required for socket authentication.");
+  }
+  let token = await getToken({
+    req: request,
+    secret
+  })
+    || await getToken({
+      req: request,
+      secret,
+      cookieName: "next-auth.session-token",
+      secureCookie: false,
+    })
+    || await getToken({
+      req: request,
+      secret,
+      cookieName: "__Secure-next-auth.session-token",
+      secureCookie: true,
+    });
+  const authSessionToken = socket.handshake.auth?.sessionToken;
+  if (
+    !token &&
+    process.env.NODE_ENV !== "production" &&
+    typeof authSessionToken === "string"
+  ) {
+    token = await decode({ token: authSessionToken, secret });
+  }
 
   const userId = token?.userId ? String(token.userId) : "";
   if (!userId) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[GrowFi realtime] socket auth missing token", {
+        hasCookieHeader: Boolean(socket.request.headers.cookie),
+        cookieNames: Object.keys(request.cookies || {}),
+        hasSecret: Boolean(process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET),
+      });
+    }
     throw new Error("Unauthenticated socket connection.");
   }
 
@@ -177,16 +266,37 @@ async function authenticateSocket(socket: Parameters<typeof io.use>[0] extends (
   socket.data.user = user;
 }
 
-io.use(async (socket, next) => {
-  try {
-    await authenticateSocket(socket);
-    next();
-  } catch (error) {
-    next(error instanceof Error ? error : new Error("Socket authentication failed."));
+export function attachRealtimeServer(server: http.Server) {
+  if (io) {
+    return io;
   }
-});
 
-io.on("connection", (socket) => {
+  io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      credentials: true
+    }
+  });
+
+  io.use(async (socket, next) => {
+    try {
+      await authenticateSocket(socket);
+      next();
+    } catch (error) {
+      next(error instanceof Error ? error : new Error("Socket authentication failed."));
+    }
+  });
+
+  io.on("connection", (socket) => {
+  if (process.env.NODE_ENV === "development") {
+    const user = socket.data.user as { id?: string; username?: string } | undefined;
+    console.debug("[GrowFi realtime] socket connected", {
+      socketId: socket.id,
+      userId: user?.id,
+      username: user?.username
+    });
+  }
+
   socket.on("player:join_room", ({ room, x, y }: { room: RealtimeRoom; x: number; y: number }) => {
     leaveCurrentRoom(socket.id);
     socket.join(room);
@@ -216,12 +326,19 @@ io.on("connection", (socket) => {
     socket.emit("room:players", { room, players: playersInRoom(room, socket.id) });
     socket.to(room).emit("player:joined", player);
     broadcastPresence(room);
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[GrowFi realtime] player joined room", {
+        socketId: socket.id,
+        userId: player.userId,
+        room,
+        playerCount: playersInRoom(room).length
+      });
+    }
   });
 
   socket.on("player:leave_room", ({ room }: { room: RealtimeRoom }) => {
     const player = playersBySocket.get(socket.id);
     if (player?.currentRoom === room) {
-      socket.leave(room);
       leaveCurrentRoom(socket.id);
     }
   });
@@ -328,6 +445,17 @@ io.on("connection", (socket) => {
     };
 
     pendingTradeInvites.set(invite.inviteId, { ...invite, fromSocketId: socket.id });
+    prisma.activityLog
+      .create({
+        data: {
+          actorId: toUserId,
+          targetUserId: from.userId,
+          type: "TRADE_INVITE_RECEIVED",
+          message: `${from.username} sent a trade invite.`,
+          metadata: { inviteId: invite.inviteId, room }
+        }
+      })
+      .catch(() => undefined);
     io.to(targetEntry[0]).emit("trade:invite_received", invite);
   };
 
@@ -354,7 +482,10 @@ io.on("connection", (socket) => {
       return;
     }
 
-    if (Date.now() - invite.createdAt > 60_000 || distanceBetween(from, recipient) > NEARBY_TRADE_DISTANCE) {
+    if (
+      Date.now() - invite.createdAt > TRADE_INVITE_EXPIRY_SECONDS * 1000 ||
+      distanceBetween(from, recipient) > NEARBY_TRADE_DISTANCE
+    ) {
       pendingTradeInvites.delete(inviteId);
       emitInviteDeclined(invite, "The trade invite expired or the players moved too far apart.");
       return;
@@ -427,13 +558,78 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("chat:global:join", () => {
+    socket.join("global");
+    socket.emit("chat:global:history", {
+      messages: globalChatHistory.slice(-100)
+    });
+  });
+
+  socket.on("chat:global:message", ({ message }: { message: string }) => {
+    const user = socket.data.user as {
+      id: string;
+      username: string;
+      avatarUrl?: string | null;
+    };
+    if (!user?.id) {
+      socket.emit("chat:global:error", { message: "Reconnect to chat." });
+      return;
+    }
+    if (!canSendGlobalChat(user.id)) {
+      socket.emit("chat:global:error", {
+        message: "Slow down before sending another global message."
+      });
+      return;
+    }
+    const clean = sanitizeChatMessage(message);
+    if (!clean) {
+      socket.emit("chat:global:error", { message: "Message cannot be empty." });
+      return;
+    }
+    if (clean.length > 240) {
+      socket.emit("chat:global:error", {
+        message: "Message is too long."
+      });
+      return;
+    }
+
+    const payload: GlobalChatMessagePayload = {
+      id: crypto.randomUUID(),
+      from: {
+        userId: user.id,
+        username: user.username,
+        avatarUrl: user.avatarUrl
+      },
+      message: clean,
+      createdAt: Date.now()
+    };
+    globalChatHistory.push(payload);
+    globalChatHistory.splice(0, Math.max(0, globalChatHistory.length - 100));
+    io.to("global").emit("chat:global:message", payload);
+  });
+
   socket.on("disconnect", () => {
     leaveCurrentRoom(socket.id);
     chatRateLimit.delete(socket.id);
+    const user = socket.data.user as { id?: string } | undefined;
+    if (user?.id) {
+      globalChatRateLimit.delete(user.id);
+    }
     tradeInviteRateLimit.delete(socket.id);
   });
-});
+  });
 
-server.listen(PORT, () => {
-  console.log(`GrowFi realtime socket server listening on http://localhost:${PORT}`);
-});
+  return io;
+}
+
+export function startStandaloneRealtimeServer(port = PORT) {
+  const server = http.createServer();
+  attachRealtimeServer(server);
+  server.listen(port, () => {
+    console.log(`GrowFi realtime socket server listening on http://localhost:${port}`);
+  });
+}
+
+if (process.argv[1]?.endsWith("server/socket.ts")) {
+  startStandaloneRealtimeServer();
+}

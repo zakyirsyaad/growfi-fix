@@ -2,6 +2,7 @@
 
 import { ShoppingBasket } from "lucide-react";
 import { RarityBadge } from "@/components/game/shared/RarityBadge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -49,6 +50,9 @@ export function ShopItemCard({
         <div className="text-right">
           <div className="text-xs font-black uppercase text-leaf-700">Price</div>
           <div className="text-lg font-black">{item.price}</div>
+          {item.stockRemaining <= 0 ? (
+            <Badge variant="secondary">Sold Out</Badge>
+          ) : null}
         </div>
       </div>
 

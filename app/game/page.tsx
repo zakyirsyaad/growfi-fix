@@ -1,10 +1,10 @@
-import { AuthGate } from "@/components/layout/AuthGate";
 import { GameClient } from "@/components/game/GameClient";
+import { WalletGate } from "@/components/game/WalletGate";
 
 export default function GamePage() {
   return (
-    <AuthGate>
+    <WalletGate>
       <GameClient />
-    </AuthGate>
+    </WalletGate>
   );
 }
