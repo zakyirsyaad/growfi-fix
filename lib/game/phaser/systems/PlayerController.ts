@@ -27,6 +27,18 @@ export class PlayerController {
       d: Phaser.Input.Keyboard.KeyCodes.D,
       shift: Phaser.Input.Keyboard.KeyCodes.SHIFT
     }) as Record<"w" | "a" | "s" | "d" | "shift", Phaser.Input.Keyboard.Key> | undefined;
+    [
+      Phaser.Input.Keyboard.KeyCodes.W,
+      Phaser.Input.Keyboard.KeyCodes.A,
+      Phaser.Input.Keyboard.KeyCodes.S,
+      Phaser.Input.Keyboard.KeyCodes.D,
+      Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      Phaser.Input.Keyboard.KeyCodes.UP,
+      Phaser.Input.Keyboard.KeyCodes.DOWN,
+      Phaser.Input.Keyboard.KeyCodes.LEFT,
+      Phaser.Input.Keyboard.KeyCodes.RIGHT,
+      Phaser.Input.Keyboard.KeyCodes.SPACE,
+    ].forEach((keyCode) => scene.input.keyboard?.removeCapture(keyCode));
 
     this.cleanup.push(
       gameEventBus.on("joystickMove", (vector) => {

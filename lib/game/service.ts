@@ -43,7 +43,12 @@ type Tx = Prisma.TransactionClient;
 
 const GARDEN_STATE_TRANSACTION_OPTIONS = {
   maxWait: 10_000,
-  timeout: 15_000
+  timeout: 45_000
+};
+
+const READ_TRANSACTION_OPTIONS = {
+  maxWait: 10_000,
+  timeout: 30_000
 };
 
 const publicUserSelect = {
@@ -165,16 +170,6 @@ async function ensureDailyQuestProgressTx(tx: Tx, userId: string, questDate = st
     skipDuplicates: true
   });
 
-  for (const quest of DAILY_QUEST_DEFINITIONS) {
-    await tx.dailyQuestProgress.updateMany({
-      where: { userId, questKey: quest.key, questDate },
-      data: {
-        target: quest.target,
-        rewardGrow: quest.rewardGrow
-      }
-    });
-  }
-
   const progress = await tx.dailyQuestProgress.findMany({
     where: { userId, questDate },
     orderBy: { createdAt: "asc" }
@@ -273,15 +268,6 @@ async function ensureTutorialProgressTx(tx: Tx, userId: string) {
     })),
     skipDuplicates: true
   });
-
-  for (const step of TUTORIAL_STEP_DEFINITIONS) {
-    await tx.tutorialProgress.updateMany({
-      where: { userId, stepKey: step.key },
-      data: {
-        target: step.target
-      }
-    });
-  }
 
   const progress = await tx.tutorialProgress.findMany({
     where: { userId },
@@ -618,38 +604,40 @@ async function syncGardenStateTx(tx: Tx, userId: string) {
 }
 
 export async function getMe(userId: string) {
-  return prisma.$transaction(async (tx) => {
-    const user = await refreshStamina(tx, userId);
-    const stamina = calculateStamina(user);
-    const [garden, activeListings, activeTrades, transactionCount] = await Promise.all([
-      tx.garden.findUnique({ where: { userId } }),
-      tx.marketplaceListing.count({
+  const user = await prisma.$transaction(
+    (tx) => refreshStamina(tx, userId),
+    READ_TRANSACTION_OPTIONS
+  );
+  const stamina = calculateStamina(user);
+  const [garden, activeListings, activeTrades, transactionCount] =
+    await Promise.all([
+      prisma.garden.findUnique({ where: { userId } }),
+      prisma.marketplaceListing.count({
         where: { sellerId: userId, status: "ACTIVE" }
       }),
-      tx.trade.count({
+      prisma.trade.count({
         where: {
           status: { in: ["PENDING", "ACTIVE", "LOCKED"] },
           OR: [{ initiatorId: userId }, { recipientId: userId }]
         }
       }),
-      tx.transaction.count({ where: { userId } })
+      prisma.transaction.count({ where: { userId } })
     ]);
 
-    return {
-      user: {
-        ...user,
-        stamina: stamina.stamina,
-        nextStaminaAt: stamina.nextStaminaAt,
-        availableGrow: availableGrow(user)
-      },
-      garden,
-      stats: {
-        activeListings,
-        activeTrades,
-        transactionCount
-      }
-    };
-  });
+  return {
+    user: {
+      ...user,
+      stamina: stamina.stamina,
+      nextStaminaAt: stamina.nextStaminaAt,
+      availableGrow: availableGrow(user)
+    },
+    garden,
+    stats: {
+      activeListings,
+      activeTrades,
+      transactionCount
+    }
+  };
 }
 
 export async function connectWallet(userId: string, walletAddress: string) {
@@ -1549,33 +1537,27 @@ async function expireMarketplaceListingsTx(tx: Tx) {
 }
 
 export async function getMarketplace(userId?: string) {
-  return prisma.$transaction(async (tx) => {
-    await expireMarketplaceListingsTx(tx);
-    if (userId) {
-      await updateDailyQuestProgressTx(tx, userId, "open_marketplace", 1);
-    }
-    const [listings, myListings] = await Promise.all([
-      tx.marketplaceListing.findMany({
-        where: { status: "ACTIVE", expiresAt: { gt: new Date() } },
-        include: {
-          fruit: true,
-          seller: { select: { id: true, username: true, avatarUrl: true } }
-        },
-        orderBy: { createdAt: "desc" },
-        take: 100
-      }),
-      userId
-        ? tx.marketplaceListing.findMany({
-            where: { sellerId: userId },
-            include: { fruit: true },
-            orderBy: { createdAt: "desc" },
-            take: 30
-          })
-        : []
-    ]);
+  const [listings, myListings] = await Promise.all([
+    prisma.marketplaceListing.findMany({
+      where: { status: "ACTIVE", expiresAt: { gt: new Date() } },
+      include: {
+        fruit: true,
+        seller: { select: { id: true, username: true, avatarUrl: true } }
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100
+    }),
+    userId
+      ? prisma.marketplaceListing.findMany({
+          where: { sellerId: userId },
+          include: { fruit: true },
+          orderBy: { createdAt: "desc" },
+          take: 30
+        })
+      : []
+  ]);
 
-    return { listings, myListings };
-  });
+  return { listings, myListings };
 }
 
 export async function listFruitOnMarketplace(
@@ -1819,38 +1801,6 @@ async function unlockTradeItemsTx(tx: Tx, tradeId: string) {
   }
 }
 
-async function expireTradesForUserTx(tx: Tx, userId: string) {
-  const expired = await tx.trade.findMany({
-    where: {
-      status: { in: ["PENDING", "ACTIVE", "LOCKED"] },
-      expiresAt: { lte: new Date() },
-      OR: [{ initiatorId: userId }, { recipientId: userId }]
-    }
-  });
-
-  for (const trade of expired) {
-    await unlockTradeItemsTx(tx, trade.id);
-    await tx.trade.update({
-      where: { id: trade.id },
-      data: { status: "EXPIRED", initiatorConfirmed: false, recipientConfirmed: false }
-    });
-    await activity(tx, {
-      actorId: trade.initiatorId,
-      targetUserId: trade.recipientId,
-      type: "TRADE_EXPIRED",
-      message: "A direct trade expired.",
-      metadata: { tradeId: trade.id }
-    });
-    await activity(tx, {
-      actorId: trade.recipientId,
-      targetUserId: trade.initiatorId,
-      type: "TRADE_EXPIRED",
-      message: "A direct trade expired.",
-      metadata: { tradeId: trade.id }
-    });
-  }
-}
-
 async function expireTradeTx(
   tx: Tx,
   trade: { id: string; initiatorId: string; recipientId: string; status: TradeStatus }
@@ -1893,25 +1843,22 @@ function otherTradeUser(trade: { initiatorId: string; recipientId: string }, use
 }
 
 export async function getTrades(userId: string) {
-  return prisma.$transaction(async (tx) => {
-    await expireTradesForUserTx(tx, userId);
-    const trades = await tx.trade.findMany({
-      where: {
-        OR: [{ initiatorId: userId }, { recipientId: userId }]
-      },
-      include: {
-        initiator: { select: { id: true, username: true, avatarUrl: true } },
-        recipient: { select: { id: true, username: true, avatarUrl: true } },
-        items: {
-          include: { fruit: true, user: { select: { id: true, username: true } } },
-          orderBy: { createdAt: "asc" }
-        }
-      },
-      orderBy: { updatedAt: "desc" },
-      take: 50
-    });
-    return { trades };
+  const trades = await prisma.trade.findMany({
+    where: {
+      OR: [{ initiatorId: userId }, { recipientId: userId }]
+    },
+    include: {
+      initiator: { select: { id: true, username: true, avatarUrl: true } },
+      recipient: { select: { id: true, username: true, avatarUrl: true } },
+      items: {
+        include: { fruit: true, user: { select: { id: true, username: true } } },
+        orderBy: { createdAt: "asc" }
+      }
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 50
   });
+  return { trades };
 }
 
 export async function createTrade(

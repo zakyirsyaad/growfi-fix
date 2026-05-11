@@ -122,18 +122,32 @@ export function TradeOverlay({
   const [growAmount, setGrowAmount] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: tradesData, isLoading } = useQuery({
+  const {
+    data: tradesData,
+    isLoading,
+    isError: tradesIsError,
+    error: tradesQueryError,
+    refetch: refetchTrades,
+  } = useQuery({
     queryKey: ["trades"],
     queryFn: () => apiFetch<TradesResponse>("/api/trades"),
     refetchInterval: 15_000,
     enabled: open
   });
-  const { data: inventory } = useQuery({
+  const {
+    data: inventory,
+    isError: inventoryIsError,
+    error: inventoryQueryError,
+  } = useQuery({
     queryKey: ["inventory"],
     queryFn: () => apiFetch<InventoryResponse>("/api/inventory"),
     enabled: open
   });
-  const { data: me } = useQuery({
+  const {
+    data: me,
+    isError: meIsError,
+    error: meQueryError,
+  } = useQuery({
     queryKey: ["me"],
     queryFn: () => apiFetch<MeResponse>("/api/me"),
     enabled: open
@@ -259,12 +273,29 @@ export function TradeOverlay({
     onSuccess: invalidate,
     onError: (err) => setError(err instanceof Error ? err.message : "Remove failed")
   });
+  const queryError =
+    tradesIsError || inventoryIsError || meIsError
+      ? tradesQueryError || inventoryQueryError || meQueryError
+      : null;
 
   return (
     <>
       <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Direct Trade" description="Create asynchronous offers, lock them, then both sides confirm." wide>
         {error ? <div className="mb-3"><ErrorState message={error} /></div> : null}
-        {isLoading || !tradesData || !me ? (
+        {queryError ? (
+          <div className="space-y-3">
+            <ErrorState
+              message={
+                queryError instanceof Error
+                  ? queryError.message
+                  : "Could not load direct trades."
+              }
+            />
+            <Button variant="secondary" onClick={() => refetchTrades()}>
+              Refresh Trades
+            </Button>
+          </div>
+        ) : isLoading || !tradesData || !me ? (
           <LoadingState label="Loading trades" />
         ) : (
           <div className="space-y-4">

@@ -107,6 +107,8 @@ function ChatInput({
             locked: false,
           })
         }
+        onKeyDownCapture={(event) => event.stopPropagation()}
+        onKeyUpCapture={(event) => event.stopPropagation()}
         onChange={(event) => setMessage(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
