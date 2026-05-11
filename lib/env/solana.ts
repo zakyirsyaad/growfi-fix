@@ -24,6 +24,8 @@ export const SERVER_SOLANA_ENV_KEYS = [
   "TREASURY_TOKEN_ACCOUNT",
   "TREASURY_WALLET_SECRET_KEY",
   "MINT_AUTHORITY_SECRET_KEY",
+  "ENABLE_DEVNET_SERVER_MINT",
+  "ENABLE_DEVNET_SHOP_AUTOMATION",
 ] as const;
 
 export function requireEnv(name: string, options?: { devnetOnly?: boolean }) {
@@ -55,5 +57,28 @@ export function validateDevnetServerEnv() {
   }
   if ((process.env.TOKEN_MODE || "devnet") !== "devnet") {
     throw new GameError("TOKEN_MODE must be devnet for this devnet helper.", 500);
+  }
+}
+
+export function isTruthyEnv(name: string) {
+  const value = process.env[name]?.trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
+export function assertDevnetServerFeatureEnabled(params: {
+  flagName: string;
+  featureName: string;
+}) {
+  validateDevnetServerEnv();
+
+  if (process.env.NODE_ENV !== "production") {
+    return;
+  }
+
+  if (!isTruthyEnv(params.flagName)) {
+    throw new GameError(
+      `${params.featureName} is disabled in production. Set ${params.flagName}=true and keep TOKEN_MODE=devnet to enable it for a devnet deployment.`,
+      403
+    );
   }
 }

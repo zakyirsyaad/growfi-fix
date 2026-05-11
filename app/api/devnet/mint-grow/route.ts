@@ -29,10 +29,6 @@ export async function POST(request: Request) {
     rateLimit(`mint-grow:wallet:${wallet.toBase58()}`, 5, 60 * 60_000);
     rateLimit(`mint-grow:ip:${clientIp(request)}`, 20, 60 * 60_000);
 
-    if (process.env.NODE_ENV === "production") {
-      throw new GameError("Devnet minting is disabled in production.", 403);
-    }
-
     const result = await mintDevnetGrow({
       walletAddress: wallet.toBase58(),
     });

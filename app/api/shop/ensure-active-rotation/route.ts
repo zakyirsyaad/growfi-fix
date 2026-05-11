@@ -9,7 +9,7 @@ import {
 } from "@solana/web3.js";
 import idl from "@/lib/idl/growfi_core.json";
 import { getCurrentUser } from "@/lib/auth/server";
-import { validateDevnetServerEnv } from "@/lib/env/solana";
+import { assertDevnetServerFeatureEnabled } from "@/lib/env/solana";
 import { GameError } from "@/lib/game/errors";
 import { ONCHAIN_SEEDS } from "@/lib/solana/growfiData";
 import {
@@ -104,10 +104,10 @@ function walletFromKeypair(keypair: Keypair): AnchorWalletLike {
 }
 
 function assertDevnetAutomationAllowed() {
-  if (process.env.NODE_ENV === "production") {
-    throw new GameError("Shop auto-creation is disabled in production.", 403);
-  }
-  validateDevnetServerEnv();
+  assertDevnetServerFeatureEnabled({
+    flagName: "ENABLE_DEVNET_SHOP_AUTOMATION",
+    featureName: "Shop auto-creation",
+  });
 }
 
 function bnToNumber(value: unknown) {

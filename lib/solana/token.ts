@@ -19,7 +19,7 @@ import {
   getAssociatedTokenAddress,
   getMint
 } from "@solana/spl-token";
-import { validateDevnetServerEnv } from "@/lib/env/solana";
+import { assertDevnetServerFeatureEnabled } from "@/lib/env/solana";
 import { GameError } from "@/lib/game/errors";
 
 export function isMockTokenMode() {
@@ -209,10 +209,10 @@ export async function mintDevnetGrow(params: {
   walletAddress: string;
   amount?: number;
 }) {
-  if (process.env.NODE_ENV === "production") {
-    throw new GameError("Devnet minting is disabled in production.", 403);
-  }
-  validateDevnetServerEnv();
+  assertDevnetServerFeatureEnabled({
+    flagName: "ENABLE_DEVNET_SERVER_MINT",
+    featureName: "Devnet $GROW minting",
+  });
   if (!process.env.GROW_TOKEN_MINT) {
     throw new GameError("GROW_TOKEN_MINT is not configured on the server.", 503);
   }

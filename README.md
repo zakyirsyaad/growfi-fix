@@ -111,6 +111,7 @@ Required for core app:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/growfi?schema=public
+DIRECT_URL=postgresql://postgres:postgres@localhost:5432/growfi?schema=public
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=replace-with-a-long-random-secret
 DISCORD_CLIENT_ID=
@@ -129,7 +130,12 @@ GROW_TOKEN_DECIMALS=9
 TREASURY_WALLET_PUBLIC_KEY=
 TREASURY_TOKEN_ACCOUNT=
 TREASURY_WALLET_SECRET_KEY=
+ENABLE_DEVNET_SERVER_MINT=false
 MINT_AUTHORITY_SECRET_KEY=
+ENABLE_DEVNET_SHOP_AUTOMATION=false
+GROWFI_ADMIN_SECRET_KEY=
+DEVNET_GROW_MINT_AMOUNT=1000
+SHOP_ROTATION_SECONDS=86400
 NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
 NEXT_PUBLIC_TOKEN_CLUSTER=devnet
 NEXT_PUBLIC_TOKEN_MODE=devnet
@@ -149,7 +155,9 @@ REALTIME_PORT=3000
 REALTIME_CORS_ORIGIN=http://localhost:3000
 ```
 
-For production/staging, set `TOKEN_MODE` explicitly to `devnet` or `mainnet`; keep mock mode off unless you are running local demos. Never expose treasury secret keys to the frontend.
+For production/staging, set `TOKEN_MODE` explicitly to `devnet` or `mainnet`; keep mock mode off unless you are running local demos. Never expose treasury, mint authority, or admin secret keys to the frontend.
+
+Railway devnet deployments can opt into server-side test helpers with `ENABLE_DEVNET_SERVER_MINT=true` and `ENABLE_DEVNET_SHOP_AUTOMATION=true`. These helpers still require `TOKEN_MODE=devnet` and `TOKEN_CLUSTER=devnet`, and they remain disabled by default when `NODE_ENV=production`.
 
 If you use ngrok, expose the unified Next.js app origin and set `NEXT_PUBLIC_REALTIME_URL` plus `REALTIME_CORS_ORIGIN` to that same origin.
 
