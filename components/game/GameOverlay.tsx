@@ -154,11 +154,19 @@ export function GameOverlay({
 
   useEffect(() => {
     return gameEventBus.on("selectPlot", ({ plotId, visitorMode: isVisitor }) => {
+      const plot = garden?.garden.plots.find((item) => item.id === plotId);
+      if (!isVisitor && plot?.state === "LOCKED") {
+        setOverlays((current) => ({ ...current, farmUpgrade: true }));
+        toast("Plot needs initialization", {
+          description: "Open Farm Management to unlock upgraded farm plots."
+        });
+        return;
+      }
       setSelectedPlotId(plotId);
       setSelectedPlotVisitorMode(!!isVisitor);
       setOverlays((current) => ({ ...current, seedSelect: true }));
     });
-  }, []);
+  }, [garden?.garden.plots]);
 
   useEffect(() => {
     return gameEventBus.on("interactionPrompt", ({ visible, label }) => {

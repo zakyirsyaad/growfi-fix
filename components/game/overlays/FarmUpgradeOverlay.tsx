@@ -1,8 +1,16 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { ArrowUpRight, Coins, Grid3X3, Loader2, RefreshCw } from "lucide-react";
+import {
+  ArrowUpRight,
+  Coins,
+  Grid3X3,
+  Loader2,
+  LockOpen,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +45,7 @@ export function FarmUpgradeOverlay({
   const { publicKey } = useWallet();
   const growfiActions = useGrowfiActions();
   const onchain = useGrowfiOnchainState(open);
+  const [farmProgress, setFarmProgress] = useState("");
   const growMint = clientGrowMintFromConfig(onchain.data?.config);
   const walletBalances = useWalletBalances({
     mintAddress: growMint,
@@ -47,7 +56,16 @@ export function FarmUpgradeOverlay({
   const cost = upgrades?.cost ?? 0;
   const balance = walletBalances.data?.grow?.balance ?? 0;
   const missing = Math.max(0, cost - balance);
-  const canUpgrade = !!nextLevel && balance >= cost && !walletBalances.isLoading;
+  const missingPlotCount = useMemo(
+    () => onchain.data?.plots.filter((plot) => !plot.account).length ?? 0,
+    [onchain.data?.plots]
+  );
+  const hasEnoughGrow = balance >= cost;
+  const canUpgrade =
+    !!nextLevel &&
+    hasEnoughGrow &&
+    !walletBalances.isLoading &&
+    missingPlotCount === 0;
   const isDevnetTokenMode =
     process.env.NEXT_PUBLIC_TOKEN_MODE === "devnet" ||
     process.env.NEXT_PUBLIC_TOKEN_CLUSTER === "devnet";
@@ -78,8 +96,37 @@ export function FarmUpgradeOverlay({
     },
   });
 
+  const unlockPlotsMutation = useMutation({
+    mutationFn: () => {
+      setFarmProgress("Checking farm plots...");
+      return growfiActions.ensureFarmPlots({ onProgress: setFarmProgress });
+    },
+    onSuccess: async (signatures) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+        queryClient.invalidateQueries({ queryKey: ["garden"] }),
+      ]);
+      setFarmProgress("");
+      toast.success("Farm plots unlocked", {
+        description: signatures.length
+          ? `${signatures.length} transaction${signatures.length === 1 ? "" : "s"} confirmed.`
+          : "All plots were already ready.",
+      });
+      gameEventBus.emit("refreshFarmState");
+    },
+    onError: (err) => {
+      setFarmProgress("");
+      toast.error("Could not unlock farm plots", {
+        description: decodeGrowfiError(err),
+      });
+    },
+  });
+
   const upgradeMutation = useMutation({
-    mutationFn: () => growfiActions.upgradeFarm(),
+    mutationFn: () => {
+      setFarmProgress("Preparing farm upgrade...");
+      return growfiActions.upgradeFarm({ onProgress: setFarmProgress });
+    },
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
@@ -89,10 +136,14 @@ export function FarmUpgradeOverlay({
         queryClient.invalidateQueries({ queryKey: ["quests"] }),
         queryClient.invalidateQueries({ queryKey: ["tutorial"] }),
       ]);
-      toast.success("Farm upgraded");
+      setFarmProgress("");
+      toast.success("Farm upgraded", {
+        description: "New plots were initialized automatically.",
+      });
       gameEventBus.emit("refreshFarmState");
     },
     onError: (err) => {
+      setFarmProgress("");
       toast.error("Upgrade failed", {
         description: decodeGrowfiError(err),
       });
@@ -141,6 +192,41 @@ export function FarmUpgradeOverlay({
           </CardContent>
         </Card>
 
+        {farmProgress ? (
+          <Alert>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <AlertTitle>Working on your farm</AlertTitle>
+            <AlertDescription>{farmProgress}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {missingPlotCount > 0 ? (
+          <Alert>
+            <LockOpen className="h-4 w-4" />
+            <AlertTitle>Some farm plots need initialization</AlertTitle>
+            <AlertDescription className="space-y-3">
+              <p>
+                Your farm level is upgraded, but {missingPlotCount} plot
+                account{missingPlotCount === 1 ? "" : "s"} still need to be
+                created on Solana before they can be used.
+              </p>
+              <Button
+                size="sm"
+                type="button"
+                onClick={() => unlockPlotsMutation.mutate()}
+                disabled={unlockPlotsMutation.isPending}
+              >
+                {unlockPlotsMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LockOpen className="h-4 w-4" />
+                )}
+                Unlock Farm Plots
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         {nextLevel ? (
           <Card className="bg-white/82">
             <CardContent className="space-y-4 p-4">
@@ -186,7 +272,7 @@ export function FarmUpgradeOverlay({
                   </div>
                 </div>
               </div>
-              {!canUpgrade ? (
+              {!hasEnoughGrow ? (
                 <Alert>
                   <Coins className="h-4 w-4" />
                   <AlertTitle>Not enough wallet $GROW</AlertTitle>
@@ -227,10 +313,18 @@ export function FarmUpgradeOverlay({
               ) : null}
               <Button
                 className="w-full"
-                disabled={!canUpgrade || upgradeMutation.isPending}
+                disabled={
+                  !canUpgrade ||
+                  upgradeMutation.isPending ||
+                  unlockPlotsMutation.isPending
+                }
                 onClick={() => upgradeMutation.mutate()}
               >
-                <ArrowUpRight className="h-4 w-4" />
+                {upgradeMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4" />
+                )}
                 Upgrade Farm
               </Button>
             </CardContent>

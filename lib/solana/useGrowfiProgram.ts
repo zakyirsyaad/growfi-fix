@@ -149,6 +149,10 @@ type MarketplaceListingAccount = {
   expiresAt: BN;
 };
 
+type FarmPlotProgressOptions = {
+  onProgress?: (message: string) => void;
+};
+
 export type OnchainMarketplaceListingView = {
   id: string;
   address: string;
@@ -613,6 +617,14 @@ function explorerUrl(signature: string) {
 
 function shortAddress(value: string) {
   return value.length > 12 ? `${value.slice(0, 4)}...${value.slice(-4)}` : value;
+}
+
+function chunkArray<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }
 
 function listingStatusFromOnchain(
@@ -1277,6 +1289,126 @@ export function useGrowfiActions() {
   const resolveGrowMint = (config: ConfigAccount) =>
     getGrowTokenMint() || config.growMint;
 
+  const buildMissingPlotInstructions = async (params: {
+    config: PublicKey;
+    farm: PublicKey;
+    owner: PublicKey;
+    authority: PublicKey;
+    width: number;
+    height: number;
+  }) => {
+    const coordinates = [];
+    for (let y = 0; y < params.height; y += 1) {
+      for (let x = 0; x < params.width; x += 1) {
+        const [plot] = growfiPdas.plot(params.farm, x, y, programId);
+        coordinates.push({ x, y, plot });
+      }
+    }
+
+    const accountInfos: Array<unknown | null> = [];
+    for (const chunk of chunkArray(coordinates, 100)) {
+      accountInfos.push(
+        ...(await connection.getMultipleAccountsInfo(
+          chunk.map((coordinate) => coordinate.plot),
+          "confirmed"
+        ))
+      );
+    }
+
+    const missing = coordinates.filter((_, index) => !accountInfos[index]);
+    if (process.env.NODE_ENV === "development") {
+      console.debug("[GrowFi] missing farm plot scan", {
+        farm: params.farm.toBase58(),
+        width: params.width,
+        height: params.height,
+        expectedPlots: coordinates.length,
+        missingPlots: missing.length,
+      });
+    }
+
+    const instructions: TransactionInstruction[] = [];
+    for (const coordinate of missing) {
+      const transaction = await programMethods
+        .createInitialPlots(coordinate.x, coordinate.y)
+        .accounts({
+          config: params.config,
+          farm: params.farm,
+          plot: coordinate.plot,
+          owner: params.owner,
+          authority: params.authority,
+          systemProgram: SystemProgram.programId,
+        })
+        .transaction();
+      instructions.push(...transaction.instructions);
+    }
+
+    return { instructions, missingCount: missing.length };
+  };
+
+  const sendPlotInstructionChunks = async (params: {
+    label: string;
+    instructions: TransactionInstruction[];
+    onProgress?: (message: string) => void;
+  }) => {
+    if (!params.instructions.length) {
+      return [] as string[];
+    }
+
+    const signatures: string[] = [];
+    const chunks = chunkArray(params.instructions, 8);
+    for (let index = 0; index < chunks.length; index += 1) {
+      params.onProgress?.(
+        `${params.label}... Step ${index + 1}/${chunks.length}`
+      );
+      signatures.push(
+        await sendInstructions(
+          `${params.label} ${index + 1}/${chunks.length}`,
+          chunks[index]
+        )
+      );
+    }
+    return signatures;
+  };
+
+  const ensureFarmPlotAccounts = async (
+    options?: FarmPlotProgressOptions
+  ) => {
+    const authority = requireWallet();
+    const [config] = growfiPdas.config(programId);
+    const [farm] = growfiPdas.farm(authority, programId);
+    const farmAccount = (await fetchNullable(
+      program,
+      "farm",
+      farm
+    )) as FarmAccount | null;
+    if (!farmAccount) {
+      throw new Error("Create your farm before unlocking plots.");
+    }
+
+    const width = Number(farmAccount.width);
+    const height = Number(farmAccount.height);
+    const { instructions, missingCount } = await buildMissingPlotInstructions({
+      config,
+      farm,
+      owner: authority,
+      authority,
+      width,
+      height,
+    });
+
+    if (!missingCount) {
+      options?.onProgress?.("All farm plots are already unlocked.");
+      return [] as string[];
+    }
+
+    options?.onProgress?.(`Unlocking ${missingCount} farm plots...`);
+    return sendPlotInstructionChunks({
+      label: "Unlock farm plots",
+      instructions,
+      onProgress: options?.onProgress,
+    });
+  };
+
   return {
     async createPlayer() {
       const authority = requireWallet();
@@ -1616,7 +1748,7 @@ export function useGrowfiActions() {
       ]);
     },
 
-    async upgradeFarm() {
+    async upgradeFarm(options?: FarmPlotProgressOptions) {
       const authority = requireWallet();
       const { publicKey: config, account: configAccount } = await getConfig();
       const growMint = resolveGrowMint(configAccount);
@@ -1628,7 +1760,24 @@ export function useGrowfiActions() {
       );
       const [player] = growfiPdas.player(authority, programId);
       const [farm] = growfiPdas.farm(authority, programId);
-      const transaction = await programMethods
+      const currentFarm = (await fetchNullable(
+        program,
+        "farm",
+        farm
+      )) as FarmAccount | null;
+      if (!currentFarm) {
+        throw new Error("Create your farm before upgrading it.");
+      }
+
+      const currentLevel = Number(currentFarm.level);
+      const nextLevel = currentLevel + 1;
+      const nextUpgrade = FARM_UPGRADES[nextLevel];
+      if (!nextUpgrade) {
+        throw new Error("Your farm is already at the current max level.");
+      }
+
+      options?.onProgress?.("Preparing farm upgrade...");
+      const upgradeTransaction = await programMethods
         .upgradeFarm()
         .accounts({
           config,
@@ -1641,11 +1790,53 @@ export function useGrowfiActions() {
           tokenProgram,
         })
         .transaction();
-      return sendInstructions("Upgrade farm", [
-        ...(instruction ? [instruction] : []),
-        ...transaction.instructions,
-      ]);
+      const { instructions: plotInstructions, missingCount } =
+        await buildMissingPlotInstructions({
+          config,
+          farm,
+          owner: authority,
+          authority,
+          width: nextUpgrade.width,
+          height: nextUpgrade.height,
+        });
+
+      const remainingPlotInstructions = [...plotInstructions];
+      const firstPlotChunk = remainingPlotInstructions.splice(0, 8);
+      const laterPlotChunks = chunkArray(remainingPlotInstructions, 8);
+      const totalSteps = 1 + laterPlotChunks.length;
+      const firstLabel = missingCount
+        ? "Upgrade farm and unlock plots"
+        : "Upgrade farm";
+      const signatures: string[] = [];
+
+      options?.onProgress?.(
+        `${firstLabel}... Step 1/${totalSteps}`
+      );
+      signatures.push(
+        await sendInstructions(firstLabel, [
+          ...(instruction ? [instruction] : []),
+          ...upgradeTransaction.instructions,
+          ...firstPlotChunk,
+        ])
+      );
+
+      for (let index = 0; index < laterPlotChunks.length; index += 1) {
+        options?.onProgress?.(
+          `Unlocking remaining plots... Step ${index + 2}/${totalSteps}`
+        );
+        signatures.push(
+          await sendInstructions(
+            `Unlock farm plots ${index + 2}/${totalSteps}`,
+            laterPlotChunks[index]
+          )
+        );
+      }
+
+      options?.onProgress?.("Farm upgrade complete.");
+      return signatures;
     },
+
+    ensureFarmPlots: ensureFarmPlotAccounts,
 
     async createListing(input: {
       fruit: Partial<FruitView> | number | string;

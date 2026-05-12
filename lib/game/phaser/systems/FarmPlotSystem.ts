@@ -60,7 +60,7 @@ function labelForPlot(plot: GardenPlotView, visitorMode: boolean) {
   if (plot.state === "REGROWING") {
     return "Press E to Check Regrow";
   }
-  return "Locked Plot";
+  return visitorMode ? "Locked Plot" : "Press E to Unlock Plot";
 }
 
 type PlotSpriteView = {
