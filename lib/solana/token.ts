@@ -111,7 +111,11 @@ export async function verifyGrowDeposit(params: {
     return {
       signature: params.signature,
       rawAmount: BigInt(params.amount),
-      mock: true
+      mock: true,
+      mint: "mock-mint",
+      treasuryAta: "mock-treasury-ata",
+      userWallet: params.userWallet,
+      slot: 0
     };
   }
 
@@ -176,7 +180,11 @@ export async function verifyGrowDeposit(params: {
   return {
     signature: params.signature,
     rawAmount: expectedRaw,
-    mock: false
+    mock: false,
+    mint: mint.toBase58(),
+    treasuryAta: treasuryAta.toBase58(),
+    userWallet: userWallet.toBase58(),
+    slot: tx.slot
   };
 }
 

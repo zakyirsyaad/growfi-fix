@@ -2285,7 +2285,14 @@ export async function verifyDeposit(
       type: txType,
       amount: input.amount,
       signature: input.signature,
-      metadata: { rawAmount: verified.rawAmount.toString(), mock: verified.mock }
+      metadata: {
+        rawAmount: verified.rawAmount.toString(),
+        mock: verified.mock,
+        mint: verified.mint,
+        treasuryAta: verified.treasuryAta,
+        userWallet: verified.userWallet,
+        slot: verified.slot
+      }
     });
     await activity(tx, {
       actorId: userId,
