@@ -19,6 +19,7 @@ GrowFi is being migrated to an on-chain-first architecture. The Anchor program i
 
 ## On-Chain Architecture
 
+See `docs/economy-source-of-truth.md` for the current hybrid-mode boundary and production migration plan.
 On-chain source of truth:
 
 - `$GROW` SPL token and treasury token vault
