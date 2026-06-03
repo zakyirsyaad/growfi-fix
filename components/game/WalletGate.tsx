@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import bs58 from "bs58";
 import { signIn, useSession } from "next-auth/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -153,11 +154,40 @@ export function WalletGate({ children }: { children: ReactNode }) {
     if (!session?.user?.id || !walletAddress) {
       return;
     }
-    apiFetch("/api/wallet/connect", {
-      method: "POST",
-      body: JSON.stringify({ walletAddress }),
-    }).catch(() => undefined);
-  }, [session?.user?.id, walletAddress]);
+
+    const connectWithSignature = async () => {
+      try {
+        const challenge = await apiFetch<{ message: string; walletAddress: string }>(
+          "/api/wallet/challenge",
+          {
+            method: "POST",
+            body: JSON.stringify({ walletAddress }),
+          }
+        );
+
+        if (!wallet.signMessage) {
+          throw new Error("This wallet does not support message signing.");
+        }
+
+        const signatureBytes = await wallet.signMessage(
+          new TextEncoder().encode(challenge.message)
+        );
+
+        await apiFetch("/api/wallet/connect", {
+          method: "POST",
+          body: JSON.stringify({
+            walletAddress: challenge.walletAddress,
+            message: challenge.message,
+            signature: bs58.encode(signatureBytes),
+          }),
+        });
+      } catch (error) {
+        console.error("Wallet signature verification failed", error);
+      }
+    };
+
+    connectWithSignature();
+  }, [session?.user?.id, walletAddress, wallet, wallet.signMessage]);
 
   const refreshAll = async () => {
     await Promise.all([
