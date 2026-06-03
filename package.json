@@ -11,7 +11,7 @@
     "start": "next start",
     "start:unified": "NODE_ENV=production tsx server/dev.ts",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "anchor:build": "cd anchor && anchor build",
     "anchor:test": "cd anchor && anchor test",
     "anchor:deploy:devnet": "cd anchor && anchor deploy --provider.cluster devnet",
