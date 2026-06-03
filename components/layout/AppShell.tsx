@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import {
   BarChart3,
   Gamepad2,
@@ -18,7 +18,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet, type WalletContextState } from "@solana/wallet-adapter-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -37,7 +37,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils/cn";
-import { apiFetch } from "@/lib/utils/fetcher";
+import { connectVerifiedWallet } from "@/lib/solana/verifiedWalletConnect";
 
 const navGroups = [
   {
@@ -69,18 +69,26 @@ const navGroups = [
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const { publicKey, connected } = useWallet();
+  const wallet = useWallet();
+  const { publicKey, connected } = wallet;
+  const verifiedWalletRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!session?.user?.id || !connected || !publicKey) {
       return;
     }
 
-    apiFetch("/api/wallet/connect", {
-      method: "POST",
-      body: JSON.stringify({ walletAddress: publicKey.toBase58() })
-    }).catch(() => undefined);
-  }, [connected, publicKey, session?.user?.id]);
+    const walletAddress = publicKey.toBase58();
+    if (verifiedWalletRef.current === walletAddress) {
+      return;
+    }
+
+    connectVerifiedWallet(wallet as unknown as WalletContextState)
+      .then(() => {
+        verifiedWalletRef.current = walletAddress;
+      })
+      .catch(() => undefined);
+  }, [connected, publicKey, session?.user?.id, wallet]);
 
   const isHome = pathname === "/";
   const isGame = pathname === "/game";

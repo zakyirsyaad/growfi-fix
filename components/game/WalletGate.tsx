@@ -1,10 +1,9 @@
 "use client";
 
-import { ReactNode, useEffect, useMemo, useState } from "react";
-import bs58 from "bs58";
+import { ReactNode, useEffect, useMemo, useState, useRef } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet, type WalletContextState } from "@solana/wallet-adapter-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
@@ -33,6 +32,7 @@ import {
   useGrowfiActions,
   useGrowfiOnchainState,
 } from "@/lib/solana/useGrowfiProgram";
+import { connectVerifiedWallet } from "@/lib/solana/verifiedWalletConnect";
 
 const MINIMUM_DEVNET_SOL = 0.05;
 
@@ -120,6 +120,7 @@ export function WalletGate({ children }: { children: ReactNode }) {
     enabled: status === "authenticated" && !!wallet.publicKey,
   });
   const [farmProgress, setFarmProgress] = useState("");
+  const verifiedWalletRef = useRef<string | null>(null);
 
   const walletAddress = wallet.publicKey?.toBase58();
   const solBalance = balances.data?.sol ?? 0;
@@ -157,37 +158,20 @@ export function WalletGate({ children }: { children: ReactNode }) {
 
     const connectWithSignature = async () => {
       try {
-        const challenge = await apiFetch<{ message: string; walletAddress: string }>(
-          "/api/wallet/challenge",
-          {
-            method: "POST",
-            body: JSON.stringify({ walletAddress }),
-          }
-        );
-
-        if (!wallet.signMessage) {
-          throw new Error("This wallet does not support message signing.");
+        if (verifiedWalletRef.current === walletAddress) {
+          return;
         }
 
-        const signatureBytes = await wallet.signMessage(
-          new TextEncoder().encode(challenge.message)
-        );
-
-        await apiFetch("/api/wallet/connect", {
-          method: "POST",
-          body: JSON.stringify({
-            walletAddress: challenge.walletAddress,
-            message: challenge.message,
-            signature: bs58.encode(signatureBytes),
-          }),
-        });
+        await connectVerifiedWallet(wallet as unknown as WalletContextState);
+        await queryClient.invalidateQueries({ queryKey: ["me"] });
+        verifiedWalletRef.current = walletAddress;
       } catch (error) {
         console.error("Wallet signature verification failed", error);
       }
     };
 
     connectWithSignature();
-  }, [session?.user?.id, walletAddress, wallet, wallet.signMessage]);
+  }, [session?.user?.id, walletAddress, wallet, wallet.signMessage, queryClient]);
 
   const refreshAll = async () => {
     await Promise.all([
