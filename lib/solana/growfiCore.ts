@@ -14,7 +14,7 @@ import {
 } from "@solana/web3.js";
 
 export const DEFAULT_GROWFI_CORE_PROGRAM_ID =
-  "3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH";
+  "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz";
 
 export type AnchorWalletLike = {
   publicKey: PublicKey;

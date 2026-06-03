@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-growfi_core = "3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH"
+growfi_core = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz"
 
 [programs.localnet]
-growfi_core = "3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH"
+growfi_core = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz"
 
 [provider]
 cluster = "devnet"

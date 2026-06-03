@@ -2,7 +2,24 @@ import { expect } from "chai";
 import * as fs from "fs";
 const idl = JSON.parse(fs.readFileSync(new URL("../../lib/idl/growfi_core.json", import.meta.url), "utf8"));
 
+const deployedProgramId = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz";
+const repoRoot = new URL("../../", import.meta.url);
+
+function readRepoFile(path: string) {
+  return fs.readFileSync(new URL(path, repoRoot), "utf8");
+}
+
+
 describe("growfi_core IDL smoke tests", () => {
+  it("keeps program ids in sync with the deployed devnet program", () => {
+    expect(idl.address).to.equal(deployedProgramId);
+    expect(readRepoFile("lib/solana/growfiCore.ts")).to.contain(`"${deployedProgramId}"`);
+    expect(readRepoFile("anchor/Anchor.toml")).to.contain(`growfi_core = "${deployedProgramId}"`);
+    expect(readRepoFile("anchor/programs/growfi_core/src/lib.rs")).to.contain(
+      `declare_id!("${deployedProgramId}")`
+    );
+  });
+
   const instructionNames = idl.instructions.map(
     (instruction) => instruction.name
   );
