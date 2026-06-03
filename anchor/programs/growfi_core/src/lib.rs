@@ -10,7 +10,7 @@ pub use events::*;
 use instructions::*;
 pub use state::*;
 
-declare_id!("ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz");
+declare_id!("3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH");
 
 #[program]
 pub mod growfi_core {
