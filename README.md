@@ -124,6 +124,7 @@ Solana settings:
 SOLANA_RPC_URL=https://api.devnet.solana.com
 TOKEN_CLUSTER=devnet
 TOKEN_MODE=devnet
+# TOKEN_MODE=mock is local-only and must never be used in production.
 GROWFI_CORE_PROGRAM_ID=ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz
 GROW_TOKEN_MINT=
 GROW_TOKEN_DECIMALS=9
