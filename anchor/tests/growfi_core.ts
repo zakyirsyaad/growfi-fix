@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import idl from "../target/idl/growfi_core.json";
+import * as fs from "fs";
+const idl = JSON.parse(fs.readFileSync(new URL("../../lib/idl/growfi_core.json", import.meta.url), "utf8"));
 
-describe("growfi_core IDL", () => {
+describe("growfi_core IDL smoke tests", () => {
   const instructionNames = idl.instructions.map(
     (instruction) => instruction.name
   );
@@ -101,60 +102,54 @@ describe("growfi_core IDL", () => {
   });
 
   describe("integration: basic setup and economy", () => {
-    it("initialize config", async () => {
-      // Integration test logic for initialize_config
-      expect(true).to.be.true;
+    it.skip("initialize config", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("create player", async () => {
-      // Integration test logic for create_player
-      expect(true).to.be.true;
+    it.skip("create player", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("create farm", async () => {
-      // Integration test logic for create_farm
-      expect(true).to.be.true;
+    it.skip("create farm", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("create initial plots", async () => {
-      // Integration test logic for create_initial_plots
-      expect(true).to.be.true;
+    it.skip("create initial plots", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("reject duplicate player/farm", async () => {
-      // Integration test logic for duplicate rejection
-      expect(true).to.be.true;
+    it.skip("reject duplicate player/farm", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("reject unauthorized config update", async () => {
-      // Integration test logic for unauthorized config update
-      expect(true).to.be.true;
+    it.skip("reject unauthorized config update", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
   });
 
   describe("integration: economy abuse tests", () => {
-    it("buy seed fails when shop expired", async () => {
-      expect(true).to.be.true;
+    it.skip("buy seed fails when shop expired", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("buy seed fails when quantity exceeds stock", async () => {
-      expect(true).to.be.true;
+    it.skip("buy seed fails when quantity exceeds stock", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("plant seed fails when plot is not empty", async () => {
-      expect(true).to.be.true;
+    it.skip("plant seed fails when plot is not empty", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("harvest fails before ready time", async () => {
-      expect(true).to.be.true;
+    it.skip("harvest fails before ready time", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("marketplace buy fails when listing expired", async () => {
-      expect(true).to.be.true;
+    it.skip("marketplace buy fails when listing expired", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
 
-    it("trade complete fails without both confirmations", async () => {
-      expect(true).to.be.true;
+    it.skip("trade complete fails without both confirmations", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
   });
 });

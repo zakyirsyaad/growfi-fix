@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useMemo, useState, useRef } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet, type WalletContextState } from "@solana/wallet-adapter-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   CheckCircle2,
   Coins,
@@ -120,7 +120,12 @@ export function WalletGate({ children }: { children: ReactNode }) {
     enabled: status === "authenticated" && !!wallet.publicKey,
   });
   const [farmProgress, setFarmProgress] = useState("");
-  const verifiedWalletRef = useRef<string | null>(null);
+  const meQuery = useQuery({
+    queryKey: ["me"],
+    queryFn: () =>
+      apiFetch<{ user: { id: string; walletAddress?: string | null } }>("/api/me"),
+    enabled: status === "authenticated",
+  });
 
   const walletAddress = wallet.publicKey?.toBase58();
   const solBalance = balances.data?.sol ?? 0;
@@ -151,27 +156,24 @@ export function WalletGate({ children }: { children: ReactNode }) {
     };
   }, [ready]);
 
-  useEffect(() => {
-    if (!session?.user?.id || !walletAddress) {
-      return;
-    }
+  const walletVerified =
+    !!wallet.publicKey &&
+    !!walletAddress &&
+    meQuery.data?.user.walletAddress === walletAddress;
 
-    const connectWithSignature = async () => {
-      try {
-        if (verifiedWalletRef.current === walletAddress) {
-          return;
-        }
-
-        await connectVerifiedWallet(wallet as unknown as WalletContextState);
-        await queryClient.invalidateQueries({ queryKey: ["me"] });
-        verifiedWalletRef.current = walletAddress;
-      } catch (error) {
-        console.error("Wallet signature verification failed", error);
-      }
-    };
-
-    connectWithSignature();
-  }, [session?.user?.id, walletAddress, wallet, wallet.signMessage, queryClient]);
+  const verifyWalletMutation = useMutation({
+    mutationFn: () => connectVerifiedWallet(wallet as unknown as WalletContextState),
+    onSuccess: async () => {
+      toast.success("Wallet verified");
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: (error) => {
+      toast.error("Wallet verification failed", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
+    },
+  });
 
   const refreshAll = async () => {
     await Promise.all([
@@ -286,7 +288,7 @@ export function WalletGate({ children }: { children: ReactNode }) {
   const steps = useMemo(
     () => [
       { label: "Login with Discord", complete: status === "authenticated" },
-      { label: "Connect Solana Wallet", complete: !!wallet.publicKey },
+      { label: "Connect Solana Wallet", complete: walletVerified },
       { label: "Check Devnet SOL", complete: !!wallet.publicKey && hasDevnetSol },
       { label: "Check or Mint Devnet $GROW", complete: hasGrow },
       { label: "Create On-chain Player", complete: !!onchain.data?.player },
@@ -372,13 +374,26 @@ export function WalletGate({ children }: { children: ReactNode }) {
                   Login with Discord
                 </Button>
               </>
-            ) : !wallet.publicKey ? (
+            ) : !walletVerified ? (
               <>
                 <p className="text-sm font-semibold text-muted-foreground">
-                  Connect a Solana wallet so GrowFi can find your on-chain
+                  Connect and verify a Solana wallet so GrowFi can find your on-chain
                   player, farm, and $GROW token account.
                 </p>
-                <WalletMultiButton />
+                <div className="flex flex-wrap items-center gap-2">
+                  <WalletMultiButton />
+                  <Button
+                    disabled={!walletAddress || verifyWalletMutation.isPending}
+                    onClick={() => verifyWalletMutation.mutate()}
+                  >
+                    {verifyWalletMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wallet className="h-4 w-4" />
+                    )}
+                    Verify wallet
+                  </Button>
+                </div>
               </>
             ) : !devnetConfigured ? (
               <Alert variant="destructive">

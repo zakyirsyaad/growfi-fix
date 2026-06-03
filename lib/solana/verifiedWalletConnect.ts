@@ -9,6 +9,13 @@ type WalletChallengeResponse = {
   walletAddress: string;
 };
 
+export type WalletConnectResponse = {
+  user: {
+    id: string;
+    walletAddress?: string | null;
+  };
+};
+
 export async function connectVerifiedWallet(wallet: WalletContextState) {
   const walletAddress = wallet.publicKey?.toBase58();
   if (!walletAddress) {
@@ -30,7 +37,7 @@ export async function connectVerifiedWallet(wallet: WalletContextState) {
     new TextEncoder().encode(challenge.message)
   );
 
-  return apiFetch("/api/wallet/connect", {
+  return apiFetch<WalletConnectResponse>("/api/wallet/connect", {
     method: "POST",
     body: JSON.stringify({
       walletAddress: challenge.walletAddress,
