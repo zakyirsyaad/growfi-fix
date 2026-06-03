@@ -41,6 +41,12 @@ export function GameClient() {
   );
 
   useEffect(() => {
+    if (displayGarden) {
+      gameEventBus.emit("gardenStateUpdated", displayGarden);
+    }
+  }, [displayGarden]);
+
+  useEffect(() => {
     document.body.dataset.gameRoute = "true";
     return () => {
       delete document.body.dataset.gameRoute;
@@ -118,7 +124,7 @@ export function GameClient() {
 
   return (
     <div className="relative h-[100svh] w-full overflow-hidden bg-leaf-500">
-      <GameCanvas garden={displayGarden} />
+      <GameCanvas />
       <GameOverlay garden={displayGarden} shopEndsAt={shop?.rotation?.endsAt} />
       {isLoading ? (
         <div className="absolute left-1/2 top-1/2 z-40 w-[min(90vw,360px)] -translate-x-1/2 -translate-y-1/2">
