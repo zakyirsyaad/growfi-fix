@@ -41,7 +41,11 @@ import {
   ErrorState,
   LoadingState,
 } from "@/components/game/shared/StatusStates";
-import { buildDepositTransaction, hasClientTokenConfig } from "@/lib/solana/client";
+import {
+  buildDepositTransaction,
+  hasClientTokenConfig,
+  isClientMockTokenMode,
+} from "@/lib/solana/client";
 import {
   clientGrowMintFromConfig,
   clientTreasuryVaultFromConfig,
@@ -179,8 +183,13 @@ export function WalletDashboard({ compact = false }: { compact?: boolean }) {
       if (!wallet.publicKey) {
         throw new Error("Connect a Solana wallet first.");
       }
-      let signature = `mock-deposit-${Date.now()}`;
-      if (hasClientTokenConfig()) {
+      let signature: string;
+      if (isClientMockTokenMode()) {
+        signature = `mock-deposit-${Date.now()}`;
+      } else {
+        if (!hasClientTokenConfig()) {
+          throw new Error("Token mint and treasury wallet are required for devnet deposits.");
+        }
         toast.loading("Preparing deposit", {
           id: "wallet-deposit",
           description: "Waiting for wallet approval.",
@@ -242,9 +251,7 @@ export function WalletDashboard({ compact = false }: { compact?: boolean }) {
     : mintAddress
     ? "0 $GROW"
     : "Mint not configured";
-  const mockMode =
-    process.env.NEXT_PUBLIC_MOCK_TOKEN_MODE === "true" ||
-    !process.env.NEXT_PUBLIC_GROW_TOKEN_MINT;
+  const mockMode = isClientMockTokenMode();
 
   if (meLoading || !me) {
     return <LoadingState label="Loading wallet" />;
