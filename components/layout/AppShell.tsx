@@ -18,7 +18,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -67,11 +67,7 @@ const navGroups = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
-  const wallet = useWallet();
-  const { publicKey, connected } = wallet;
-
-
+  const { status } = useSession();
   const isHome = pathname === "/";
   const isGame = pathname === "/game";
   const pageTitle =

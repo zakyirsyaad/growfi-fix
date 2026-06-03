@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useMemo, useState, useRef } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet, type WalletContextState } from "@solana/wallet-adapter-react";
@@ -109,7 +109,7 @@ spl-token mint ${mint} 1000000 ${walletAddress || "USER_WALLET_ADDRESS"}`}
 }
 
 export function WalletGate({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const wallet = useWallet();
   const queryClient = useQueryClient();
   const onchain = useGrowfiOnchainState(status === "authenticated");
@@ -128,6 +128,10 @@ export function WalletGate({ children }: { children: ReactNode }) {
   });
 
   const walletAddress = wallet.publicKey?.toBase58();
+  const walletVerified =
+    !!wallet.publicKey &&
+    !!walletAddress &&
+    meQuery.data?.user.walletAddress === walletAddress;
   const solBalance = balances.data?.sol ?? 0;
   const growBalance = balances.data?.grow?.balance ?? 0;
   const hasDevnetSol = solBalance >= MINIMUM_DEVNET_SOL;
@@ -136,6 +140,7 @@ export function WalletGate({ children }: { children: ReactNode }) {
   const ready =
     status === "authenticated" &&
     !!wallet.publicKey &&
+    walletVerified &&
     devnetConfigured &&
     !!onchain.data?.config &&
     hasDevnetSol &&
@@ -155,11 +160,6 @@ export function WalletGate({ children }: { children: ReactNode }) {
       });
     };
   }, [ready]);
-
-  const walletVerified =
-    !!wallet.publicKey &&
-    !!walletAddress &&
-    meQuery.data?.user.walletAddress === walletAddress;
 
   const verifyWalletMutation = useMutation({
     mutationFn: () => connectVerifiedWallet(wallet as unknown as WalletContextState),
@@ -303,6 +303,7 @@ export function WalletGate({ children }: { children: ReactNode }) {
       ready,
       status,
       wallet.publicKey,
+      walletVerified,
     ]
   );
   const activeStep =
