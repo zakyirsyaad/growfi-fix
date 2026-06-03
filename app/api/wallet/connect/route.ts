@@ -12,7 +12,7 @@ import { connectWalletSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`wallet-connect:${user.id}`, 10, 60_000);
+    await rateLimit(`wallet-connect:${user.id}`, 10, 60_000);
     const input = await parseJson(request, connectWalletSchema);
 
     const wallet = new PublicKey(input.walletAddress);

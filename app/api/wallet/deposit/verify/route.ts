@@ -7,7 +7,7 @@ import { depositVerifySchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`deposit:${user.id}`, 20, 60_000);
+    await rateLimit(`deposit:${user.id}`, 20, 60_000);
     const input = await parseJson(request, depositVerifySchema);
     return ok(await verifyDeposit(user.id, input));
   } catch (error) {

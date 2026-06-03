@@ -7,7 +7,7 @@ import { marketplaceListSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`market-list:${user.id}`, 30, 60_000);
+    await rateLimit(`market-list:${user.id}`, 30, 60_000);
     const input = await parseJson(request, marketplaceListSchema);
     return ok({ listing: await listFruitOnMarketplace(user.id, input) });
   } catch (error) {

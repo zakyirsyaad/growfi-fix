@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`wallet-challenge:${user.id}`, 10, 60_000);
+    await rateLimit(`wallet-challenge:${user.id}`, 10, 60_000);
     const input = await parseJson(request, walletChallengeSchema);
 
     let wallet: PublicKey;

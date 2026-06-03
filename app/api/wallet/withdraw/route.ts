@@ -7,7 +7,7 @@ import { withdrawSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`withdraw:${user.id}`, 10, 60_000);
+    await rateLimit(`withdraw:${user.id}`, 10, 60_000);
     const input = await parseJson(request, withdrawSchema);
     return ok(await withdrawGrow(user.id, input.amount));
   } catch (error) {

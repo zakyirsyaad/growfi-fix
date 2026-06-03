@@ -7,7 +7,7 @@ import { listingIdSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`market-cancel:${user.id}`, 30, 60_000);
+    await rateLimit(`market-cancel:${user.id}`, 30, 60_000);
     const input = await parseJson(request, listingIdSchema);
     return ok(await cancelMarketplaceListing(user.id, input.listingId));
   } catch (error) {

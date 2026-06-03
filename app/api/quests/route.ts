@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`claim-quest:${user.id}`, 20, 60_000);
+    await rateLimit(`claim-quest:${user.id}`, 20, 60_000);
     const input = await parseJson(request, questClaimSchema);
     return ok({ quests: await claimDailyQuest(user.id, input.questKey) });
   } catch (error) {

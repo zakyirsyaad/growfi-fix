@@ -26,8 +26,8 @@ export async function POST(request: Request) {
     } catch {
       throw new GameError("Wallet address is not a valid Solana address.", 422);
     }
-    rateLimit(`mint-grow:wallet:${wallet.toBase58()}`, 5, 60 * 60_000);
-    rateLimit(`mint-grow:ip:${clientIp(request)}`, 20, 60 * 60_000);
+    await rateLimit(`mint-grow:wallet:${wallet.toBase58()}`, 5, 60 * 60_000);
+    await rateLimit(`mint-grow:ip:${clientIp(request)}`, 20, 60 * 60_000);
 
     const result = await mintDevnetGrow({
       walletAddress: wallet.toBase58(),

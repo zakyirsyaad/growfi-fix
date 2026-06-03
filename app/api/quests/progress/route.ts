@@ -7,7 +7,7 @@ import { questProgressSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`quest-progress:${user.id}`, 60, 60_000);
+    await rateLimit(`quest-progress:${user.id}`, 60, 60_000);
     const input = await parseJson(request, questProgressSchema);
     return ok({ updates: await trackDailyQuestAction(user.id, input.action, input.amount) });
   } catch (error) {

@@ -7,7 +7,7 @@ import { plotActionSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`water:${user.id}`, 60, 60_000);
+    await rateLimit(`water:${user.id}`, 60, 60_000);
     const input = await parseJson(request, plotActionSchema);
     return ok({ plant: await waterPlant(user.id, input) });
   } catch (error) {
