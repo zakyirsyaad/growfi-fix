@@ -175,6 +175,15 @@ Build the on-chain program:
 npm run anchor:build
 ```
 
+The committed IDL smoke suite can run without the SBF build toolchain:
+
+```bash
+cd anchor
+npm exec -- ts-mocha -p ./tsconfig.json -t 1000000 "tests/**/*.ts"
+```
+
+Full integration tests still require the Solana SBF toolchain and local validator support.
+
 Run the Anchor test harness:
 
 ```bash
