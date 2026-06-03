@@ -81,6 +81,8 @@ Mobile/tablet:
 
 ## MVP Multiplayer Scope
 
+For production scaling limits and migration order, see `docs/realtime-production-plan.md`.
+
 GrowFi includes Socket.io realtime presence for public areas and shared farm rooms.
 
 - Town uses room `town`, so everyone in TownScene can see remote player sprites and username labels.
