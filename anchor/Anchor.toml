@@ -10,7 +10,7 @@ skip-lint = false
 growfi_core = "3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH"
 
 [programs.localnet]
-growfi_core = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz"
+growfi_core = "3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH"
 
 [provider]
 cluster = "devnet"

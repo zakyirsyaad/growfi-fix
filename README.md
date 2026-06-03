@@ -128,7 +128,7 @@ SOLANA_RPC_URL=https://api.devnet.solana.com
 TOKEN_CLUSTER=devnet
 TOKEN_MODE=devnet
 # TOKEN_MODE=mock is local-only and must never be used in production.
-GROWFI_CORE_PROGRAM_ID=ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz
+GROWFI_CORE_PROGRAM_ID=3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH
 GROW_TOKEN_MINT=
 GROW_TOKEN_DECIMALS=9
 TREASURY_WALLET_PUBLIC_KEY=
@@ -144,7 +144,7 @@ NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
 NEXT_PUBLIC_TOKEN_CLUSTER=devnet
 NEXT_PUBLIC_TOKEN_MODE=devnet
 NEXT_PUBLIC_MOCK_TOKEN_MODE=false
-NEXT_PUBLIC_GROWFI_CORE_PROGRAM_ID=ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz
+NEXT_PUBLIC_GROWFI_CORE_PROGRAM_ID=3kuJMbz1mRpTiHzV3ajGN9d2Lk1gx78spe2Vi2TBTSEH
 NEXT_PUBLIC_GROW_TOKEN_MINT=
 NEXT_PUBLIC_GROW_TOKEN_DECIMALS=9
 NEXT_PUBLIC_TREASURY_WALLET_PUBLIC_KEY=
@@ -166,6 +166,8 @@ Railway devnet deployments can opt into server-side test helpers with `ENABLE_DE
 If you use ngrok, expose the unified Next.js app origin and set `NEXT_PUBLIC_REALTIME_URL` plus `REALTIME_CORS_ORIGIN` to that same origin.
 
 ## Anchor Program
+
+Current local Anchor integration tests require the Solana SBF toolchain. If `anchor test` fails with `no such command: build-sbf`, install the Solana toolchain before treating Anchor tests as verified.
 
 Build the on-chain program:
 
