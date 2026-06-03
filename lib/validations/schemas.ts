@@ -4,6 +4,10 @@ export const connectWalletSchema = z.object({
   walletAddress: z.string().min(32).max(64)
 });
 
+export const walletChallengeSchema = z.object({
+  walletAddress: z.string().min(32).max(64)
+});
+
 export const devnetMintGrowSchema = z.object({
   walletAddress: z.string().min(32).max(64)
 });
