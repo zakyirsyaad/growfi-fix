@@ -486,11 +486,11 @@ export function WalletDashboard({ compact = false }: { compact?: boolean }) {
                         </TableCell>
                         <TableCell className="px-6 py-5">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                            className={`px-3 py-1 rounded-md text-xs font-bold border ${
                               tx.status === "FAILED"
                                 ? "bg-destructive/10 text-destructive border-destructive/20"
                                 : tx.status === "PENDING"
-                                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                  ? "bg-gold-100 text-gold-700 border-gold-300"
                                   : "bg-primary/10 text-primary border-primary/20"
                             }`}
                           >
