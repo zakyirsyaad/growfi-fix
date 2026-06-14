@@ -258,6 +258,46 @@ textarea {
       radial-gradient(1px 1px at 80px 160px, #ff9ebd 99%, transparent);
     background-size: 350px 200px;
   }
+  /* Tilled dirt plot tile */
+  .pixel-dirt {
+    background-color: #5e3b20;
+    box-shadow: inset 0 0 0 2px #2b1a10;
+  }
+  /* Pixel sun with radiating square rays */
+  .pixel-sun {
+    background-color: #f7d767;
+    box-shadow:
+      0 -14px 0 -3px #f7d767,
+      0 14px 0 -3px #f7d767,
+      -14px 0 0 -3px #f7d767,
+      14px 0 0 -3px #f7d767,
+      0 0 0 4px #d99a1f inset;
+  }
+  /* Dotted pixel connector path */
+  .pixel-path {
+    background-image: repeating-linear-gradient(
+      to right,
+      #3d9f4b 0,
+      #3d9f4b 8px,
+      transparent 8px,
+      transparent 16px
+    );
+  }
+  /* CTA dawn sky, stepped (no smooth gradient) */
+  .pixel-dawn {
+    background:
+      linear-gradient(
+        to bottom,
+        #1773ad 0%,
+        #1773ad 28%,
+        #2b9ee7 28%,
+        #2b9ee7 50%,
+        #8ad4ff 50%,
+        #8ad4ff 70%,
+        #dbf1ff 70%,
+        #dbf1ff 100%
+      );
+  }
 }
 
 @keyframes gradient-x {
