@@ -17,11 +17,15 @@ function pow10(decimals: number) {
   return BigInt(10) ** BigInt(decimals);
 }
 
+export function isClientMockTokenMode() {
+  return process.env.NEXT_PUBLIC_TOKEN_MODE === "mock";
+}
+
 export function hasClientTokenConfig() {
   return Boolean(
     process.env.NEXT_PUBLIC_GROW_TOKEN_MINT &&
       process.env.NEXT_PUBLIC_TREASURY_WALLET_PUBLIC_KEY &&
-      process.env.NEXT_PUBLIC_MOCK_TOKEN_MODE !== "true"
+      !isClientMockTokenMode()
   );
 }
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 export function formatDuration(target?: string | Date | null) {
   if (!target) {
@@ -25,7 +24,13 @@ export function formatDuration(target?: string | Date | null) {
   return `${seconds}s`;
 }
 
-export function CountdownBadge({ to, label }: { to?: string | Date | null; label?: string }) {
+export function CountdownBadge({
+  to,
+  label,
+}: {
+  to?: string | Date | null;
+  label?: string;
+}) {
   const target = useMemo(() => to, [to]);
   const [, setTick] = useState(0);
 
@@ -35,10 +40,10 @@ export function CountdownBadge({ to, label }: { to?: string | Date | null; label
   }, []);
 
   return (
-    <Badge variant="outline" className="gap-1 bg-white/80">
-      <Clock className="h-3.5 w-3.5" />
+    <span className="pixel-badge gap-1 text-[#8ad4ff]">
+      <Clock className="h-3 w-3" />
       {label ? `${label}: ` : null}
       {formatDuration(target)}
-    </Badge>
+    </span>
   );
 }

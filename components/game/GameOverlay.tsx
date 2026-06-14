@@ -28,16 +28,24 @@ import { FarmUpgradeOverlay } from "@/components/game/overlays/FarmUpgradeOverla
 import { OnlinePlayersOverlay } from "@/components/game/overlays/OnlinePlayersOverlay";
 import { PlayerInteractionOverlay } from "@/components/game/overlays/PlayerInteractionOverlay";
 import { QuestBoardOverlay } from "@/components/game/overlays/QuestBoardOverlay";
-import { gameEventBus, type GameArea, type GameOverlayKey } from "@/lib/game/eventBus";
+import {
+  gameEventBus,
+  type GameArea,
+  type GameOverlayKey,
+} from "@/lib/game/eventBus";
 import { apiFetch } from "@/lib/utils/fetcher";
-import type { ChatMessagePayload, OnlinePlayer, TradeInvitePayload } from "@/lib/realtime/types";
+import type {
+  ChatMessagePayload,
+  OnlinePlayer,
+  TradeInvitePayload,
+} from "@/lib/realtime/types";
 import type { GardenResponse } from "@/types/game-data";
 
 type OverlayState = Partial<Record<GameOverlayKey, boolean>>;
 
 function samePrompt(
   current: { visible: boolean; label?: string },
-  next: { visible: boolean; label?: string }
+  next: { visible: boolean; label?: string },
 ) {
   return current.visible === next.visible && current.label === next.label;
 }
@@ -60,23 +68,28 @@ function sameOnlinePlayers(current: OnlinePlayer[], next: OnlinePlayer[]) {
 
 export function GameOverlay({
   garden,
-  shopEndsAt
+  shopEndsAt,
 }: {
   garden?: GardenResponse;
   shopEndsAt?: string;
 }) {
   const queryClient = useQueryClient();
   const [overlays, setOverlays] = useState<OverlayState>({});
-  const [payloads, setPayloads] = useState<Partial<Record<GameOverlayKey, unknown>>>({});
+  const [payloads, setPayloads] = useState<
+    Partial<Record<GameOverlayKey, unknown>>
+  >({});
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedPlotVisitorMode, setSelectedPlotVisitorMode] = useState(false);
-  const [prompt, setPrompt] = useState<{ visible: boolean; label?: string }>({ visible: false });
+  const [prompt, setPrompt] = useState<{ visible: boolean; label?: string }>({
+    visible: false,
+  });
   const [area, setArea] = useState<GameArea>("Home Farm");
   const [ownerName, setOwnerName] = useState<string | undefined>();
   const [visitorMode, setVisitorMode] = useState(false);
   const [onlinePlayers, setOnlinePlayers] = useState<OnlinePlayer[]>([]);
   const [currentRoom, setCurrentRoom] = useState("home:unknown");
-  const [incomingInvite, setIncomingInvite] = useState<TradeInvitePayload | null>(null);
+  const [incomingInvite, setIncomingInvite] =
+    useState<TradeInvitePayload | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessagePayload[]>([]);
   const autoTutorialShown = useRef(false);
 
@@ -87,34 +100,40 @@ export function GameOverlay({
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       queryClient.invalidateQueries({ queryKey: ["me"] }),
       queryClient.invalidateQueries({ queryKey: ["quests"] }),
-      queryClient.invalidateQueries({ queryKey: ["tutorial"] })
+      queryClient.invalidateQueries({ queryKey: ["tutorial"] }),
     ]);
   }, [queryClient]);
 
-  const trackQuestAction = useCallback(async (action: "visit_town" | "open_marketplace") => {
-    await apiFetch("/api/quests/progress", {
-      method: "POST",
-      body: JSON.stringify({ action, amount: 1 })
-    });
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
-      queryClient.invalidateQueries({ queryKey: ["quests"] }),
-      queryClient.invalidateQueries({ queryKey: ["garden"] })
-    ]);
-  }, [queryClient]);
+  const trackQuestAction = useCallback(
+    async (action: "visit_town" | "open_marketplace") => {
+      await apiFetch("/api/quests/progress", {
+        method: "POST",
+        body: JSON.stringify({ action, amount: 1 }),
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+        queryClient.invalidateQueries({ queryKey: ["quests"] }),
+        queryClient.invalidateQueries({ queryKey: ["garden"] }),
+      ]);
+    },
+    [queryClient],
+  );
 
-  const trackTutorialAction = useCallback(async (action: "open_upgrade") => {
-    await apiFetch("/api/tutorial", {
-      method: "POST",
-      body: JSON.stringify({ action, amount: 1 })
-    });
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
-      queryClient.invalidateQueries({ queryKey: ["garden"] }),
-      queryClient.invalidateQueries({ queryKey: ["inventory"] }),
-      queryClient.invalidateQueries({ queryKey: ["me"] })
-    ]);
-  }, [queryClient]);
+  const trackTutorialAction = useCallback(
+    async (action: "open_upgrade") => {
+      await apiFetch("/api/tutorial", {
+        method: "POST",
+        body: JSON.stringify({ action, amount: 1 }),
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
+        queryClient.invalidateQueries({ queryKey: ["garden"] }),
+        queryClient.invalidateQueries({ queryKey: ["inventory"] }),
+        queryClient.invalidateQueries({ queryKey: ["me"] }),
+      ]);
+    },
+    [queryClient],
+  );
 
   const refillWaterMutation = useMutation({
     mutationFn: () => apiFetch("/api/garden/refill-water", { method: "POST" }),
@@ -124,9 +143,10 @@ export function GameOverlay({
     },
     onError: (err) => {
       toast.error("Could not refill water", {
-        description: err instanceof Error ? err.message : "Try again at the well."
+        description:
+          err instanceof Error ? err.message : "Try again at the well.",
       });
-    }
+    },
   });
 
   useEffect(() => {
@@ -153,19 +173,22 @@ export function GameOverlay({
   }, []);
 
   useEffect(() => {
-    return gameEventBus.on("selectPlot", ({ plotId, visitorMode: isVisitor }) => {
-      const plot = garden?.garden.plots.find((item) => item.id === plotId);
-      if (!isVisitor && plot?.state === "LOCKED") {
-        setOverlays((current) => ({ ...current, farmUpgrade: true }));
-        toast("Plot needs initialization", {
-          description: "Open Farm Management to unlock upgraded farm plots."
-        });
-        return;
-      }
-      setSelectedPlotId(plotId);
-      setSelectedPlotVisitorMode(!!isVisitor);
-      setOverlays((current) => ({ ...current, seedSelect: true }));
-    });
+    return gameEventBus.on(
+      "selectPlot",
+      ({ plotId, visitorMode: isVisitor }) => {
+        const plot = garden?.garden.plots.find((item) => item.id === plotId);
+        if (!isVisitor && plot?.state === "LOCKED") {
+          setOverlays((current) => ({ ...current, farmUpgrade: true }));
+          toast("Plot needs initialization", {
+            description: "Open Farm Management to unlock upgraded farm plots.",
+          });
+          return;
+        }
+        setSelectedPlotId(plotId);
+        setSelectedPlotVisitorMode(!!isVisitor);
+        setOverlays((current) => ({ ...current, seedSelect: true }));
+      },
+    );
   }, [garden?.garden.plots]);
 
   useEffect(() => {
@@ -178,14 +201,21 @@ export function GameOverlay({
   }, []);
 
   useEffect(() => {
-    return gameEventBus.on("areaChanged", ({ area: nextArea, ownerName: nextOwner, visitorMode: isVisitor }) => {
-      setArea((current) => (current === nextArea ? current : nextArea));
-      setOwnerName((current) => (current === nextOwner ? current : nextOwner));
-      setVisitorMode((current) => (current === !!isVisitor ? current : !!isVisitor));
-      if (nextArea === "Town Social Hub" && !isVisitor) {
-        trackQuestAction("visit_town").catch(() => undefined);
-      }
-    });
+    return gameEventBus.on(
+      "areaChanged",
+      ({ area: nextArea, ownerName: nextOwner, visitorMode: isVisitor }) => {
+        setArea((current) => (current === nextArea ? current : nextArea));
+        setOwnerName((current) =>
+          current === nextOwner ? current : nextOwner,
+        );
+        setVisitorMode((current) =>
+          current === !!isVisitor ? current : !!isVisitor,
+        );
+        if (nextArea === "Town Social Hub" && !isVisitor) {
+          trackQuestAction("visit_town").catch(() => undefined);
+        }
+      },
+    );
   }, [trackQuestAction]);
 
   useEffect(() => {
@@ -214,7 +244,9 @@ export function GameOverlay({
 
   useEffect(() => {
     return gameEventBus.on("roomPlayersUpdated", ({ players, room }) => {
-      setOnlinePlayers((current) => (sameOnlinePlayers(current, players) ? current : players));
+      setOnlinePlayers((current) =>
+        sameOnlinePlayers(current, players) ? current : players,
+      );
       setCurrentRoom((current) => (current === room ? current : room));
     });
   }, []);
@@ -223,21 +255,24 @@ export function GameOverlay({
     return gameEventBus.on("tradeInviteReceived", (invite) => {
       setIncomingInvite(invite);
       toast("Trade invite received", {
-        description: `${invite.from.username} wants to trade.`
+        description: `${invite.from.username} wants to trade.`,
       });
     });
   }, []);
 
   useEffect(() => {
     return gameEventBus.on("tradeSessionCreated", (session) => {
-      const other = session.initiator.userId === garden?.user.id ? session.recipient : session.initiator;
+      const other =
+        session.initiator.userId === garden?.user.id
+          ? session.recipient
+          : session.initiator;
       setPayloads((current) => ({
         ...current,
         trade: {
           tradeId: session.tradeId,
           recipientId: other.userId,
-          recipientUsername: other.username
-        }
+          recipientUsername: other.username,
+        },
       }));
       setOverlays((current) => ({ ...current, trade: true }));
       queryClient.invalidateQueries({ queryKey: ["trades"] });
@@ -254,7 +289,7 @@ export function GameOverlay({
   useEffect(() => {
     return gameEventBus.on("tradeInviteDeclined", (payload) => {
       toast.error("Trade invite declined", {
-        description: payload.reason || "The other farmer declined."
+        description: payload.reason || "The other farmer declined.",
       });
     });
   }, []);
@@ -296,9 +331,9 @@ export function GameOverlay({
       ownerName,
       visitorMode,
       shopEndsAt,
-      onlineCount: onlinePlayers.length + 1
+      onlineCount: onlinePlayers.length + 1,
     }),
-    [area, garden, onlinePlayers.length, ownerName, shopEndsAt, visitorMode]
+    [area, garden, onlinePlayers.length, ownerName, shopEndsAt, visitorMode],
   );
 
   return (
@@ -319,8 +354,14 @@ export function GameOverlay({
         plotId={selectedPlotId}
         visitorMode={selectedPlotVisitorMode}
       />
-      <InventoryOverlay open={!!overlays.inventory} onOpenChange={(open) => setOverlay("inventory", open)} />
-      <SeedShopOverlay open={!!overlays.seedShop} onOpenChange={(open) => setOverlay("seedShop", open)} />
+      <InventoryOverlay
+        open={!!overlays.inventory}
+        onOpenChange={(open) => setOverlay("inventory", open)}
+      />
+      <SeedShopOverlay
+        open={!!overlays.seedShop}
+        onOpenChange={(open) => setOverlay("seedShop", open)}
+      />
       <MarketplaceOverlay
         open={!!overlays.marketplace}
         onOpenChange={(open) => setOverlay("marketplace", open)}
@@ -332,17 +373,35 @@ export function GameOverlay({
         payload={payloads.trade}
         onlinePlayers={onlinePlayers}
       />
-      <WalletOverlay open={!!overlays.wallet} onOpenChange={(open) => setOverlay("wallet", open)} />
-      <ProfileOverlay open={!!overlays.profile} onOpenChange={(open) => setOverlay("profile", open)} />
-      <ActivityLogOverlay open={!!overlays.activityLog} onOpenChange={(open) => setOverlay("activityLog", open)} />
+      <WalletOverlay
+        open={!!overlays.wallet}
+        onOpenChange={(open) => setOverlay("wallet", open)}
+      />
+      <ProfileOverlay
+        open={!!overlays.profile}
+        onOpenChange={(open) => setOverlay("profile", open)}
+      />
+      <ActivityLogOverlay
+        open={!!overlays.activityLog}
+        onOpenChange={(open) => setOverlay("activityLog", open)}
+      />
       <VisitFarmOverlay
         open={!!overlays.visitFarm}
         onOpenChange={(open) => setOverlay("visitFarm", open)}
         onlinePlayers={onlinePlayers}
       />
-      <LeaderboardOverlay open={!!overlays.leaderboard} onOpenChange={(open) => setOverlay("leaderboard", open)} />
-      <CommunityBoardOverlay open={!!overlays.communityBoard} onOpenChange={(open) => setOverlay("communityBoard", open)} />
-      <EventBoardOverlay open={!!overlays.eventBoard} onOpenChange={(open) => setOverlay("eventBoard", open)} />
+      <LeaderboardOverlay
+        open={!!overlays.leaderboard}
+        onOpenChange={(open) => setOverlay("leaderboard", open)}
+      />
+      <CommunityBoardOverlay
+        open={!!overlays.communityBoard}
+        onOpenChange={(open) => setOverlay("communityBoard", open)}
+      />
+      <EventBoardOverlay
+        open={!!overlays.eventBoard}
+        onOpenChange={(open) => setOverlay("eventBoard", open)}
+      />
       <LocalChatOverlay
         open={!!overlays.localChat}
         onOpenChange={(open) => setOverlay("localChat", open)}
@@ -354,7 +413,10 @@ export function GameOverlay({
         onOpenChange={(open) => setOverlay("farmUpgrade", open)}
         garden={garden}
       />
-      <QuestBoardOverlay open={!!overlays.questBoard} onOpenChange={(open) => setOverlay("questBoard", open)} />
+      <QuestBoardOverlay
+        open={!!overlays.questBoard}
+        onOpenChange={(open) => setOverlay("questBoard", open)}
+      />
       <OnlinePlayersOverlay
         open={!!overlays.onlinePlayers}
         onOpenChange={(open) => setOverlay("onlinePlayers", open)}
@@ -376,7 +438,10 @@ export function GameOverlay({
         onOpenChange={(open) => setOverlay("tutorial", open)}
         garden={garden}
       />
-      <IncomingTradeInviteDialog invite={incomingInvite} onClose={() => setIncomingInvite(null)} />
+      <IncomingTradeInviteDialog
+        invite={incomingInvite}
+        onClose={() => setIncomingInvite(null)}
+      />
     </>
   );
 }

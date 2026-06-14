@@ -19,6 +19,7 @@ GrowFi is being migrated to an on-chain-first architecture. The Anchor program i
 
 ## On-Chain Architecture
 
+See `docs/economy-source-of-truth.md` for the current hybrid-mode boundary and production migration plan.
 On-chain source of truth:
 
 - `$GROW` SPL token and treasury token vault
@@ -80,6 +81,8 @@ Mobile/tablet:
 
 ## MVP Multiplayer Scope
 
+For production scaling limits and migration order, see `docs/realtime-production-plan.md`.
+
 GrowFi includes Socket.io realtime presence for public areas and shared farm rooms.
 
 - Town uses room `town`, so everyone in TownScene can see remote player sprites and username labels.
@@ -124,6 +127,7 @@ Solana settings:
 SOLANA_RPC_URL=https://api.devnet.solana.com
 TOKEN_CLUSTER=devnet
 TOKEN_MODE=devnet
+# TOKEN_MODE=mock is local-only and must never be used in production.
 GROWFI_CORE_PROGRAM_ID=ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz
 GROW_TOKEN_MINT=
 GROW_TOKEN_DECIMALS=9
@@ -163,11 +167,22 @@ If you use ngrok, expose the unified Next.js app origin and set `NEXT_PUBLIC_REA
 
 ## Anchor Program
 
+Current local Anchor integration tests require the Solana SBF toolchain. If `anchor test` fails with `no such command: build-sbf`, install the Solana toolchain before treating Anchor tests as verified.
+
 Build the on-chain program:
 
 ```bash
 npm run anchor:build
 ```
+
+The committed IDL smoke suite can run without the SBF build toolchain:
+
+```bash
+cd anchor
+npm exec -- ts-mocha -p ./tsconfig.json -t 1000000 "tests/**/*.ts"
+```
+
+Full integration tests still require the Solana SBF toolchain and local validator support.
 
 Run the Anchor test harness:
 

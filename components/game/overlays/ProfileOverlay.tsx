@@ -5,14 +5,22 @@ import { ProfileDashboard } from "@/components/profile/ProfileDashboard";
 
 export function ProfileOverlay({
   open,
-  onOpenChange
+  onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Profile" description="Discord identity, wallet, garden stats, and recent activity." wide>
-      <ProfileDashboard compact />
+    <ResponsivePanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Profile"
+      description="Discord identity, wallet, garden stats, and recent activity."
+      wide
+    >
+      <div className="pixel-scope">
+        <ProfileDashboard compact />
+      </div>
     </ResponsivePanel>
   );
 }

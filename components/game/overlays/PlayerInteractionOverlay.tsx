@@ -4,8 +4,6 @@ import { Handshake, MessageCircle, Sprout, UserRound, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { apiFetch } from "@/lib/utils/fetcher";
 import { gameEventBus } from "@/lib/game/eventBus";
@@ -16,14 +14,15 @@ import type { PublicFarmResponse } from "@/types/game-data";
 export function PlayerInteractionOverlay({
   open,
   onOpenChange,
-  player
+  player,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   player?: OnlinePlayer;
 }) {
   const visitMutation = useMutation({
-    mutationFn: (userId: string) => apiFetch<PublicFarmResponse>(`/api/farms/${userId}`),
+    mutationFn: (userId: string) =>
+      apiFetch<PublicFarmResponse>(`/api/farms/${userId}`),
     onSuccess: (farm) => {
       toast.success(`Visiting ${farm.owner.username}'s farm`);
       onOpenChange(false);
@@ -31,9 +30,9 @@ export function PlayerInteractionOverlay({
     },
     onError: (err) => {
       toast.error("Could not visit farm", {
-        description: err instanceof Error ? err.message : "Try again later."
+        description: err instanceof Error ? err.message : "Try again later.",
       });
-    }
+    },
   });
 
   return (
@@ -45,22 +44,24 @@ export function PlayerInteractionOverlay({
     >
       {!player ? null : (
         <div className="space-y-4">
-          <Card className="bg-white/82">
-            <CardContent className="flex items-center gap-3 p-4">
-              <Avatar className="h-12 w-12 rounded-md">
-                <AvatarImage src={player.avatarUrl || undefined} />
-                <AvatarFallback className="rounded-md">
-                  {player.username.slice(0, 1).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="font-black">{player.username}</div>
-                <div className="text-sm text-muted-foreground">{player.currentRoom}</div>
+          <div className="pixel-card flex items-center gap-3 p-4">
+            <Avatar className="h-12 w-12 rounded-md">
+              <AvatarImage src={player.avatarUrl || undefined} />
+              <AvatarFallback className="rounded-md">
+                {player.username.slice(0, 1).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-black text-[#f2fbf1]">{player.username}</div>
+              <div className="text-sm text-[#91d985]">
+                {player.currentRoom}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
           <div className="grid gap-2">
-            <Button
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-primary px-4 py-2"
               onClick={() => {
                 sendTradeInvite(player.userId, player.currentRoom);
                 toast.success(`Trade invite sent to ${player.username}`);
@@ -68,39 +69,49 @@ export function PlayerInteractionOverlay({
               }}
             >
               <Handshake className="h-4 w-4" />
-              Invite Trade
-            </Button>
-            <Button
-              variant="secondary"
+              INVITE TRADE
+            </button>
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-ghost px-4 py-2"
               disabled={visitMutation.isPending}
               onClick={() => visitMutation.mutate(player.userId)}
             >
               <Sprout className="h-4 w-4" />
-              Visit Farm
-            </Button>
-            <Button
-              variant="secondary"
+              VISIT FARM
+            </button>
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-ghost px-4 py-2"
               onClick={() => {
-                gameEventBus.emit("openOverlay", { overlay: "profilePreview", payload: player });
+                gameEventBus.emit("openOverlay", {
+                  overlay: "profilePreview",
+                  payload: player,
+                });
               }}
             >
               <UserRound className="h-4 w-4" />
-              View Profile
-            </Button>
-            <Button
-              variant="secondary"
+              VIEW PROFILE
+            </button>
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-ghost px-4 py-2"
               onClick={() => {
                 gameEventBus.emit("openOverlay", { overlay: "localChat" });
                 onOpenChange(false);
               }}
             >
               <MessageCircle className="h-4 w-4" />
-              Whisper / Chat
-            </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              WHISPER / CHAT
+            </button>
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-ghost px-4 py-2"
+              onClick={() => onOpenChange(false)}
+            >
               <X className="h-4 w-4" />
-              Cancel
-            </Button>
+              CANCEL
+            </button>
           </div>
         </div>
       )}

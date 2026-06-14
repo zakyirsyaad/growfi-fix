@@ -23,7 +23,26 @@ import { assertDevnetServerFeatureEnabled } from "@/lib/env/solana";
 import { GameError } from "@/lib/game/errors";
 
 export function isMockTokenMode() {
-  return !process.env.GROW_TOKEN_MINT || !process.env.TREASURY_WALLET_PUBLIC_KEY;
+  return process.env.TOKEN_MODE === "mock";
+}
+
+export function assertTokenRuntimeConfigured() {
+  if (isMockTokenMode()) {
+    if (process.env.NODE_ENV === "production") {
+      throw new GameError("TOKEN_MODE=mock is not allowed in production.", 500);
+    }
+    return;
+  }
+
+  const missing = [
+    "GROW_TOKEN_MINT",
+    "TREASURY_WALLET_PUBLIC_KEY",
+    "TREASURY_WALLET_SECRET_KEY"
+  ].filter((key) => !process.env[key]);
+
+  if (missing.length > 0) {
+    throw new GameError(`Missing token env: ${missing.join(", ")}`, 500);
+  }
 }
 
 export function getSolanaConnection() {
@@ -87,11 +106,16 @@ export async function verifyGrowDeposit(params: {
   userWallet: string;
   amount: number;
 }) {
+  assertTokenRuntimeConfigured();
   if (isMockTokenMode()) {
     return {
       signature: params.signature,
       rawAmount: BigInt(params.amount),
-      mock: true
+      mock: true,
+      mint: "mock-mint",
+      treasuryAta: "mock-treasury-ata",
+      userWallet: params.userWallet,
+      slot: 0
     };
   }
 
@@ -156,7 +180,11 @@ export async function verifyGrowDeposit(params: {
   return {
     signature: params.signature,
     rawAmount: expectedRaw,
-    mock: false
+    mock: false,
+    mint: mint.toBase58(),
+    treasuryAta: treasuryAta.toBase58(),
+    userWallet: userWallet.toBase58(),
+    slot: tx.slot
   };
 }
 
@@ -164,6 +192,7 @@ export async function sendGrowWithdrawal(params: {
   toWallet: string;
   amount: number;
 }) {
+  assertTokenRuntimeConfigured();
   if (isMockTokenMode()) {
     return `mock-withdraw-${Date.now()}`;
   }

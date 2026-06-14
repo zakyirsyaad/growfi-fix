@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/AppShell";
 import { Providers } from "@/app/providers";
 import "./globals.css";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Inter, Press_Start_2P } from "next/font/google";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -15,6 +15,12 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+});
+
+const fontPixel = Press_Start_2P({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-pixel",
 });
 
 export default function RootLayout({
@@ -31,6 +37,7 @@ export default function RootLayout({
         fontMono.variable,
         "font-sans",
         inter.variable,
+        fontPixel.variable,
       )}
     >
       <body>

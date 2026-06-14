@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gameEventBus } from "@/lib/game/eventBus";
-import type { GardenResponse } from "@/types/game-data";
+import { memo, useEffect, useRef } from "react";
 
-export function GameCanvas({ garden }: { garden?: GardenResponse }) {
+export const GameCanvas = memo(function GameCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const gameRef = useRef<{ destroy: (removeCanvas: boolean, noReturn?: boolean) => void } | null>(null);
+  const gameRef = useRef<{
+    destroy: (removeCanvas: boolean, noReturn?: boolean) => void;
+  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -31,11 +31,10 @@ export function GameCanvas({ garden }: { garden?: GardenResponse }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (garden) {
-      gameEventBus.emit("gardenStateUpdated", garden);
-    }
-  }, [garden]);
-
-  return <div ref={containerRef} className="phaser-root absolute inset-0 bg-leaf-500" />;
-}
+  return (
+    <div
+      ref={containerRef}
+      className="phaser-root absolute inset-0 bg-leaf-500"
+    />
+  );
+});

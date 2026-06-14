@@ -7,7 +7,7 @@ import { tradeRemoveItemSchema } from "@/lib/validations/schemas";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`trade-remove:${user.id}`, 50, 60_000);
+    await rateLimit(`trade-remove:${user.id}`, 50, 60_000);
     const input = await parseJson(request, tradeRemoveItemSchema);
     return ok(await removeTradeItem(user.id, input));
   } catch (error) {

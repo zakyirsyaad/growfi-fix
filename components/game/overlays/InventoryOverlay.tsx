@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, Coins, Handshake, Sprout } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ItemCard } from "@/components/game/shared/ItemCard";
 import {
@@ -48,7 +46,7 @@ export function InventoryOverlay({
         throw new Error(
           stack.lockedQuantity > 0
             ? "This fruit is locked in marketplace/trade."
-            : "Enter at least 1 fruit."
+            : "Enter at least 1 fruit.",
         );
       }
       if (process.env.NODE_ENV === "development") {
@@ -98,10 +96,25 @@ export function InventoryOverlay({
         <LoadingState label="Loading inventory" />
       ) : (
         <Tabs defaultValue="seeds">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="seeds">Seeds</TabsTrigger>
-            <TabsTrigger value="fruits">Fruits</TabsTrigger>
-            <TabsTrigger value="tools">Tools</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-[#0a0f0d] border-2 border-[#153d21]">
+            <TabsTrigger
+              value="seeds"
+              className="data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d] text-[#91d985] font-sans"
+            >
+              Seeds
+            </TabsTrigger>
+            <TabsTrigger
+              value="fruits"
+              className="data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d] text-[#91d985] font-sans"
+            >
+              Fruits
+            </TabsTrigger>
+            <TabsTrigger
+              value="tools"
+              className="data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d] text-[#91d985] font-sans"
+            >
+              Tools
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="seeds" className="mt-4">
             {inventory.seeds.length === 0 ? (
@@ -119,9 +132,9 @@ export function InventoryOverlay({
                     rarity={stack.seed.rarity}
                     quantity={stack.quantity}
                   >
-                    <Button
-                      variant="secondary"
-                      className="w-full"
+                    <button
+                      type="button"
+                      className="pixel-btn pixel-btn-ghost w-full px-4 py-2"
                       onClick={() => {
                         onOpenChange(false);
                         gameEventBus.emit("actionToast", {
@@ -131,8 +144,8 @@ export function InventoryOverlay({
                       }}
                     >
                       <Sprout className="h-4 w-4" />
-                      Plant from Plot
-                    </Button>
+                      PLANT FROM PLOT
+                    </button>
                   </ItemCard>
                 ))}
               </div>
@@ -157,24 +170,25 @@ export function InventoryOverlay({
                       mutation={stack.mutation}
                       quantity={stack.quantity}
                     >
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between text-xs text-[#91d985]">
                         <span>{available} unlocked</span>
-                        <Badge variant="outline">
+                        <span className="pixel-badge text-[#f7d767]">
                           base {stack.fruit.baseSellPrice || 0}
-                        </Badge>
+                        </span>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          size="sm"
+                        <button
+                          type="button"
+                          className="pixel-btn pixel-btn-gold px-3 py-2"
                           disabled={available <= 0 || sellMutation.isPending}
                           onClick={() => sellMutation.mutate(stack)}
                         >
                           <Coins className="h-4 w-4" />
-                          Sell
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
+                          SELL
+                        </button>
+                        <button
+                          type="button"
+                          className="pixel-btn pixel-btn-ghost px-3 py-2"
                           disabled={available <= 0}
                           onClick={() => {
                             onOpenChange(false);
@@ -185,11 +199,11 @@ export function InventoryOverlay({
                           }}
                         >
                           <ArrowUpRight className="h-4 w-4" />
-                          List
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
+                          LIST
+                        </button>
+                        <button
+                          type="button"
+                          className="pixel-btn pixel-btn-ghost px-3 py-2"
                           disabled={available <= 0}
                           onClick={() => {
                             onOpenChange(false);
@@ -200,8 +214,8 @@ export function InventoryOverlay({
                           }}
                         >
                           <Handshake className="h-4 w-4" />
-                          Trade
-                        </Button>
+                          TRADE
+                        </button>
                       </div>
                     </ItemCard>
                   );

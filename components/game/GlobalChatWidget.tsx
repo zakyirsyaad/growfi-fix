@@ -3,9 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, Minus, Send, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -35,12 +32,15 @@ function ChatMessages({ messages }: { messages: GlobalChatMessagePayload[] }) {
     <ScrollArea className="h-[280px] pr-3">
       <div className="space-y-2">
         {messages.length === 0 ? (
-          <div className="rounded-md bg-muted p-3 text-sm font-semibold text-muted-foreground">
+          <div className="pixel-card-sunken p-3 text-sm font-semibold text-[#91d985]">
             No global messages yet.
           </div>
         ) : (
           messages.map((item) => (
-            <div key={item.id} className="flex gap-2 rounded-md bg-white/75 p-2">
+            <div
+              key={item.id}
+              className="pixel-card-sunken flex gap-2 p-2"
+            >
               <Avatar className="h-8 w-8 rounded-md">
                 <AvatarImage src={item.from.avatarUrl || undefined} />
                 <AvatarFallback className="rounded-md">
@@ -49,17 +49,19 @@ function ChatMessages({ messages }: { messages: GlobalChatMessagePayload[] }) {
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-bold">
+                  <span className="truncate text-sm font-bold text-[#f2fbf1]">
                     {item.from.username}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-[#5e8c52]">
                     {new Date(item.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </span>
                 </div>
-                <div className="break-words text-sm">{item.message}</div>
+                <div className="break-words text-sm text-[#ddf5d9]">
+                  {item.message}
+                </div>
               </div>
             </div>
           ))
@@ -95,6 +97,7 @@ function ChatInput({
         maxLength={240}
         disabled={disabled}
         placeholder={disabled ? "Reconnecting..." : "Message global chat"}
+        className="pixel-input px-3 py-2"
         onFocus={() =>
           gameEventBus.emit("gameInputLockChanged", {
             source: "global-chat",
@@ -117,9 +120,14 @@ function ChatInput({
           }
         }}
       />
-      <Button size="icon" disabled={disabled || !message.trim()} onClick={send}>
+      <button
+        type="button"
+        className="pixel-btn pixel-btn-primary px-3 py-2"
+        disabled={disabled || !message.trim()}
+        onClick={send}
+      >
         <Send className="h-4 w-4" />
-      </Button>
+      </button>
     </div>
   );
 }
@@ -197,24 +205,26 @@ export function GlobalChatWidget() {
       socketState.connected
         ? "Connected"
         : socketState.status === "error"
-        ? "Error"
-        : socketState.status === "disconnected"
-        ? "Disconnected"
-        : socketState.status === "connecting"
-        ? "Connecting"
-        : "Reconnecting",
-    [socketState.connected, socketState.status]
+          ? "Error"
+          : socketState.status === "disconnected"
+            ? "Disconnected"
+            : socketState.status === "connecting"
+              ? "Connecting"
+              : "Reconnecting",
+    [socketState.connected, socketState.status],
   );
   const connected = socketState.connected;
 
   const body = (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <Badge variant={connected ? "outline" : "secondary"}>
+        <span
+          className={`pixel-badge ${connected ? "text-[#8ad4ff]" : "text-[#5e8c52]"}`}
+        >
           Global Chat · {status}
-        </Badge>
+        </span>
         {error ? (
-          <span className="text-xs font-semibold text-destructive">
+          <span className="text-xs font-semibold text-[#ff9ebd]">
             {error}
             {process.env.NODE_ENV === "development" && socketState.url
               ? ` (${socketState.url})`
@@ -236,22 +246,27 @@ export function GlobalChatWidget() {
   if (mobile) {
     return (
       <>
-        <Button
-          className="pointer-events-auto fixed bottom-5 right-5 z-40 rounded-full shadow-lg"
-          size="icon"
+        <button
+          type="button"
+          className="pixel-btn pixel-btn-primary pointer-events-auto fixed bottom-5 right-5 z-40 h-12 w-12 p-0"
           onClick={() => setOpen(true)}
         >
           <MessageCircle className="h-5 w-5" />
           {unread > 0 ? (
-            <Badge className="absolute -right-2 -top-2 h-5 min-w-5 px-1">
+            <span className="pixel-badge absolute -right-2 -top-2 text-[#ff9ebd]">
               {unread}
-            </Badge>
+            </span>
           ) : null}
-        </Button>
+        </button>
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="bottom" className="h-[76svh]">
+          <SheetContent
+            side="bottom"
+            className="h-[76svh] scanlines border-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>button]:text-[#91d985] [&>button:hover]:text-[#f7d767]"
+          >
             <SheetHeader>
-              <SheetTitle>Global Chat</SheetTitle>
+              <SheetTitle className="pixel-heading text-sm text-[#f2fbf1]">
+                Global Chat
+              </SheetTitle>
             </SheetHeader>
             <div className="mt-4">{body}</div>
           </SheetContent>
@@ -262,31 +277,44 @@ export function GlobalChatWidget() {
 
   if (minimized) {
     return (
-      <Button
-        className="pointer-events-auto fixed bottom-5 right-5 z-40 shadow-lg"
+      <button
+        type="button"
+        className="pixel-btn pixel-btn-primary pointer-events-auto fixed bottom-5 right-5 z-40 gap-2 px-4 py-2"
         onClick={() => setMinimized(false)}
       >
         <MessageCircle className="h-4 w-4" />
-        Global Chat
-        {unread > 0 ? <Badge variant="secondary">{unread}</Badge> : null}
-      </Button>
+        GLOBAL CHAT
+        {unread > 0 ? (
+          <span className="pixel-badge text-[#0a0f0d]">{unread}</span>
+        ) : null}
+      </button>
     );
   }
 
   return (
-    <Card className="pointer-events-auto fixed bottom-5 right-5 z-40 w-[360px] bg-white/94 shadow-xl backdrop-blur">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-base">Global Chat</CardTitle>
+    <div className="pixel-panel scanlines pointer-events-auto fixed bottom-5 right-5 z-40 w-[360px]">
+      <div className="flex flex-row items-center justify-between space-y-0 p-4 pb-3">
+        <span className="pixel-heading text-sm text-[#f2fbf1]">
+          Global Chat
+        </span>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setMinimized(true)}>
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-ghost h-7 w-7 p-0"
+            onClick={() => setMinimized(true)}
+          >
             <Minus className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => setMinimized(true)}>
+          </button>
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-ghost h-7 w-7 p-0"
+            onClick={() => setMinimized(true)}
+          >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
-      </CardHeader>
-      <CardContent>{body}</CardContent>
-    </Card>
+      </div>
+      <div className="p-4 pt-0">{body}</div>
+    </div>
   );
 }

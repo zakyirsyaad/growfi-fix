@@ -6,17 +6,18 @@ import {
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
-  DrawerTitle
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
-  SheetTitle
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 
 export function ResponsivePanel({
   open,
@@ -24,7 +25,7 @@ export function ResponsivePanel({
   title,
   description,
   children,
-  wide
+  wide,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,10 +39,16 @@ export function ResponsivePanel({
   if (mobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-            {description ? <DrawerDescription>{description}</DrawerDescription> : null}
+        <DrawerContent className="scanlines border-t-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>div:first-child]:bg-[#3d9f4b]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="pixel-heading text-sm text-[#f2fbf1]">
+              {title}
+            </DrawerTitle>
+            {description ? (
+              <DrawerDescription className="font-sans text-[#91d985]">
+                {description}
+              </DrawerDescription>
+            ) : null}
           </DrawerHeader>
           <ScrollArea className="max-h-[70vh] px-5 pb-5">{children}</ScrollArea>
         </DrawerContent>
@@ -51,12 +58,25 @@ export function ResponsivePanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className={wide ? "w-[min(94vw,900px)] sm:max-w-none" : undefined}>
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          {description ? <SheetDescription>{description}</SheetDescription> : null}
+      <SheetContent
+        className={cn(
+          "scanlines border-l-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>button]:text-[#91d985] [&>button]:opacity-100 [&>button:hover]:text-[#f7d767]",
+          wide ? "w-[min(94vw,900px)] sm:max-w-none" : undefined,
+        )}
+      >
+        <SheetHeader className="border-b-2 border-[#153d21] pb-4">
+          <SheetTitle className="pixel-heading text-base text-[#f2fbf1]">
+            {title}
+          </SheetTitle>
+          {description ? (
+            <SheetDescription className="font-sans text-[#91d985]">
+              {description}
+            </SheetDescription>
+          ) : null}
         </SheetHeader>
-        <ScrollArea className="mt-5 h-[calc(100vh-7rem)] pr-4">{children}</ScrollArea>
+        <ScrollArea className="mt-5 h-[calc(100vh-7rem)] pr-4">
+          {children}
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

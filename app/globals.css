@@ -4,29 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-  --background: 40 43% 94%;
-  --foreground: 132 20% 16%;
-  --card: 48 52% 98%;
-  --card-foreground: 132 20% 16%;
-  --popover: 48 52% 98%;
-  --popover-foreground: 132 20% 16%;
-  --primary: 132 47% 31%;
-  --primary-foreground: 42 64% 97%;
-  --secondary: 87 42% 90%;
-  --secondary-foreground: 132 27% 22%;
-  --muted: 39 36% 88%;
-  --muted-foreground: 126 13% 38%;
-  --accent: 188 50% 90%;
-  --accent-foreground: 144 27% 20%;
-  --destructive: 346 75% 45%;
-  --destructive-foreground: 42 64% 97%;
-  --border: 42 36% 80%;
-  --input: 42 36% 80%;
-  --ring: 132 47% 31%;
-  --radius: 0.75rem;
-}
 
 * {
   box-sizing: border-box;
@@ -35,16 +12,16 @@
 
 html {
   min-height: 100%;
-  background: hsl(var(--background));
+  background: oklch(var(--background));
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 243, 0.96) 0%, rgba(236, 246, 231, 0.96) 52%, rgba(245, 235, 219, 0.96) 100%),
-    repeating-linear-gradient(90deg, rgba(71, 119, 68, 0.05) 0 1px, transparent 1px 96px);
-  color: hsl(var(--foreground));
+  background-color: oklch(var(--background));
+  color: oklch(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-game-route="true"] {
@@ -59,11 +36,20 @@ textarea {
 }
 
 .wallet-adapter-button {
-  height: 40px !important;
-  border-radius: 8px !important;
-  background: #203024 !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  background: oklch(var(--primary) / 0.1) !important;
+  color: oklch(var(--primary)) !important;
+  border: 1px solid oklch(var(--primary) / 0.2) !important;
   font-size: 0.875rem !important;
   font-weight: 700 !important;
+  transition: all 0.2s ease !important;
+}
+
+.wallet-adapter-button:hover {
+  background: oklch(var(--primary) / 0.2) !important;
+  border-color: oklch(var(--primary) / 0.5) !important;
+  box-shadow: 0 0 15px oklch(var(--primary) / 0.2) !important;
 }
 
 .wallet-adapter-dropdown-list {
@@ -81,27 +67,515 @@ textarea {
   image-rendering: pixelated;
 }
 
-
-
 @layer base {
   :root {
-    --sidebar-background: 48 52% 98%;
-    --sidebar-foreground: 132 20% 16%;
-    --sidebar-primary: 132 47% 31%;
-    --sidebar-primary-foreground: 42 64% 97%;
-    --sidebar-accent: 87 42% 90%;
-    --sidebar-accent-foreground: 132 27% 22%;
-    --sidebar-border: 42 36% 80%;
-    --sidebar-ring: 132 47% 31%;
+    --sidebar-background: 160 10% 6%;
+    --sidebar-foreground: 0 0 0;
+    --sidebar-primary: 0.7190 0.1751 22.5025;
+    --sidebar-primary-foreground: 1.0000 0 0;
+    --sidebar-accent: 0.6331 0.1981 258.7273;
+    --sidebar-accent-foreground: 1.0000 0 0;
+    --sidebar-border: 0 0 0;
+    --sidebar-ring: 0.7190 0.1751 22.5025;
+    --background: 1.0000 0 0;
+    --foreground: 0 0 0;
+    --card: 1.0000 0 0;
+    --card-foreground: 0 0 0;
+    --popover: 1.0000 0 0;
+    --popover-foreground: 0 0 0;
+    --primary: 0.7190 0.1751 22.5025;
+    --primary-foreground: 1.0000 0 0;
+    --secondary: 0.9691 0.2005 109.6228;
+    --secondary-foreground: 0 0 0;
+    --muted: 0.9551 0 0;
+    --muted-foreground: 0.3211 0 0;
+    --accent: 0.6331 0.1981 258.7273;
+    --accent-foreground: 1.0000 0 0;
+    --destructive: 0 0 0;
+    --destructive-foreground: 1.0000 0 0;
+    --border: 0 0 0;
+    --input: 0 0 0;
+    --ring: 0.7190 0.1751 22.5025;
+    --chart-1: 0.7190 0.1751 22.5025;
+    --chart-2: 0.9691 0.2005 109.6228;
+    --chart-3: 0.6331 0.1981 258.7273;
+    --chart-4: 0.8406 0.2860 142.4953;
+    --chart-5: 0.6807 0.3129 328.3634;
+    --radius: 0px;
+    --sidebar: 0.9551 0 0;
+    --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: Space Mono, monospace;
+    --shadow-color: #1a1a1a;
+    --shadow-opacity: 1;
+    --shadow-blur: 0px;
+    --shadow-spread: 0px;
+    --shadow-offset-x: 4px;
+    --shadow-offset-y: 4px;
+    --letter-spacing: 0em;
+    --spacing: 0.25rem;
+    --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-sm: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-md: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 2px 4px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-lg: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 4px 6px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 8px 10px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 2.50);
+    --tracking-normal: 0em;
+  }
+  .theme {
+    --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+    --font-mono: Space Mono, monospace;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --radius: 0px;
+    --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+    --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+    --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+    --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+    --tracking-widest: calc(var(--tracking-normal) + 0.1em);
   }
   .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 0 0 0;
+    --foreground: 1.0000 0 0;
+    --card: 0.3211 0 0;
+    --card-foreground: 1.0000 0 0;
+    --popover: 0.3211 0 0;
+    --popover-foreground: 1.0000 0 0;
+    --primary: 0.8266 0.0967 19.3324;
+    --primary-foreground: 0 0 0;
+    --secondary: 0.9733 0.1634 109.0867;
+    --secondary-foreground: 0 0 0;
+    --muted: 0.2178 0 0;
+    --muted-foreground: 0.8452 0 0;
+    --accent: 0.7642 0.1257 249.4644;
+    --accent-foreground: 0 0 0;
+    --destructive: 1.0000 0 0;
+    --destructive-foreground: 0 0 0;
+    --border: 1.0000 0 0;
+    --input: 1.0000 0 0;
+    --ring: 0.8266 0.0967 19.3324;
+    --chart-1: 0.8266 0.0967 19.3324;
+    --chart-2: 0.9733 0.1634 109.0867;
+    --chart-3: 0.7642 0.1257 249.4644;
+    --chart-4: 0.7802 0.1961 143.4097;
+    --chart-5: 0.6715 0.2093 327.5960;
+    --radius: 0px;
+    --sidebar: 0 0 0;
+    --sidebar-foreground: 1.0000 0 0;
+    --sidebar-primary: 0.8266 0.0967 19.3324;
+    --sidebar-primary-foreground: 0 0 0;
+    --sidebar-accent: 0.7642 0.1257 249.4644;
+    --sidebar-accent-foreground: 0 0 0;
+    --sidebar-border: 1.0000 0 0;
+    --sidebar-ring: 0.8266 0.0967 19.3324;
+    --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: Space Mono, monospace;
+    --shadow-color: #1a1a1a;
+    --shadow-opacity: 1;
+    --shadow-blur: 0px;
+    --shadow-spread: 0px;
+    --shadow-offset-x: 4px;
+    --shadow-offset-y: 4px;
+    --letter-spacing: 0em;
+    --spacing: 0.25rem;
+    --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-sm: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-md: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 2px 4px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-lg: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 4px 6px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 8px 10px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 2.50);
   }
+  body {
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 30px 30px;
+    background-image: linear-gradient(to right, oklch(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(var(--border) / 0.3) 1px, transparent 1px);
+  }
+  .bg-dot-pattern {
+    background-image: radial-gradient(oklch(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 6s ease infinite;
+  }
+}
+
+/* Pixel-art landing theme utilities */
+@layer utilities {
+  .font-pixel {
+    font-family: var(--font-pixel), ui-monospace, monospace;
+  }
+  .pixelated {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  /* Hard offset shadow with no blur — the classic pixel/8-bit edge */
+  .pixel-shadow {
+    box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.6);
+  }
+  .pixel-shadow-lg {
+    box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.7);
+  }
+  /* Inset pixel border ring drawn with stacked box-shadows */
+  .pixel-border {
+    box-shadow:
+      0 0 0 2px #0a0f0d,
+      0 0 0 4px #3d9f4b;
+  }
+  /* CRT scanline overlay */
+  .scanlines::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.18) 3px,
+      rgba(0, 0, 0, 0) 4px
+    );
+    z-index: 30;
+  }
+  /* Dotted starfield / pixel sky */
+  .pixel-sky {
+    background-color: #0a0f0d;
+    background-image:
+      radial-gradient(1px 1px at 20px 30px, #91d985 99%, transparent),
+      radial-gradient(1px 1px at 120px 80px, #f7d767 99%, transparent),
+      radial-gradient(1px 1px at 200px 50px, #8ad4ff 99%, transparent),
+      radial-gradient(1px 1px at 300px 120px, #ddf5d9 99%, transparent),
+      radial-gradient(1px 1px at 80px 160px, #ff9ebd 99%, transparent);
+    background-size: 350px 200px;
+  }
+  /* Tilled dirt plot tile */
+  .pixel-dirt {
+    background-color: #5e3b20;
+    box-shadow: inset 0 0 0 2px #2b1a10;
+  }
+  /* Pixel sun with radiating square rays */
+  .pixel-sun {
+    background-color: #f7d767;
+    box-shadow:
+      0 -14px 0 -3px #f7d767,
+      0 14px 0 -3px #f7d767,
+      -14px 0 0 -3px #f7d767,
+      14px 0 0 -3px #f7d767,
+      0 0 0 4px #d99a1f inset;
+  }
+  /* Dotted pixel connector path */
+  .pixel-path {
+    background-image: repeating-linear-gradient(
+      to right,
+      #3d9f4b 0,
+      #3d9f4b 8px,
+      transparent 8px,
+      transparent 16px
+    );
+  }
+  /* CTA dawn sky, stepped (no smooth gradient) */
+  .pixel-dawn {
+    background:
+      linear-gradient(
+        to bottom,
+        #1773ad 0%,
+        #1773ad 28%,
+        #2b9ee7 28%,
+        #2b9ee7 50%,
+        #8ad4ff 50%,
+        #8ad4ff 70%,
+        #dbf1ff 70%,
+        #dbf1ff 100%
+      );
+  }
+}
+
+/* ── Pixel game UI kit ──────────────────────────────────────────────
+   Scoped to the in-game surface (HUD + overlays). Carries the landing
+   page's 2D pixel dark-forest language into gameplay so the product
+   reads as one continuous world. Palette:
+     ink      #0a0f0d   deepest near-black
+     pine     #0d2614   panel base
+     forest   #153d21   raised tile
+     moss     #287235   mid green
+     leaf     #3d9f4b   primary green / border
+     sprout   #91d985   bright green / body text
+     mint     #ddf5d9   foreground text
+     gold     #f7d767   accent / values
+     sky      #8ad4ff   info accent
+     berry    #ff9ebd   alert accent
+     dim      #5e8c52   muted label
+   ──────────────────────────────────────────────────────────────────── */
+@layer components {
+  /* Outer modal/HUD container — the dark framed panel */
+  .pixel-panel {
+    background-color: #0d2614;
+    border: 2px solid #3d9f4b;
+    color: #ddf5d9;
+    box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.7);
+  }
+  /* Inner content card sitting on a panel */
+  .pixel-card {
+    background-color: #0a0f0d;
+    border: 2px solid #3d9f4b;
+    color: #ddf5d9;
+    box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.6);
+  }
+  /* Quieter card variant for nested stats blocks */
+  .pixel-card-sunken {
+    background-color: #0a0f0d;
+    border: 2px solid #153d21;
+    color: #ddf5d9;
+  }
+  /* Dashed empty-state frame */
+  .pixel-card-dashed {
+    background-color: #0a0f0d;
+    border: 2px dashed #287235;
+    color: #91d985;
+  }
+  /* HUD chip / floating glass replacement — translucent so the farm shows through */
+  .pixel-hud {
+    background-color: rgba(13, 38, 20, 0.92);
+    border: 2px solid #3d9f4b;
+    color: #ddf5d9;
+    box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.55);
+  }
+  /* Icon/sprite tile (dirt-plot feel) */
+  .pixel-tile {
+    background-color: #153d21;
+    border: 2px solid #0a0f0d;
+    color: #ddf5d9;
+    box-shadow: inset 0 0 0 2px rgba(61, 159, 75, 0.25);
+  }
+
+  /* Buttons — hard offset shadow, nudge on hover (matches landing CTAs) */
+  .pixel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-pixel), ui-monospace, monospace;
+    font-size: 10px;
+    line-height: 1;
+    border: 2px solid #0a0f0d;
+    box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.6);
+    transition:
+      transform 0.12s ease,
+      background-color 0.12s ease,
+      color 0.12s ease;
+  }
+  .pixel-btn:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.6);
+  }
+  .pixel-btn:active:not(:disabled) {
+    transform: translate(0, 0);
+    box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.6);
+  }
+  .pixel-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .pixel-btn-primary {
+    background-color: #3d9f4b;
+    color: #0a0f0d;
+  }
+  .pixel-btn-primary:hover:not(:disabled) {
+    background-color: #91d985;
+  }
+  .pixel-btn-gold {
+    background-color: #f7d767;
+    color: #0a0f0d;
+  }
+  .pixel-btn-gold:hover:not(:disabled) {
+    background-color: #fff4c7;
+  }
+  /* Ghost/secondary — outline on pine, brightens to gold edge */
+  .pixel-btn-ghost {
+    background-color: #0d2614;
+    border-color: #3d9f4b;
+    color: #91d985;
+    box-shadow: none;
+  }
+  .pixel-btn-ghost:hover:not(:disabled) {
+    border-color: #f7d767;
+    color: #f7d767;
+    transform: none;
+    box-shadow: none;
+  }
+  .pixel-btn-danger {
+    background-color: #a31948;
+    color: #ffe5ee;
+  }
+  .pixel-btn-danger:hover:not(:disabled) {
+    background-color: #e74376;
+  }
+
+  /* Pixel heading + tiny label type */
+  .pixel-heading {
+    font-family: var(--font-pixel), ui-monospace, monospace;
+    color: #f2fbf1;
+    line-height: 1.5;
+  }
+  .pixel-label {
+    font-family: var(--font-pixel), ui-monospace, monospace;
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    color: #5e8c52;
+    text-transform: uppercase;
+  }
+  .pixel-value {
+    font-family: var(--font-pixel), ui-monospace, monospace;
+    color: #f7d767;
+  }
+
+  /* Badges — bordered chips colored by role */
+  .pixel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-pixel), ui-monospace, monospace;
+    font-size: 8px;
+    line-height: 1;
+    padding: 4px 6px;
+    border: 2px solid currentColor;
+    text-transform: uppercase;
+  }
+
+  /* Inputs / selects on dark panels */
+  .pixel-input {
+    background-color: #0a0f0d;
+    border: 2px solid #287235;
+    color: #ddf5d9;
+    font-family: var(--font-sans);
+  }
+  .pixel-input::placeholder {
+    color: #5e8c52;
+  }
+  .pixel-input:focus-visible {
+    outline: none;
+    border-color: #f7d767;
+  }
+
+  /* Stepped progress bar (no smooth fill — pixel feel) */
+  .pixel-progress {
+    background-color: #0a0f0d;
+    border: 2px solid #153d21;
+    height: 14px;
+    overflow: hidden;
+  }
+  .pixel-progress > span {
+    display: block;
+    height: 100%;
+    background-color: #3d9f4b;
+    background-image: repeating-linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.18) 0,
+      rgba(255, 255, 255, 0.18) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+    transition: width 0.2s steps(8);
+  }
+}
+
+/* ── Pixel theme scope ──────────────────────────────────────────────
+   Remaps shadcn's semantic theme tokens to the pixel dark-forest palette
+   for everything inside this subtree. Used to wrap shared dashboards
+   (Profile / Leaderboard / Wallet) when they render INSIDE game overlays,
+   so their shadcn Card/Button/Badge/Progress adopt the in-game theme
+   WITHOUT touching the dashboard components or their standalone pages.
+   ──────────────────────────────────────────────────────────────────── */
+.pixel-scope {
+  --background: 0.1621 0.0090 168.9196; /* ink   #0a0f0d */
+  --foreground: 0.9451 0.0449 141.1752; /* mint  #ddf5d9 */
+  --card: 0.2427 0.0464 150.7312; /* pine  #0d2614 */
+  --card-foreground: 0.9451 0.0449 141.1752;
+  --popover: 0.2427 0.0464 150.7312;
+  --popover-foreground: 0.9451 0.0449 141.1752;
+  --primary: 0.6249 0.1520 146.0813; /* leaf  #3d9f4b */
+  --primary-foreground: 0.1621 0.0090 168.9196;
+  --secondary: 0.3230 0.0670 150.7681; /* forest #153d21 */
+  --secondary-foreground: 0.9451 0.0449 141.1752;
+  --muted: 0.3230 0.0670 150.7681;
+  --muted-foreground: 0.8174 0.1352 140.9274; /* sprout #91d985 */
+  --accent: 0.4908 0.1190 146.7513; /* moss  #287235 */
+  --accent-foreground: 0.9451 0.0449 141.1752;
+  --destructive: 0.8060 0.1205 359.5416; /* berry #ff9ebd */
+  --destructive-foreground: 0.1621 0.0090 168.9196;
+  --border: 0.3230 0.0670 150.7681; /* forest */
+  --input: 0.4908 0.1190 146.7513; /* moss */
+  --ring: 0.8846 0.1355 93.5169; /* gold  #f7d767 */
+  --radius: 0px;
+  color: oklch(var(--foreground));
+}
+/* Catch hardcoded light literals inside shared dashboards rendered in-game
+   (these are not theme tokens, so the var remap above can't reach them). */
+.pixel-scope [class*="bg-white"] {
+  background-color: #0a0f0d !important;
+}
+.pixel-scope .bg-gold-100 {
+  background-color: #153d21 !important;
+  color: #f7d767 !important;
+}
+
+@keyframes gradient-x {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes pixel-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pixel-blink {
+  0%,
+  60%,
+  100% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes pixel-twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pixel-float {
+  animation: pixel-float 3s steps(6) infinite;
+}
+.animate-pixel-blink {
+  animation: pixel-blink 1.2s steps(1) infinite;
+}
+.animate-pixel-twinkle {
+  animation: pixel-twinkle 2.5s ease-in-out infinite;
 }

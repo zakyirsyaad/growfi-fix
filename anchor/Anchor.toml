@@ -1,18 +1,19 @@
 [toolchain]
+anchor_version = "1.0.2"
 package_manager = "npm"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-growfi_core = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz"
-
 [programs.devnet]
 growfi_core = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz"
 
+[programs.localnet]
+growfi_core = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz"
+
 [provider]
-cluster = "Devnet"
+cluster = "devnet"
 wallet = "~/.config/solana/phantom-dev.json"
 
 [scripts]

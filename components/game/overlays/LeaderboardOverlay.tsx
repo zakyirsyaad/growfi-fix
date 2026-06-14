@@ -5,14 +5,22 @@ import { LeaderboardDashboard } from "@/components/leaderboard/LeaderboardDashbo
 
 export function LeaderboardOverlay({
   open,
-  onOpenChange
+  onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Leaderboard" description="Top farmers across harvesting, balance, trading, and marketplace sales." wide>
-      <LeaderboardDashboard compact />
+    <ResponsivePanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Leaderboard"
+      description="Top farmers across harvesting, balance, trading, and marketplace sales."
+      wide
+    >
+      <div className="pixel-scope">
+        <LeaderboardDashboard compact />
+      </div>
     </ResponsivePanel>
   );
 }

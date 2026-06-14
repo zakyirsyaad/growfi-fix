@@ -4,17 +4,30 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { CountdownBadge } from "@/components/game/shared/CountdownBadge";
-import { EmptyState, ErrorState, LoadingState } from "@/components/game/shared/StatusStates";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/game/shared/StatusStates";
 import { MutationBadge } from "@/components/game/shared/MutationBadge";
 import { apiFetch } from "@/lib/utils/fetcher";
 import type { OnlinePlayer } from "@/lib/realtime/types";
@@ -24,7 +37,13 @@ type TradeView = {
   id: string;
   initiatorId: string;
   recipientId: string;
-  status: "PENDING" | "ACTIVE" | "LOCKED" | "COMPLETED" | "CANCELLED" | "EXPIRED";
+  status:
+    | "PENDING"
+    | "ACTIVE"
+    | "LOCKED"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "EXPIRED";
   initiatorConfirmed: boolean;
   recipientConfirmed: boolean;
   expiresAt: string;
@@ -51,7 +70,7 @@ function OfferColumn({
   userId,
   trade,
   currentUserId,
-  onRemove
+  onRemove,
 }: {
   title: string;
   userId: string;
@@ -60,45 +79,57 @@ function OfferColumn({
   onRemove: (itemId: string) => void;
 }) {
   const items = trade.items.filter((item) => item.userId === userId);
-  const confirmed = userId === trade.initiatorId ? trade.initiatorConfirmed : trade.recipientConfirmed;
+  const confirmed =
+    userId === trade.initiatorId
+      ? trade.initiatorConfirmed
+      : trade.recipientConfirmed;
   const active = ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status);
 
   return (
-    <Card className="bg-white/78">
-      <CardHeader className="p-4 pb-2">
-        <CardTitle className="flex items-center justify-between text-base">
-          {title}
-          {confirmed ? (
-            <Badge variant="secondary" className="gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              locked
-            </Badge>
-          ) : (
-            <Badge variant="outline">open</Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2 p-4 pt-0">
-        {items.length === 0 ? <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">No offer items.</div> : null}
-        {items.map((item) => (
-          <div key={item.id} className="flex items-center justify-between gap-2 rounded-md bg-white/80 px-3 py-2 text-sm">
-            <span className="font-semibold">
-              {item.type === "GROW"
-                ? `${item.growAmount} $GROW`
-                : `${item.fruit?.iconUrl || ""} ${item.quantity} ${item.fruit?.name || "Fruit"}`}
-            </span>
-            <span className="flex items-center gap-2">
-              {item.mutation ? <MutationBadge mutation={item.mutation} /> : null}
-              {active && item.userId === currentUserId ? (
-                <button className="rounded-md p-1 text-destructive hover:bg-destructive/10" onClick={() => onRemove(item.id)}>
-                  <X className="h-4 w-4" />
-                </button>
-              ) : null}
-            </span>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+    <div className="pixel-card space-y-2 p-4">
+      <div className="flex items-center justify-between text-base font-bold text-[#f2fbf1]">
+        {title}
+        {confirmed ? (
+          <span className="pixel-badge text-[#3d9f4b] gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            locked
+          </span>
+        ) : (
+          <span className="pixel-badge text-[#91d985]">open</span>
+        )}
+      </div>
+      {items.length === 0 ? (
+        <div className="pixel-card-sunken p-3 text-sm text-[#91d985]">
+          No offer items.
+        </div>
+      ) : null}
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between gap-2 pixel-card-sunken px-3 py-2 text-sm"
+        >
+          <span className="font-semibold text-[#ddf5d9]">
+            {item.type === "GROW"
+              ? `${item.growAmount} $GROW`
+              : `${item.fruit?.iconUrl || ""} ${item.quantity} ${item.fruit?.name || "Fruit"}`}
+          </span>
+          <span className="flex items-center gap-2">
+            {item.mutation ? (
+              <MutationBadge mutation={item.mutation} />
+            ) : null}
+            {active && item.userId === currentUserId ? (
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-danger h-6 w-6 p-0"
+                onClick={() => onRemove(item.id)}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -106,7 +137,7 @@ export function TradeOverlay({
   open,
   onOpenChange,
   payload,
-  onlinePlayers = []
+  onlinePlayers = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -132,7 +163,7 @@ export function TradeOverlay({
     queryKey: ["trades"],
     queryFn: () => apiFetch<TradesResponse>("/api/trades"),
     refetchInterval: 15_000,
-    enabled: open
+    enabled: open,
   });
   const {
     data: inventory,
@@ -141,7 +172,7 @@ export function TradeOverlay({
   } = useQuery({
     queryKey: ["inventory"],
     queryFn: () => apiFetch<InventoryResponse>("/api/inventory"),
-    enabled: open
+    enabled: open,
   });
   const {
     data: me,
@@ -150,11 +181,13 @@ export function TradeOverlay({
   } = useQuery({
     queryKey: ["me"],
     queryFn: () => apiFetch<MeResponse>("/api/me"),
-    enabled: open
+    enabled: open,
   });
 
   useEffect(() => {
-    const value = payload as { recipientUsername?: string; recipientId?: string; tradeId?: string } | undefined;
+    const value = payload as
+      | { recipientUsername?: string; recipientId?: string; tradeId?: string }
+      | undefined;
     if (open && value?.recipientUsername) {
       setRecipientUsername(value.recipientUsername);
     }
@@ -166,18 +199,20 @@ export function TradeOverlay({
   const activeTrades = useMemo(
     () =>
       tradesData?.trades.filter((trade) =>
-        ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status)
+        ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status),
       ) || [],
-    [tradesData]
+    [tradesData],
   );
-  const selectedTrade = activeTrades.find((trade) => trade.id === selectedTradeId) || activeTrades[0];
+  const selectedTrade =
+    activeTrades.find((trade) => trade.id === selectedTradeId) ||
+    activeTrades[0];
 
   const invalidate = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["trades"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       queryClient.invalidateQueries({ queryKey: ["me"] }),
-      queryClient.invalidateQueries({ queryKey: ["activity"] })
+      queryClient.invalidateQueries({ queryKey: ["activity"] }),
     ]);
   };
 
@@ -186,7 +221,11 @@ export function TradeOverlay({
       const value = payload as { recipientId?: string } | undefined;
       return apiFetch("/api/trades/create", {
         method: "POST",
-        body: JSON.stringify(value?.recipientId ? { recipientId: value.recipientId } : { recipientUsername })
+        body: JSON.stringify(
+          value?.recipientId
+            ? { recipientId: value.recipientId }
+            : { recipientUsername },
+        ),
       });
     },
     onSuccess: async () => {
@@ -194,7 +233,8 @@ export function TradeOverlay({
       toast.success("Trade created");
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Trade create failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Trade create failed"),
   });
 
   const addFruitMutation = useMutation({
@@ -205,8 +245,8 @@ export function TradeOverlay({
           tradeId: selectedTrade?.id,
           type: "FRUIT",
           userFruitId: selectedFruitId,
-          quantity: fruitQuantity
-        })
+          quantity: fruitQuantity,
+        }),
       }),
     onSuccess: async () => {
       setError(null);
@@ -214,7 +254,8 @@ export function TradeOverlay({
       setAddOpen(false);
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Could not add fruit")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Could not add fruit"),
   });
 
   const addGrowMutation = useMutation({
@@ -224,8 +265,8 @@ export function TradeOverlay({
         body: JSON.stringify({
           tradeId: selectedTrade?.id,
           type: "GROW",
-          growAmount
-        })
+          growAmount,
+        }),
       }),
     onSuccess: async () => {
       setError(null);
@@ -233,45 +274,53 @@ export function TradeOverlay({
       setAddOpen(false);
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Could not add $GROW")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Could not add $GROW"),
   });
 
   const confirmMutation = useMutation({
     mutationFn: (tradeId: string) =>
       apiFetch<ConfirmTradeResponse>("/api/trades/confirm", {
         method: "POST",
-        body: JSON.stringify({ tradeId })
+        body: JSON.stringify({ tradeId }),
       }),
     onSuccess: async (result) => {
       setError(null);
-      toast.success(result.trade.status === "COMPLETED" ? "Trade completed" : "Trade confirmed");
+      toast.success(
+        result.trade.status === "COMPLETED"
+          ? "Trade completed"
+          : "Trade confirmed",
+      );
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Confirm failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Confirm failed"),
   });
 
   const cancelMutation = useMutation({
     mutationFn: (tradeId: string) =>
       apiFetch("/api/trades/cancel", {
         method: "POST",
-        body: JSON.stringify({ tradeId })
+        body: JSON.stringify({ tradeId }),
       }),
     onSuccess: async () => {
       setError(null);
       toast.success("Trade cancelled");
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Cancel failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Cancel failed"),
   });
 
   const removeMutation = useMutation({
     mutationFn: ({ tradeId, itemId }: { tradeId: string; itemId: string }) =>
       apiFetch("/api/trades/remove-item", {
         method: "POST",
-        body: JSON.stringify({ tradeId, itemId })
+        body: JSON.stringify({ tradeId, itemId }),
       }),
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Remove failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Remove failed"),
   });
   const queryError =
     tradesIsError || inventoryIsError || meIsError
@@ -280,8 +329,18 @@ export function TradeOverlay({
 
   return (
     <>
-      <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Direct Trade" description="Create asynchronous offers, lock them, then both sides confirm." wide>
-        {error ? <div className="mb-3"><ErrorState message={error} /></div> : null}
+      <ResponsivePanel
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Direct Trade"
+        description="Create asynchronous offers, lock them, then both sides confirm."
+        wide
+      >
+        {error ? (
+          <div className="mb-3">
+            <ErrorState message={error} />
+          </div>
+        ) : null}
         {queryError ? (
           <div className="space-y-3">
             <ErrorState
@@ -291,100 +350,177 @@ export function TradeOverlay({
                   : "Could not load direct trades."
               }
             />
-            <Button variant="secondary" onClick={() => refetchTrades()}>
-              Refresh Trades
-            </Button>
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-ghost px-4 py-2"
+              onClick={() => refetchTrades()}
+            >
+              REFRESH TRADES
+            </button>
           </div>
         ) : isLoading || !tradesData || !me ? (
           <LoadingState label="Loading trades" />
         ) : (
           <div className="space-y-4">
-            <Card className="bg-white/80">
-              <CardContent className="space-y-3 p-4">
-                {onlinePlayers.length > 0 ? (
-                  <div className="space-y-2">
-                    <div className="text-sm font-bold">Online farmers</div>
-                    <div className="flex flex-wrap gap-2">
-                      {onlinePlayers.slice(0, 8).map((player) => (
-                        <Button
-                          key={player.userId}
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setRecipientUsername(player.username)}
-                        >
-                          {player.username}
-                        </Button>
-                      ))}
-                    </div>
+            <div className="pixel-card space-y-3 p-4">
+              {onlinePlayers.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="pixel-label">Online farmers</div>
+                  <div className="flex flex-wrap gap-2">
+                    {onlinePlayers.slice(0, 8).map((player) => (
+                      <button
+                        key={player.userId}
+                        type="button"
+                        className="pixel-btn pixel-btn-ghost px-3 py-2"
+                        onClick={() => setRecipientUsername(player.username)}
+                      >
+                        {player.username}
+                      </button>
+                    ))}
                   </div>
-                ) : null}
-                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                </div>
+              ) : null}
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <div>
-                  <Label>Recipient Discord username</Label>
-                  <Input value={recipientUsername} onChange={(event) => setRecipientUsername(event.target.value)} placeholder="farmer-name" />
+                  <Label className="pixel-label">
+                    Recipient Discord username
+                  </Label>
+                  <Input
+                    className="pixel-input mt-1 px-3 py-2"
+                    value={recipientUsername}
+                    onChange={(event) =>
+                      setRecipientUsername(event.target.value)
+                    }
+                    placeholder="farmer-name"
+                  />
                 </div>
                 <div className="flex items-end">
-                  <Button disabled={(!recipientUsername && !(payload as { recipientId?: string } | undefined)?.recipientId) || createMutation.isPending} onClick={() => createMutation.mutate()}>
-                    Create Trade
-                  </Button>
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-primary px-4 py-2"
+                    disabled={
+                      (!recipientUsername &&
+                        !(payload as { recipientId?: string } | undefined)
+                          ?.recipientId) ||
+                      createMutation.isPending
+                    }
+                    onClick={() => createMutation.mutate()}
+                  >
+                    CREATE TRADE
+                  </button>
                 </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {tradesData.trades.length === 0 ? (
-              <EmptyState title="No trades yet" description="Start one from a username or while visiting another farm." />
+              <EmptyState
+                title="No trades yet"
+                description="Start one from a username or while visiting another farm."
+              />
             ) : (
               <div className="space-y-4">
                 {tradesData.trades.map((trade) => {
-                  const active = ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status);
-                  const other = trade.initiatorId === me.user.id ? trade.recipient : trade.initiator;
+                  const active = ["PENDING", "ACTIVE", "LOCKED"].includes(
+                    trade.status,
+                  );
+                  const other =
+                    trade.initiatorId === me.user.id
+                      ? trade.recipient
+                      : trade.initiator;
                   const myConfirmed =
-                    trade.initiatorId === me.user.id ? trade.initiatorConfirmed : trade.recipientConfirmed;
+                    trade.initiatorId === me.user.id
+                      ? trade.initiatorConfirmed
+                      : trade.recipientConfirmed;
                   const theirConfirmed =
-                    trade.initiatorId === me.user.id ? trade.recipientConfirmed : trade.initiatorConfirmed;
+                    trade.initiatorId === me.user.id
+                      ? trade.recipientConfirmed
+                      : trade.initiatorConfirmed;
                   return (
-                    <Card key={trade.id} className="bg-white/80">
-                      <CardContent className="space-y-4 p-4">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <div className="text-xs font-semibold text-muted-foreground">Trade with</div>
-                            <div className="text-xl font-bold">{other.username}</div>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant={trade.status === "COMPLETED" ? "default" : "outline"}>{trade.status.toLowerCase()}</Badge>
-                            {active ? <CountdownBadge to={trade.expiresAt} /> : null}
+                    <div key={trade.id} className="pixel-card space-y-4 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="pixel-label">Trade with</div>
+                          <div className="text-xl font-bold text-[#f2fbf1]">
+                            {other.username}
                           </div>
                         </div>
-                        <div className="grid gap-3 md:grid-cols-2">
-                          <OfferColumn title={trade.initiator.username} userId={trade.initiatorId} trade={trade} currentUserId={me.user.id} onRemove={(itemId) => removeMutation.mutate({ tradeId: trade.id, itemId })} />
-                          <OfferColumn title={trade.recipient.username} userId={trade.recipientId} trade={trade} currentUserId={me.user.id} onRemove={(itemId) => removeMutation.mutate({ tradeId: trade.id, itemId })} />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`pixel-badge ${
+                              trade.status === "COMPLETED"
+                                ? "text-[#91d985]"
+                                : "text-[#5e8c52]"
+                            }`}
+                          >
+                            {trade.status}
+                          </span>
+                          {active ? (
+                            <CountdownBadge to={trade.expiresAt} />
+                          ) : null}
                         </div>
-                        {active ? (
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              variant="secondary"
-                              onClick={() => {
-                                setSelectedTradeId(trade.id);
-                                setAddOpen(true);
-                              }}
-                            >
-                              <Plus className="h-4 w-4" />
-                              Add Item
-                            </Button>
-                            <Button disabled={confirmMutation.isPending || myConfirmed} onClick={() => confirmMutation.mutate(trade.id)}>
-                              Confirm
-                            </Button>
-                            <Button variant="outline" disabled={cancelMutation.isPending} onClick={() => cancelMutation.mutate(trade.id)}>
-                              Cancel
-                            </Button>
-                            <div className="ml-auto text-sm text-muted-foreground">
-                              You: {myConfirmed ? "confirmed" : "open"} · Them: {theirConfirmed ? "confirmed" : "open"}
-                            </div>
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <OfferColumn
+                          title={trade.initiator.username}
+                          userId={trade.initiatorId}
+                          trade={trade}
+                          currentUserId={me.user.id}
+                          onRemove={(itemId) =>
+                            removeMutation.mutate({
+                              tradeId: trade.id,
+                              itemId,
+                            })
+                          }
+                        />
+                        <OfferColumn
+                          title={trade.recipient.username}
+                          userId={trade.recipientId}
+                          trade={trade}
+                          currentUserId={me.user.id}
+                          onRemove={(itemId) =>
+                            removeMutation.mutate({
+                              tradeId: trade.id,
+                              itemId,
+                            })
+                          }
+                        />
+                      </div>
+                      {active ? (
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="pixel-btn pixel-btn-ghost px-3 py-2"
+                            onClick={() => {
+                              setSelectedTradeId(trade.id);
+                              setAddOpen(true);
+                            }}
+                          >
+                            <Plus className="h-4 w-4" />
+                            ADD ITEM
+                          </button>
+                          <button
+                            type="button"
+                            className="pixel-btn pixel-btn-gold px-4 py-2"
+                            disabled={confirmMutation.isPending || myConfirmed}
+                            onClick={() => confirmMutation.mutate(trade.id)}
+                          >
+                            CONFIRM
+                          </button>
+                          <button
+                            type="button"
+                            className="pixel-btn pixel-btn-danger px-3 py-2"
+                            disabled={cancelMutation.isPending}
+                            onClick={() => cancelMutation.mutate(trade.id)}
+                          >
+                            CANCEL
+                          </button>
+                          <div className="ml-auto text-sm text-[#91d985]">
+                            You: {myConfirmed ? "confirmed" : "open"} · Them:{" "}
+                            {theirConfirmed ? "confirmed" : "open"}
                           </div>
-                        ) : null}
-                      </CardContent>
-                    </Card>
+                        </div>
+                      ) : null}
+                    </div>
                   );
                 })}
               </div>
@@ -393,42 +529,95 @@ export function TradeOverlay({
         )}
       </ResponsivePanel>
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
+        <DialogContent className="scanlines border-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>button]:text-[#91d985] [&>button:hover]:text-[#f7d767]">
           <DialogHeader>
-            <DialogTitle>Add trade offer</DialogTitle>
-            <DialogDescription>Changing an offer resets confirmations for both farmers.</DialogDescription>
+            <DialogTitle className="pixel-heading text-sm text-[#f2fbf1]">
+              Add trade offer
+            </DialogTitle>
+            <DialogDescription className="font-sans text-[#91d985]">
+              Changing an offer resets confirmations for both farmers.
+            </DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="fruit">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="fruit">Fruit</TabsTrigger>
-              <TabsTrigger value="grow">$GROW</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 border-2 border-[#153d21] bg-[#0a0f0d]">
+              <TabsTrigger
+                value="fruit"
+                className="font-sans text-[#91d985] data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d]"
+              >
+                Fruit
+              </TabsTrigger>
+              <TabsTrigger
+                value="grow"
+                className="font-sans text-[#91d985] data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d]"
+              >
+                $GROW
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="fruit" className="space-y-3">
-              <Label>Fruit</Label>
-              <Select value={selectedFruitId || "none"} onValueChange={(value) => setSelectedFruitId(value === "none" ? "" : value)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label className="pixel-label">Fruit</Label>
+              <Select
+                value={selectedFruitId || "none"}
+                onValueChange={(value) =>
+                  setSelectedFruitId(value === "none" ? "" : value)
+                }
+              >
+                <SelectTrigger className="pixel-input px-3 py-2">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Choose fruit</SelectItem>
                   {(inventory?.fruits || []).map((fruit) => (
                     <SelectItem key={fruit.id} value={fruit.id}>
-                      {fruit.fruit.iconUrl} {fruit.mutation.toLowerCase()} {fruit.fruit.name} x{fruit.quantity - fruit.lockedQuantity}
+                      {fruit.fruit.iconUrl} {fruit.mutation.toLowerCase()}{" "}
+                      {fruit.fruit.name} x
+                      {fruit.quantity - fruit.lockedQuantity}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Label>Quantity</Label>
-              <Input type="number" min={1} value={fruitQuantity} onChange={(event) => setFruitQuantity(Number(event.target.value))} />
-              <Button className="w-full" disabled={!selectedTrade || !selectedFruitId || addFruitMutation.isPending} onClick={() => addFruitMutation.mutate()}>
-                Add Fruit
-              </Button>
+              <Label className="pixel-label">Quantity</Label>
+              <Input
+                type="number"
+                min={1}
+                className="pixel-input px-3 py-2"
+                value={fruitQuantity}
+                onChange={(event) =>
+                  setFruitQuantity(Number(event.target.value))
+                }
+              />
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-gold w-full px-4 py-2"
+                disabled={
+                  !selectedTrade ||
+                  !selectedFruitId ||
+                  addFruitMutation.isPending
+                }
+                onClick={() => addFruitMutation.mutate()}
+              >
+                ADD FRUIT
+              </button>
             </TabsContent>
             <TabsContent value="grow" className="space-y-3">
-              <Label>$GROW amount</Label>
-              <Input type="number" min={1} value={growAmount} onChange={(event) => setGrowAmount(Number(event.target.value))} />
-              <p className="text-sm text-muted-foreground">Available: {me?.user.availableGrow ?? 0}</p>
-              <Button className="w-full" disabled={!selectedTrade || addGrowMutation.isPending} onClick={() => addGrowMutation.mutate()}>
-                Add $GROW
-              </Button>
+              <Label className="pixel-label">$GROW amount</Label>
+              <Input
+                type="number"
+                min={1}
+                className="pixel-input px-3 py-2"
+                value={growAmount}
+                onChange={(event) => setGrowAmount(Number(event.target.value))}
+              />
+              <p className="text-sm text-[#91d985]">
+                Available: {me?.user.availableGrow ?? 0}
+              </p>
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-gold w-full px-4 py-2"
+                disabled={!selectedTrade || addGrowMutation.isPending}
+                onClick={() => addGrowMutation.mutate()}
+              >
+                ADD $GROW
+              </button>
             </TabsContent>
           </Tabs>
         </DialogContent>

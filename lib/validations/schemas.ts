@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 export const connectWalletSchema = z.object({
+  walletAddress: z.string().min(32).max(64),
+  message: z.string().min(20).max(1_000),
+  signature: z.string().min(32).max(512)
+});
+
+export const walletChallengeSchema = z.object({
   walletAddress: z.string().min(32).max(64)
 });
 

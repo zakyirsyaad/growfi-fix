@@ -5,9 +5,19 @@ import { Crown, Gem, Sprout, Store, Trophy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EmptyState, LoadingState } from "@/components/game/shared/StatusStates";
+import {
+  EmptyState,
+  LoadingState,
+} from "@/components/game/shared/StatusStates";
 import { apiFetch } from "@/lib/utils/fetcher";
 
 type LeaderUser = {
@@ -31,7 +41,7 @@ function Board({
   title,
   users,
   metric,
-  icon: Icon
+  icon: Icon,
 }: {
   title: string;
   users: LeaderUser[];
@@ -48,14 +58,19 @@ function Board({
         {users.map((user, index) => (
           <Card key={user.id} className="bg-white/82">
             <CardContent className="flex items-center gap-3 p-3">
-              <Badge variant={index === 0 ? "legendary" : "outline"} className="gap-1">
+              <Badge
+                variant={index === 0 ? "legendary" : "outline"}
+                className="gap-1"
+              >
                 <Icon className="h-3.5 w-3.5" />
                 {index + 1}
               </Badge>
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.avatarUrl || undefined} />
-                  <AvatarFallback>{user.username.slice(0, 1).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>
+                    {user.username.slice(0, 1).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="truncate font-semibold">{user.username}</span>
               </div>
@@ -77,7 +92,10 @@ function Board({
             {users.map((user, index) => (
               <TableRow key={user.id}>
                 <TableCell>
-                  <Badge variant={index === 0 ? "legendary" : "outline"} className="gap-1">
+                  <Badge
+                    variant={index === 0 ? "legendary" : "outline"}
+                    className="gap-1"
+                  >
                     <Icon className="h-3.5 w-3.5" />
                     {index + 1}
                   </Badge>
@@ -86,12 +104,16 @@ function Board({
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.avatarUrl || undefined} />
-                      <AvatarFallback>{user.username.slice(0, 1).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>
+                        {user.username.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <span className="font-semibold">{user.username}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right font-bold">{metric(user)}</TableCell>
+                <TableCell className="text-right font-bold">
+                  {metric(user)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -101,10 +123,14 @@ function Board({
   );
 }
 
-export function LeaderboardDashboard({ compact = false }: { compact?: boolean }) {
+export function LeaderboardDashboard({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["leaderboard"],
-    queryFn: () => apiFetch<LeaderboardResponse>("/api/leaderboard")
+    queryFn: () => apiFetch<LeaderboardResponse>("/api/leaderboard"),
   });
 
   if (isLoading || !data) {
@@ -112,10 +138,22 @@ export function LeaderboardDashboard({ compact = false }: { compact?: boolean })
   }
 
   const highlights = [
-    { label: "Richest farmer", value: data.balances[0]?.username || "Open", icon: Crown },
-    { label: "Most harvests", value: data.harvests[0]?.username || "Open", icon: Sprout },
+    {
+      label: "Richest farmer",
+      value: data.balances[0]?.username || "Open",
+      icon: Crown,
+    },
+    {
+      label: "Most harvests",
+      value: data.harvests[0]?.username || "Open",
+      icon: Sprout,
+    },
     { label: "Rarest mutation", value: "Rainbow watch", icon: Gem },
-    { label: "Top seller", value: data.marketplace[0]?.username || "Open", icon: Store }
+    {
+      label: "Top seller",
+      value: data.marketplace[0]?.username || "Open",
+      icon: Store,
+    },
   ];
 
   return (
@@ -131,7 +169,9 @@ export function LeaderboardDashboard({ compact = false }: { compact?: boolean })
                     <Icon className="h-5 w-5" />
                   </span>
                   <span>
-                    <span className="block text-xs font-semibold text-muted-foreground">{item.label}</span>
+                    <span className="block text-xs font-semibold text-muted-foreground">
+                      {item.label}
+                    </span>
                     <span className="font-bold">{item.value}</span>
                   </span>
                 </CardContent>
@@ -152,10 +192,38 @@ export function LeaderboardDashboard({ compact = false }: { compact?: boolean })
               <TabsTrigger value="trades">Trades</TabsTrigger>
               <TabsTrigger value="market">Market</TabsTrigger>
             </TabsList>
-            <TabsContent value="harvests"><Board title="Harvests" users={data.harvests} metric={(user) => user.totalHarvests} icon={Sprout} /></TabsContent>
-            <TabsContent value="balances"><Board title="$GROW" users={data.balances} metric={(user) => user.growBalance} icon={Crown} /></TabsContent>
-            <TabsContent value="trades"><Board title="Trades" users={data.trades} metric={(user) => user.totalTrades} icon={Trophy} /></TabsContent>
-            <TabsContent value="market"><Board title="Sales" users={data.marketplace} metric={(user) => user.marketplaceSales} icon={Store} /></TabsContent>
+            <TabsContent value="harvests">
+              <Board
+                title="Harvests"
+                users={data.harvests}
+                metric={(user) => user.totalHarvests}
+                icon={Sprout}
+              />
+            </TabsContent>
+            <TabsContent value="balances">
+              <Board
+                title="$GROW"
+                users={data.balances}
+                metric={(user) => user.growBalance}
+                icon={Crown}
+              />
+            </TabsContent>
+            <TabsContent value="trades">
+              <Board
+                title="Trades"
+                users={data.trades}
+                metric={(user) => user.totalTrades}
+                icon={Trophy}
+              />
+            </TabsContent>
+            <TabsContent value="market">
+              <Board
+                title="Sales"
+                users={data.marketplace}
+                metric={(user) => user.marketplaceSales}
+                icon={Store}
+              />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>

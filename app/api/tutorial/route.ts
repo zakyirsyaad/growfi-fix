@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    rateLimit(`tutorial:${user.id}`, 60, 60_000);
+    await rateLimit(`tutorial:${user.id}`, 60, 60_000);
     const input = await parseJson(request, tutorialUpdateSchema);
 
     if ("skip" in input) {

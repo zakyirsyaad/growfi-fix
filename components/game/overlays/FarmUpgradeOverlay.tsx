@@ -12,11 +12,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ProgressionPanel } from "@/components/game/ProgressionPanel";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { gameEventBus } from "@/lib/game/eventBus";
@@ -58,7 +53,7 @@ export function FarmUpgradeOverlay({
   const missing = Math.max(0, cost - balance);
   const missingPlotCount = useMemo(
     () => onchain.data?.plots.filter((plot) => !plot.account).length ?? 0,
-    [onchain.data?.plots]
+    [onchain.data?.plots],
   );
   const hasEnoughGrow = balance >= cost;
   const canUpgrade =
@@ -80,7 +75,7 @@ export function FarmUpgradeOverlay({
         {
           method: "POST",
           body: JSON.stringify({ walletAddress: publicKey.toBase58() }),
-        }
+        },
       );
     },
     onSuccess: async (result) => {
@@ -91,7 +86,8 @@ export function FarmUpgradeOverlay({
     },
     onError: (err) => {
       toast.error("Mint failed", {
-        description: err instanceof Error ? err.message : "Could not mint $GROW.",
+        description:
+          err instanceof Error ? err.message : "Could not mint $GROW.",
       });
     },
   });
@@ -160,181 +156,178 @@ export function FarmUpgradeOverlay({
       <div className="space-y-4">
         <ProgressionPanel garden={garden} />
 
-        <Card className="bg-white/82">
-          <CardContent className="space-y-4 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-md bg-secondary text-primary">
-                  <Grid3X3 className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="font-black">
-                    Level {garden?.garden.level ?? 1} Farm
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {garden?.garden.width ?? 4}x{garden?.garden.height ?? 4}{" "}
-                    plots
-                  </div>
+        <div className="pixel-card space-y-4 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="pixel-tile grid h-11 w-11 place-items-center text-[#91d985]">
+                <Grid3X3 className="h-5 w-5" />
+              </span>
+              <div>
+                <div className="font-black text-[#f2fbf1]">
+                  Level {garden?.garden.level ?? 1} Farm
+                </div>
+                <div className="text-sm text-[#91d985]">
+                  {garden?.garden.width ?? 4}x{garden?.garden.height ?? 4}{" "}
+                  plots
                 </div>
               </div>
-              <Badge variant="outline">
-                {garden?.farmStats?.activePlants ?? 0}/
-                {garden?.farmStats?.totalPlots ?? 16} active
-              </Badge>
             </div>
-            <Progress
-              value={
-                upgrades
-                  ? (upgrades.currentLevel / upgrades.maxLevel) * 100
-                  : 20
-              }
+            <span className="pixel-badge text-[#91d985]">
+              {garden?.farmStats?.activePlants ?? 0}/
+              {garden?.farmStats?.totalPlots ?? 16} active
+            </span>
+          </div>
+          <div className="pixel-progress">
+            <span
+              style={{
+                width: `${
+                  upgrades
+                    ? (upgrades.currentLevel / upgrades.maxLevel) * 100
+                    : 20
+                }%`,
+              }}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {farmProgress ? (
-          <Alert>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <AlertTitle>Working on your farm</AlertTitle>
-            <AlertDescription>{farmProgress}</AlertDescription>
-          </Alert>
+          <div className="pixel-card-sunken space-y-2 p-3 text-[#8ad4ff]">
+            <div className="flex items-center gap-2 font-bold text-[#f2fbf1]">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Working on your farm
+            </div>
+            <div className="text-sm text-[#91d985]">{farmProgress}</div>
+          </div>
         ) : null}
 
         {missingPlotCount > 0 ? (
-          <Alert>
-            <LockOpen className="h-4 w-4" />
-            <AlertTitle>Some farm plots need initialization</AlertTitle>
-            <AlertDescription className="space-y-3">
-              <p>
-                Your farm level is upgraded, but {missingPlotCount} plot
-                account{missingPlotCount === 1 ? "" : "s"} still need to be
-                created on Solana before they can be used.
-              </p>
-              <Button
-                size="sm"
-                type="button"
-                onClick={() => unlockPlotsMutation.mutate()}
-                disabled={unlockPlotsMutation.isPending}
-              >
-                {unlockPlotsMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <LockOpen className="h-4 w-4" />
-                )}
-                Unlock Farm Plots
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <div className="pixel-card-sunken space-y-3 p-3 text-[#ff9ebd]">
+            <div className="flex items-center gap-2 font-bold text-[#f2fbf1]">
+              <LockOpen className="h-4 w-4" />
+              Some farm plots need initialization
+            </div>
+            <p className="text-sm text-[#91d985]">
+              Your farm level is upgraded, but {missingPlotCount} plot account
+              {missingPlotCount === 1 ? "" : "s"} still need to be created on
+              Solana before they can be used.
+            </p>
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-primary px-3 py-2"
+              onClick={() => unlockPlotsMutation.mutate()}
+              disabled={unlockPlotsMutation.isPending}
+            >
+              {unlockPlotsMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LockOpen className="h-4 w-4" />
+              )}
+              UNLOCK FARM PLOTS
+            </button>
+          </div>
         ) : null}
 
         {nextLevel ? (
-          <Card className="bg-white/82">
-            <CardContent className="space-y-4 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs font-black uppercase text-leaf-700">
-                    Next upgrade
-                  </div>
-                  <div className="text-xl font-black">
-                    Level {nextLevel}: {upgrades?.nextWidth}x
-                    {upgrades?.nextHeight}
-                  </div>
-                </div>
-                <Badge
-                  variant={canUpgrade ? "common" : "outline"}
-                  className="gap-1"
-                >
-                  <Coins className="h-3.5 w-3.5" />
-                  {cost} $GROW
-                </Badge>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-md bg-muted p-3">
-                  <div className="text-xs font-bold text-muted-foreground">
-                    Current Level
-                  </div>
-                  <div className="text-lg font-black">
-                    {upgrades?.currentLevel ?? garden?.garden.level ?? 1}
-                  </div>
-                </div>
-                <div className="rounded-md bg-muted p-3">
-                  <div className="text-xs font-bold text-muted-foreground">
-                    Upgrade Cost
-                  </div>
-                  <div className="text-lg font-black">{cost} $GROW</div>
-                </div>
-                <div className="rounded-md bg-muted p-3">
-                  <div className="text-xs font-bold text-muted-foreground">
-                    Wallet $GROW Balance
-                  </div>
-                  <div className="text-lg font-black">
-                    {walletBalances.isLoading ? "Checking..." : balance.toLocaleString()}
-                  </div>
+          <div className="pixel-card space-y-4 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="pixel-label">Next upgrade</div>
+                <div className="text-xl font-black text-[#f2fbf1]">
+                  Level {nextLevel}: {upgrades?.nextWidth}x
+                  {upgrades?.nextHeight}
                 </div>
               </div>
-              {!hasEnoughGrow ? (
-                <Alert>
-                  <Coins className="h-4 w-4" />
-                  <AlertTitle>Not enough wallet $GROW</AlertTitle>
-                  <AlertDescription className="space-y-3">
-                    <p>
-                      You need {missing.toLocaleString()} more $GROW for this
-                      upgrade.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {isDevnetTokenMode ? (
-                        <Button
-                          size="sm"
-                          type="button"
-                          onClick={() => mintMutation.mutate()}
-                          disabled={mintMutation.isPending || !publicKey}
-                        >
-                          {mintMutation.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Coins className="h-4 w-4" />
-                          )}
-                          Mint Devnet $GROW
-                        </Button>
-                      ) : null}
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                        onClick={() => walletBalances.refetch()}
-                        disabled={walletBalances.isFetching}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Refresh Balance
-                      </Button>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
-              <Button
-                className="w-full"
-                disabled={
-                  !canUpgrade ||
-                  upgradeMutation.isPending ||
-                  unlockPlotsMutation.isPending
-                }
-                onClick={() => upgradeMutation.mutate()}
+              <span
+                className={`pixel-badge ${
+                  canUpgrade ? "text-[#f7d767]" : "text-[#91d985]"
+                }`}
               >
-                {upgradeMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowUpRight className="h-4 w-4" />
-                )}
-                Upgrade Farm
-              </Button>
-            </CardContent>
-          </Card>
+                <Coins className="h-3.5 w-3.5" />
+                {cost} $GROW
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="pixel-card-sunken p-3">
+                <div className="pixel-label">Current Level</div>
+                <div className="text-lg font-black text-[#f2fbf1]">
+                  {upgrades?.currentLevel ?? garden?.garden.level ?? 1}
+                </div>
+              </div>
+              <div className="pixel-card-sunken p-3">
+                <div className="pixel-label">Upgrade Cost</div>
+                <div className="text-lg font-black text-[#f7d767]">
+                  {cost} $GROW
+                </div>
+              </div>
+              <div className="pixel-card-sunken p-3">
+                <div className="pixel-label">Wallet $GROW Balance</div>
+                <div className="text-lg font-black text-[#f7d767]">
+                  {walletBalances.isLoading
+                    ? "Checking..."
+                    : balance.toLocaleString()}
+                </div>
+              </div>
+            </div>
+            {!hasEnoughGrow ? (
+              <div className="pixel-card-sunken space-y-3 p-3 text-[#ff9ebd]">
+                <div className="flex items-center gap-2 font-bold text-[#f2fbf1]">
+                  <Coins className="h-4 w-4" />
+                  Not enough wallet $GROW
+                </div>
+                <p className="text-sm text-[#91d985]">
+                  You need {missing.toLocaleString()} more $GROW for this
+                  upgrade.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {isDevnetTokenMode ? (
+                    <button
+                      type="button"
+                      className="pixel-btn pixel-btn-gold px-3 py-2"
+                      onClick={() => mintMutation.mutate()}
+                      disabled={mintMutation.isPending || !publicKey}
+                    >
+                      {mintMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Coins className="h-4 w-4" />
+                      )}
+                      MINT DEVNET $GROW
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-ghost px-3 py-2"
+                    onClick={() => walletBalances.refetch()}
+                    disabled={walletBalances.isFetching}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    REFRESH BALANCE
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-primary w-full px-4 py-2"
+              disabled={
+                !canUpgrade ||
+                upgradeMutation.isPending ||
+                unlockPlotsMutation.isPending
+              }
+              onClick={() => upgradeMutation.mutate()}
+            >
+              {upgradeMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowUpRight className="h-4 w-4" />
+              )}
+              UPGRADE FARM
+            </button>
+          </div>
         ) : (
-          <Card className="bg-white/82">
-            <CardContent className="p-4 font-semibold">
-              Your farm is at the current MVP max level.
-            </CardContent>
-          </Card>
+          <div className="pixel-card p-4 font-semibold text-[#91d985]">
+            Your farm is at the current MVP max level.
+          </div>
         )}
       </div>
     </ResponsivePanel>

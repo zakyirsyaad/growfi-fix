@@ -1,7 +1,25 @@
 import { expect } from "chai";
-import idl from "../target/idl/growfi_core.json";
+import * as fs from "fs";
+const idl = JSON.parse(fs.readFileSync(new URL("../../lib/idl/growfi_core.json", import.meta.url), "utf8"));
 
-describe("growfi_core IDL", () => {
+const deployedProgramId = "ESiJ1Fk5b9X8GitSjNW44LzRNBWByrHa7kkEWsTPmDYz";
+const repoRoot = new URL("../../", import.meta.url);
+
+function readRepoFile(path: string) {
+  return fs.readFileSync(new URL(path, repoRoot), "utf8");
+}
+
+
+describe("growfi_core IDL smoke tests", () => {
+  it("keeps program ids in sync with the deployed devnet program", () => {
+    expect(idl.address).to.equal(deployedProgramId);
+    expect(readRepoFile("lib/solana/growfiCore.ts")).to.contain(`"${deployedProgramId}"`);
+    expect(readRepoFile("anchor/Anchor.toml")).to.contain(`growfi_core = "${deployedProgramId}"`);
+    expect(readRepoFile("anchor/programs/growfi_core/src/lib.rs")).to.contain(
+      `declare_id!("${deployedProgramId}")`
+    );
+  });
+
   const instructionNames = idl.instructions.map(
     (instruction) => instruction.name
   );
@@ -100,31 +118,55 @@ describe("growfi_core IDL", () => {
     ]);
   });
 
-  [
-    "initialize config",
-    "create player/farm",
-    "create seed catalog",
-    "create shop rotation/item",
-    "buy seed",
-    "plant seed",
-    "water plant",
-    "harvest plant",
-    "max harvest behavior",
-    "garden level requirement",
-    "upgrade farm",
-    "create marketplace listing",
-    "cancel listing",
-    "buy listing",
-    "create trade",
-    "complete trade",
-    "creator tip",
-    "decoration purchase/place",
-    "invalid/abuse cases",
-  ].forEach((name) => {
-    it.skip(`integration: ${name}`, () => {
-      // Requires a full SPL $GROW mint/vault fixture. The compile-time IDL
-      // coverage above keeps the account/instruction surface locked until the
-      // transaction fixture is added.
+  describe("integration: basic setup and economy", () => {
+    it.skip("initialize config", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("create player", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("create farm", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("create initial plots", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("reject duplicate player/farm", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("reject unauthorized config update", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+  });
+
+  describe("integration: economy abuse tests", () => {
+    it.skip("buy seed fails when shop expired", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("buy seed fails when quantity exceeds stock", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("plant seed fails when plot is not empty", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("harvest fails before ready time", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("marketplace buy fails when listing expired", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
+    });
+
+    it.skip("trade complete fails without both confirmations", () => {
+      // Requires Solana SBF toolchain and a local validator fixture.
     });
   });
 });

@@ -298,7 +298,7 @@ async function ensureActiveShopRotation() {
 export async function POST() {
   try {
     const user = await getCurrentUser();
-    rateLimit(`shop-ensure:${user.id}`, 10, 60_000);
+    await rateLimit(`shop-ensure:${user.id}`, 10, 60_000);
     const result = await ensureActiveShopRotation();
     console.debug("[GrowFi] ensure-active-rotation", {
       currentUnixTime: Math.floor(Date.now() / 1000),

@@ -44,55 +44,70 @@ function ShopContent() {
   });
 
   return (
-    <>
+    <div className="mt-8">
       <PageHeader
         title="Seed Shop"
         eyebrow="Global rotating stock"
         actions={
-          <Button variant="secondary" onClick={() => refetch()}>
-            <RefreshCw size={16} /> Refresh
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            className="font-bold"
+          >
+            <RefreshCw size={16} className="mr-2" /> Refresh
           </Button>
         }
       />
 
-      <Card className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <Card className="mb-6 flex flex-wrap items-center justify-between gap-4 p-5 shadow-sm border-border bg-card">
         <div>
-          <div className="text-xs font-black uppercase text-leaf-700">
+          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
             Next rotation
           </div>
-          <div className="text-2xl font-black">
+          <div className="text-3xl font-black text-foreground">
             {data?.rotation ? (
               <Countdown to={data.rotation.endsAt} />
             ) : (
-              "no active rotation"
+              "No active rotation"
             )}
           </div>
         </div>
-        <div className="text-sm font-bold text-leaf-800">
+        <div className="text-sm font-bold text-muted-foreground bg-muted p-3 rounded-lg border border-border">
           Every farmer sees the same stock and global remaining quantities.
         </div>
       </Card>
 
       {error ? (
-        <div className="mb-4 rounded-lg bg-berry-100 px-4 py-3 text-sm font-bold text-berry-700">
+        <div className="mb-6 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm font-bold text-destructive">
           {error}
         </div>
       ) : null}
 
       {isLoading || !data ? (
-        <Card className="font-bold text-leaf-800">Loading shop...</Card>
+        <div className="font-bold text-muted-foreground p-8 bg-card border border-border rounded-xl shadow-sm text-center">
+          Loading shop...
+        </div>
       ) : data.items.length === 0 ? (
-        <Card className="space-y-3 font-bold text-leaf-800">
-          <div>No active shop rotation. Please create a shop rotation.</div>
-          <div className="text-xs text-muted-foreground">
+        <Card className="space-y-4 p-8 text-center font-bold text-muted-foreground shadow-sm">
+          <div className="text-lg text-foreground">
+            No active shop rotation. Please create a shop rotation.
+          </div>
+          <div className="text-xs text-muted-foreground/80 bg-muted inline-block p-2 rounded">
             Devnet fallback: npx tsx anchor/scripts/create-shop-rotation.ts
           </div>
-          <Button variant="secondary" onClick={() => refetch()}>
-            <RefreshCw size={16} /> Refresh/Create Devnet Rotation
-          </Button>
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              className="font-bold mx-auto"
+            >
+              <RefreshCw size={16} className="mr-2" /> Refresh / Create Devnet
+              Rotation
+            </Button>
+          </div>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {data.items.map((item) => (
             <ShopItemCard
               key={item.id}
@@ -103,7 +118,7 @@ function ShopContent() {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 

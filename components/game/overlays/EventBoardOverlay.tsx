@@ -1,44 +1,50 @@
 "use client";
 
 import { Gift, Sprout, Trophy } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 
 export function EventBoardOverlay({
   open,
-  onOpenChange
+  onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Town Events" description="Seasonal events and global goals.">
+    <ResponsivePanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Town Events"
+      description="Seasonal events and global goals."
+    >
       <div className="space-y-4">
-        <Card className="bg-white/82">
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Sprout className="h-4 w-4" />
-              Harvest Festival
-              <Badge variant="secondary" className="ml-auto">coming soon</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 p-4 pt-0">
-            <div className="text-sm text-muted-foreground">Global Goal: Harvest 1,000,000 fruits</div>
-            <Progress value={18} />
+        <div className="pixel-card p-4">
+          <div className="flex items-center gap-2 text-base font-bold text-[#f2fbf1]">
+            <Sprout className="h-4 w-4" />
+            Harvest Festival
+            <span className="pixel-badge text-[#8ad4ff] ml-auto">
+              coming soon
+            </span>
+          </div>
+          <div className="mt-3 space-y-3">
+            <div className="text-sm text-[#91d985]">
+              Global Goal: Harvest 1,000,000 fruits
+            </div>
+            <div className="pixel-progress">
+              <span style={{ width: `${18}%` }} />
+            </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              <div className="rounded-md bg-muted p-3 text-sm">
+              <div className="pixel-card-sunken p-3 text-sm text-[#ddf5d9]">
                 <Trophy className="mb-2 h-4 w-4" />
                 Leaderboard prizes planned
               </div>
-              <div className="rounded-md bg-muted p-3 text-sm">
+              <div className="pixel-card-sunken p-3 text-sm text-[#ddf5d9]">
                 <Gift className="mb-2 h-4 w-4" />
                 Rare seed rewards planned
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </ResponsivePanel>
   );

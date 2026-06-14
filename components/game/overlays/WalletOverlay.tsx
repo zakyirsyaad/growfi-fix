@@ -5,14 +5,22 @@ import { WalletDashboard } from "@/components/wallet/WalletDashboard";
 
 export function WalletOverlay({
   open,
-  onOpenChange
+  onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Wallet" description="Inspect real devnet SOL and $GROW balances." wide>
-      <WalletDashboard compact />
+    <ResponsivePanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Wallet"
+      description="Inspect real devnet SOL and $GROW balances."
+      wide
+    >
+      <div className="pixel-scope">
+        <WalletDashboard compact={true} />
+      </div>
     </ResponsivePanel>
   );
 }

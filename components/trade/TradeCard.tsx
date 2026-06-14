@@ -10,7 +10,13 @@ export type TradeView = {
   id: string;
   initiatorId: string;
   recipientId: string;
-  status: "PENDING" | "ACTIVE" | "LOCKED" | "COMPLETED" | "CANCELLED" | "EXPIRED";
+  status:
+    | "PENDING"
+    | "ACTIVE"
+    | "LOCKED"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "EXPIRED";
   initiatorConfirmed: boolean;
   recipientConfirmed: boolean;
   expiresAt: string;
@@ -22,7 +28,14 @@ export type TradeView = {
     type: "FRUIT" | "GROW";
     quantity: number;
     growAmount: number;
-    mutation?: "NORMAL" | "BIG" | "SWEET" | "GOLDEN" | "CRYSTAL" | "RAINBOW" | null;
+    mutation?:
+      | "NORMAL"
+      | "BIG"
+      | "SWEET"
+      | "GOLDEN"
+      | "CRYSTAL"
+      | "RAINBOW"
+      | null;
     fruit?: { name: string; iconUrl: string } | null;
     user: { id: string; username: string };
   }>;
@@ -34,7 +47,7 @@ export function TradeCard({
   onConfirm,
   onCancel,
   onRemoveItem,
-  busy
+  busy,
 }: {
   trade: TradeView;
   currentUserId: string;
@@ -43,18 +56,25 @@ export function TradeCard({
   onRemoveItem: (itemId: string) => void;
   busy?: boolean;
 }) {
-  const other = trade.initiatorId === currentUserId ? trade.recipient : trade.initiator;
+  const other =
+    trade.initiatorId === currentUserId ? trade.recipient : trade.initiator;
   const myConfirmed =
-    trade.initiatorId === currentUserId ? trade.initiatorConfirmed : trade.recipientConfirmed;
+    trade.initiatorId === currentUserId
+      ? trade.initiatorConfirmed
+      : trade.recipientConfirmed;
   const theirConfirmed =
-    trade.initiatorId === currentUserId ? trade.recipientConfirmed : trade.initiatorConfirmed;
+    trade.initiatorId === currentUserId
+      ? trade.recipientConfirmed
+      : trade.initiatorConfirmed;
   const active = ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status);
 
   return (
     <Card className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-xs font-black uppercase text-leaf-700">Trade with</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Trade with
+          </div>
           <div className="text-xl font-black">{other.username}</div>
         </div>
         <div className="text-right">
@@ -74,16 +94,19 @@ export function TradeCard({
           <div key={user.id} className="rounded-lg bg-white/65 p-3">
             <div className="mb-2 flex items-center justify-between">
               <div className="font-black">{user.username}</div>
-              {(user.id === trade.initiatorId
-                ? trade.initiatorConfirmed
-                : trade.recipientConfirmed) ? (
+              {(
+                user.id === trade.initiatorId
+                  ? trade.initiatorConfirmed
+                  : trade.recipientConfirmed
+              ) ? (
                 <span className="inline-flex items-center gap-1 text-xs font-black text-leaf-700">
                   <CheckCircle2 size={14} /> confirmed
                 </span>
               ) : null}
             </div>
             <div className="space-y-2">
-              {trade.items.filter((item) => item.userId === user.id).length === 0 ? (
+              {trade.items.filter((item) => item.userId === user.id).length ===
+              0 ? (
                 <div className="text-sm font-bold text-leaf-700">No items.</div>
               ) : null}
               {trade.items
@@ -99,14 +122,18 @@ export function TradeCard({
                         : `${item.fruit?.iconUrl || ""} ${item.quantity} ${item.fruit?.name || "Fruit"}`}
                     </span>
                     <span className="flex items-center gap-2">
-                      {item.mutation ? <MutationBadge mutation={item.mutation} /> : null}
+                      {item.mutation ? (
+                        <MutationBadge mutation={item.mutation} />
+                      ) : null}
                       {active && item.userId === currentUserId ? (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => onRemoveItem(item.id)}
-                          className="rounded-md p-1 text-berry-700 hover:bg-berry-100"
+                          className="h-6 w-6 text-berry-700 hover:bg-berry-100 hover:text-berry-800"
                         >
                           <X size={14} />
-                        </button>
+                        </Button>
                       ) : null}
                     </span>
                   </div>

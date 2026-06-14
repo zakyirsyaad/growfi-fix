@@ -5,17 +5,32 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Filter, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { ConfirmActionDialog } from "@/components/game/shared/ConfirmActionDialog";
 import { CountdownBadge } from "@/components/game/shared/CountdownBadge";
-import { EmptyState, ErrorState, LoadingState } from "@/components/game/shared/StatusStates";
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+} from "@/components/game/shared/StatusStates";
 import { RarityBadge } from "@/components/game/shared/RarityBadge";
 import { MutationBadge } from "@/components/game/shared/MutationBadge";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -42,7 +57,7 @@ function ListingCard({
   mine,
   busy,
   onBuy,
-  onCancel
+  onCancel,
 }: {
   listing: MarketplaceListingView;
   mine?: boolean;
@@ -51,60 +66,70 @@ function ListingCard({
   onCancel?: () => void;
 }) {
   return (
-    <Card className="bg-white/82">
-      <CardContent className="space-y-3 p-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-md bg-secondary text-2xl">
-              {listing.fruit.iconUrl}
-            </span>
-            <div>
-              <div className="font-bold">{listing.fruit.name}</div>
-              <div className="mt-1 flex flex-wrap gap-1">
-                <RarityBadge rarity={listing.fruit.rarity} />
-                <MutationBadge mutation={listing.mutation} />
-              </div>
+    <div className="pixel-card space-y-3 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="pixel-tile grid h-12 w-12 place-items-center text-2xl">
+            {listing.fruit.iconUrl}
+          </span>
+          <div>
+            <div className="font-bold text-[#f2fbf1]">{listing.fruit.name}</div>
+            <div className="mt-1 flex flex-wrap gap-1">
+              <RarityBadge rarity={listing.fruit.rarity} />
+              <MutationBadge mutation={listing.mutation} />
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-xs font-semibold text-muted-foreground">Price</div>
-            <div className="text-xl font-bold">{listing.price}</div>
+        </div>
+        <div className="text-right">
+          <div className="pixel-label">Price</div>
+          <div className="text-xl font-bold text-[#f7d767]">
+            {listing.price}
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 text-sm">
-          <div className="rounded-md bg-muted p-2">
-            <div className="text-xs font-semibold text-muted-foreground">Qty</div>
-            {listing.quantity}
-          </div>
-          <div className="rounded-md bg-muted p-2">
-            <div className="text-xs font-semibold text-muted-foreground">Seller</div>
-            {listing.seller?.username || "You"}
-          </div>
-          <div className="rounded-md bg-muted p-2">
-            <div className="text-xs font-semibold text-muted-foreground">Ends</div>
-            <CountdownBadge to={listing.expiresAt} />
-          </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-sm">
+        <div className="pixel-card-sunken p-2">
+          <div className="pixel-label">Qty</div>
+          {listing.quantity}
         </div>
-        {mine ? (
-          <Button variant="secondary" className="w-full" disabled={busy} onClick={onCancel}>
-            <X className="h-4 w-4" />
-            Cancel Listing
-          </Button>
-        ) : (
-          <Button className="w-full" disabled={busy} onClick={onBuy}>
-            <ShoppingCart className="h-4 w-4" />
-            Buy Listing
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+        <div className="pixel-card-sunken p-2">
+          <div className="pixel-label">Seller</div>
+          {listing.seller?.username || "You"}
+        </div>
+        <div className="pixel-card-sunken p-2">
+          <div className="pixel-label">Ends</div>
+          <CountdownBadge to={listing.expiresAt} />
+        </div>
+      </div>
+      {mine ? (
+        <button
+          type="button"
+          className="pixel-btn pixel-btn-ghost w-full px-4 py-2"
+          disabled={busy}
+          onClick={onCancel}
+        >
+          <X className="h-4 w-4" />
+          CANCEL LISTING
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="pixel-btn pixel-btn-gold w-full px-4 py-2"
+          disabled={busy}
+          onClick={onBuy}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          BUY LISTING
+        </button>
+      )}
+    </div>
   );
 }
 
 export function MarketplaceOverlay({
   open,
   onOpenChange,
-  payload
+  payload,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -130,27 +155,32 @@ export function MarketplaceOverlay({
     queryKey: ["marketplace"],
     queryFn: () => apiFetch<MarketplaceListingResponse>("/api/marketplace"),
     refetchInterval: 20_000,
-    enabled: open
+    enabled: open,
   });
   const { data: inventory } = useQuery({
     queryKey: ["inventory"],
     queryFn: () => apiFetch<InventoryResponse>("/api/inventory"),
-    enabled: open
+    enabled: open,
   });
   const displayInventory = mergeOnchainInventory(inventory, onchain.data);
   const { data: me } = useQuery({
     queryKey: ["me"],
     queryFn: () => apiFetch<MeResponse>("/api/me"),
-    enabled: open
+    enabled: open,
   });
   const walletAddress = publicKey?.toBase58() || null;
   const marketplaceData = useMemo(
     () => mergeMarketplaceListings(data, onchainMarketplace.data),
-    [data, onchainMarketplace.data]
+    [data, onchainMarketplace.data],
   );
 
   useEffect(() => {
-    const value = payload as { create?: boolean; fruit?: { id: string; fruit: { baseSellPrice?: number } } } | undefined;
+    const value = payload as
+      | {
+          create?: boolean;
+          fruit?: { id: string; fruit: { baseSellPrice?: number } };
+        }
+      | undefined;
     if (open && value?.create && value.fruit) {
       setTab("create");
       setSelectedFruitId(value.fruit.id);
@@ -161,20 +191,22 @@ export function MarketplaceOverlay({
   const invalidate = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["marketplace"] }),
-      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-marketplace"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["growfi-onchain-marketplace"],
+      }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
       queryClient.invalidateQueries({ queryKey: ["wallet-balances"] }),
       queryClient.invalidateQueries({ queryKey: ["me"] }),
       queryClient.invalidateQueries({ queryKey: ["activity"] }),
-      queryClient.invalidateQueries({ queryKey: ["quests"] })
+      queryClient.invalidateQueries({ queryKey: ["quests"] }),
     ]);
   };
 
   const listMutation = useMutation({
     mutationFn: () => {
       const selectedFruit = displayInventory?.fruits.find(
-        (fruit) => fruit.id === selectedFruitId
+        (fruit) => fruit.id === selectedFruitId,
       );
       if (!selectedFruit) {
         throw new Error("Choose a fruit to list.");
@@ -197,7 +229,7 @@ export function MarketplaceOverlay({
           ownedQty: selectedFruit.quantity,
           lockedQty: selectedFruit.lockedQuantity,
           amount: quantity,
-          price
+          price,
         });
       }
       if (selectedFruit.id.startsWith("onchain-fruit-")) {
@@ -205,12 +237,12 @@ export function MarketplaceOverlay({
           fruit: selectedFruit.fruit,
           mutation: selectedFruit.mutation,
           quantity,
-          price
+          price,
         });
       }
       return apiFetch("/api/marketplace/list", {
         method: "POST",
-        body: JSON.stringify({ userFruitId: selectedFruitId, quantity, price })
+        body: JSON.stringify({ userFruitId: selectedFruitId, quantity, price }),
       });
     },
     onSuccess: async (result) => {
@@ -220,12 +252,15 @@ export function MarketplaceOverlay({
         console.debug("[GrowFi] marketplace overlay listing success", result);
       }
       toast.success("Marketplace listing created", {
-        description: `${quantity} fruit listed for ${price} $GROW.`
+        description: `${quantity} fruit listed for ${price} $GROW.`,
       });
       await invalidate();
       setTab("my");
     },
-    onError: (err) => setError(err instanceof Error ? decodeGrowfiError(err) : "Listing failed")
+    onError: (err) =>
+      setError(
+        err instanceof Error ? decodeGrowfiError(err) : "Listing failed",
+      ),
   });
 
   const buyMutation = useMutation({
@@ -235,7 +270,7 @@ export function MarketplaceOverlay({
       }
       return apiFetch("/api/marketplace/buy", {
         method: "POST",
-        body: JSON.stringify({ listingId: listing.id })
+        body: JSON.stringify({ listingId: listing.id }),
       });
     },
     onSuccess: async () => {
@@ -244,7 +279,8 @@ export function MarketplaceOverlay({
       toast.success("Marketplace listing bought");
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Purchase failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Purchase failed"),
   });
 
   const cancelMutation = useMutation({
@@ -254,17 +290,18 @@ export function MarketplaceOverlay({
       }
       return apiFetch("/api/marketplace/cancel", {
         method: "POST",
-        body: JSON.stringify({ listingId: listing.id })
+        body: JSON.stringify({ listingId: listing.id }),
       });
     },
     onSuccess: async () => {
       setError(null);
       toast.success("Listing cancelled", {
-        description: "Locked fruit returned to inventory."
+        description: "Locked fruit returned to inventory.",
       });
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Cancel failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Cancel failed"),
   });
 
   useEffect(() => {
@@ -300,16 +337,26 @@ export function MarketplaceOverlay({
 
   const fruitOptions = useMemo(() => {
     const fruits = (displayInventory?.fruits || []).filter(
-      (fruit) => fruit.quantity - fruit.lockedQuantity > 0
+      (fruit) => fruit.quantity - fruit.lockedQuantity > 0,
     );
     if (process.env.NODE_ENV === "development") {
-      console.debug("[GrowFi] marketplace overlay loaded fruit balances", displayInventory?.fruits || []);
-      console.debug("[GrowFi] marketplace overlay mapped fruit options", fruits);
+      console.debug(
+        "[GrowFi] marketplace overlay loaded fruit balances",
+        displayInventory?.fruits || [],
+      );
+      console.debug(
+        "[GrowFi] marketplace overlay mapped fruit options",
+        fruits,
+      );
     }
     return fruits;
   }, [displayInventory?.fruits]);
-  const selectedFruit = fruitOptions.find((fruit) => fruit.id === selectedFruitId);
-  const selectedAvailable = selectedFruit ? selectedFruit.quantity - selectedFruit.lockedQuantity : 0;
+  const selectedFruit = fruitOptions.find(
+    (fruit) => fruit.id === selectedFruitId,
+  );
+  const selectedAvailable = selectedFruit
+    ? selectedFruit.quantity - selectedFruit.lockedQuantity
+    : 0;
   const createInvalid =
     !selectedFruit ||
     !Number.isInteger(quantity) ||
@@ -320,52 +367,108 @@ export function MarketplaceOverlay({
 
   return (
     <>
-      <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Marketplace" description="Browse, list, buy, and cancel fruit listings." wide>
-        {error ? <div className="mb-3"><ErrorState message={error} /></div> : null}
+      <ResponsivePanel
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Marketplace"
+        description="Browse, list, buy, and cancel fruit listings."
+        wide
+      >
+        {error ? (
+          <div className="mb-3">
+            <ErrorState message={error} />
+          </div>
+        ) : null}
         {(isLoading || onchainMarketplace.isLoading) && !data ? (
           <LoadingState label="Loading marketplace" />
         ) : (
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="browse">Browse</TabsTrigger>
-              <TabsTrigger value="my">My Listings</TabsTrigger>
-              <TabsTrigger value="create">Create</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-[#0a0f0d] border-2 border-[#153d21]">
+              <TabsTrigger
+                value="browse"
+                className="data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d] text-[#91d985] font-sans"
+              >
+                Browse
+              </TabsTrigger>
+              <TabsTrigger
+                value="my"
+                className="data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d] text-[#91d985] font-sans"
+              >
+                My Listings
+              </TabsTrigger>
+              <TabsTrigger
+                value="create"
+                className="data-[state=active]:bg-[#3d9f4b] data-[state=active]:text-[#0a0f0d] text-[#91d985] font-sans"
+              >
+                Create
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="browse" className="mt-4 space-y-3">
-              <Card className="bg-white/70">
-                <CardContent className="grid gap-3 p-3 sm:grid-cols-[1fr_1fr_auto]">
-                  <div>
-                    <Label>Rarity</Label>
-                    <Select value={rarityFilter} onValueChange={setRarityFilter}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["ALL", "COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC"].map((value) => (
-                          <SelectItem key={value} value={value}>{value.toLowerCase()}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Mutation</Label>
-                    <Select value={mutationFilter} onValueChange={setMutationFilter}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {["ALL", "NORMAL", "BIG", "SWEET", "GOLDEN", "CRYSTAL", "RAINBOW"].map((value) => (
-                          <SelectItem key={value} value={value}>{value.toLowerCase()}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-end">
-                    <Button variant="secondary" className="w-full">
-                      <Filter className="h-4 w-4" />
-                      Filters
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="pixel-card grid gap-3 p-3 sm:grid-cols-[1fr_1fr_auto]">
+                <div>
+                  <Label>Rarity</Label>
+                  <Select value={rarityFilter} onValueChange={setRarityFilter}>
+                    <SelectTrigger className="pixel-input px-3 py-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        "ALL",
+                        "COMMON",
+                        "UNCOMMON",
+                        "RARE",
+                        "EPIC",
+                        "LEGENDARY",
+                        "MYTHIC",
+                      ].map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value.toLowerCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Mutation</Label>
+                  <Select
+                    value={mutationFilter}
+                    onValueChange={setMutationFilter}
+                  >
+                    <SelectTrigger className="pixel-input px-3 py-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        "ALL",
+                        "NORMAL",
+                        "BIG",
+                        "SWEET",
+                        "GOLDEN",
+                        "CRYSTAL",
+                        "RAINBOW",
+                      ].map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {value.toLowerCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-ghost w-full px-4 py-2"
+                  >
+                    <Filter className="h-4 w-4" />
+                    FILTERS
+                  </button>
+                </div>
+              </div>
               {filteredListings.length === 0 ? (
-                <EmptyState title="No listings yet" description="Check back after farmers harvest and list fruit." />
+                <EmptyState
+                  title="No listings yet"
+                  description="Check back after farmers harvest and list fruit."
+                />
               ) : mobile ? (
                 <div className="grid gap-3">
                   {filteredListings.map((listing) => (
@@ -375,7 +478,7 @@ export function MarketplaceOverlay({
                       mine={isMineMarketplaceListing(
                         listing,
                         me?.user.id,
-                        walletAddress
+                        walletAddress,
                       )}
                       busy={buyMutation.isPending || cancelMutation.isPending}
                       onBuy={() => setConfirmListing(listing)}
@@ -401,21 +504,43 @@ export function MarketplaceOverlay({
                       const mine = isMineMarketplaceListing(
                         listing,
                         me?.user.id,
-                        walletAddress
+                        walletAddress,
                       );
                       return (
                         <TableRow key={listing.id}>
-                          <TableCell className="font-semibold">{listing.fruit.iconUrl} {listing.fruit.name}</TableCell>
-                          <TableCell><RarityBadge rarity={listing.fruit.rarity} /></TableCell>
-                          <TableCell><MutationBadge mutation={listing.mutation} /></TableCell>
+                          <TableCell className="font-semibold">
+                            {listing.fruit.iconUrl} {listing.fruit.name}
+                          </TableCell>
+                          <TableCell>
+                            <RarityBadge rarity={listing.fruit.rarity} />
+                          </TableCell>
+                          <TableCell>
+                            <MutationBadge mutation={listing.mutation} />
+                          </TableCell>
                           <TableCell>{listing.quantity}</TableCell>
                           <TableCell>{listing.price}</TableCell>
-                          <TableCell>{listing.seller?.username || "You"}</TableCell>
+                          <TableCell>
+                            {listing.seller?.username || "You"}
+                          </TableCell>
                           <TableCell className="text-right">
                             {mine ? (
-                              <Button size="sm" variant="secondary" onClick={() => cancelMutation.mutate(listing)} disabled={cancelMutation.isPending}>Cancel</Button>
+                              <button
+                                type="button"
+                                className="pixel-btn pixel-btn-ghost px-3 py-2"
+                                onClick={() => cancelMutation.mutate(listing)}
+                                disabled={cancelMutation.isPending}
+                              >
+                                CANCEL
+                              </button>
                             ) : (
-                              <Button size="sm" onClick={() => setConfirmListing(listing)} disabled={buyMutation.isPending}>Buy</Button>
+                              <button
+                                type="button"
+                                className="pixel-btn pixel-btn-gold px-3 py-2"
+                                onClick={() => setConfirmListing(listing)}
+                                disabled={buyMutation.isPending}
+                              >
+                                BUY
+                              </button>
                             )}
                           </TableCell>
                         </TableRow>
@@ -443,55 +568,80 @@ export function MarketplaceOverlay({
               )}
             </TabsContent>
             <TabsContent value="create" className="mt-4">
-              <Card className="bg-white/80">
-                <CardContent className="space-y-4 p-4">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="sm:col-span-3">
-                      <Label>Fruit</Label>
-                      <Select value={selectedFruitId || "none"} onValueChange={(value) => setSelectedFruitId(value === "none" ? "" : value)}>
-                        <SelectTrigger><SelectValue placeholder="Choose fruit" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Choose fruit</SelectItem>
-                          {fruitOptions.map((stack) => (
-                            <SelectItem key={stack.id} value={stack.id}>
-                              {stack.fruit.iconUrl} {stack.mutation.toLowerCase()} {stack.fruit.name} x{stack.quantity - stack.lockedQuantity} · {stack.fruit.rarity}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {!fruitOptions.length ? (
-                        <div className="mt-2 text-xs font-semibold text-muted-foreground">
-                          No fruits available to list. Harvest fruits first.
-                        </div>
-                      ) : null}
-                    </div>
-                    <div>
-                      <Label>Quantity</Label>
-                      <Input type="number" min={1} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} />
-                      {selectedFruit ? (
-                        <Button
-                          className="mt-2 w-full"
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setQuantity(selectedAvailable)}
-                        >
-                          Max {selectedAvailable}
-                        </Button>
-                      ) : null}
-                    </div>
-                    <div>
-                      <Label>Price</Label>
-                      <Input type="number" min={1} value={price} onChange={(event) => setPrice(Number(event.target.value))} />
-                    </div>
-                    <div className="flex items-end">
-                      <Button className="w-full" disabled={createInvalid || listMutation.isPending} onClick={() => listMutation.mutate()}>
-                        Create Listing
-                      </Button>
-                    </div>
+              <div className="pixel-card space-y-4 p-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="sm:col-span-3">
+                    <Label>Fruit</Label>
+                    <Select
+                      value={selectedFruitId || "none"}
+                      onValueChange={(value) =>
+                        setSelectedFruitId(value === "none" ? "" : value)
+                      }
+                    >
+                      <SelectTrigger className="pixel-input px-3 py-2">
+                        <SelectValue placeholder="Choose fruit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Choose fruit</SelectItem>
+                        {fruitOptions.map((stack) => (
+                          <SelectItem key={stack.id} value={stack.id}>
+                            {stack.fruit.iconUrl}{" "}
+                            {stack.mutation.toLowerCase()} {stack.fruit.name}{" "}
+                            x{stack.quantity - stack.lockedQuantity} ·{" "}
+                            {stack.fruit.rarity}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!fruitOptions.length ? (
+                      <div className="mt-2 text-xs font-semibold text-[#5e8c52]">
+                        No fruits available to list. Harvest fruits first.
+                      </div>
+                    ) : null}
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={quantity}
+                      className="pixel-input px-3 py-2"
+                      onChange={(event) =>
+                        setQuantity(Number(event.target.value))
+                      }
+                    />
+                    {selectedFruit ? (
+                      <button
+                        className="pixel-btn pixel-btn-ghost mt-2 w-full px-3 py-2"
+                        type="button"
+                        onClick={() => setQuantity(selectedAvailable)}
+                      >
+                        MAX {selectedAvailable}
+                      </button>
+                    ) : null}
+                  </div>
+                  <div>
+                    <Label>Price</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={price}
+                      className="pixel-input px-3 py-2"
+                      onChange={(event) => setPrice(Number(event.target.value))}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      className="pixel-btn pixel-btn-gold w-full px-4 py-2"
+                      disabled={createInvalid || listMutation.isPending}
+                      onClick={() => listMutation.mutate()}
+                    >
+                      CREATE LISTING
+                    </button>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         )}

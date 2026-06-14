@@ -3,15 +3,13 @@
 import { CheckCircle2, Coins, Gift, Sprout } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { apiFetch } from "@/lib/utils/fetcher";
 import type { GardenResponse } from "@/types/game-data";
@@ -23,13 +21,13 @@ const onboardingSteps = [
   "Wait for crops to grow",
   "Harvest fruits",
   "Sell fruits or list them on marketplace",
-  "Use $GROW to upgrade farm"
+  "Use $GROW to upgrade farm",
 ];
 
 export function TutorialOnboardingDialog({
   open,
   onOpenChange,
-  garden
+  garden,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,35 +39,41 @@ export function TutorialOnboardingDialog({
     mutationFn: () =>
       apiFetch("/api/tutorial", {
         method: "POST",
-        body: JSON.stringify({ skip: true })
+        body: JSON.stringify({ skip: true }),
       }),
     onSuccess: async () => {
       toast("Tutorial skipped", {
-        description: "You can reopen it from the Help menu."
+        description: "You can reopen it from the Help menu.",
       });
       await queryClient.invalidateQueries({ queryKey: ["garden"] });
     },
     onError: (err) => {
       toast.error("Could not skip tutorial", {
-        description: err instanceof Error ? err.message : "Try again."
+        description: err instanceof Error ? err.message : "Try again.",
       });
-    }
+    },
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl scanlines border-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>button]:text-[#91d985] [&>button:hover]:text-[#f7d767]">
         <DialogHeader>
-          <DialogTitle>Welcome to GrowFi</DialogTitle>
-          <DialogDescription>
-            A quick starter path for turning an empty farm into your first $GROW loop.
+          <DialogTitle className="pixel-heading text-sm text-[#f2fbf1]">
+            Welcome to GrowFi
+          </DialogTitle>
+          <DialogDescription className="font-sans text-[#91d985]">
+            A quick starter path for turning an empty farm into your first $GROW
+            loop.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-2">
           {onboardingSteps.map((step, index) => (
-            <div key={step} className="flex items-center gap-3 rounded-md bg-muted p-3 text-sm font-semibold">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-white text-xs font-black">
+            <div
+              key={step}
+              className="pixel-card-sunken flex items-center gap-3 p-3 text-sm font-semibold"
+            >
+              <span className="pixel-tile grid h-7 w-7 shrink-0 place-items-center text-xs font-black">
                 {index + 1}
               </span>
               {step}
@@ -77,27 +81,27 @@ export function TutorialOnboardingDialog({
           ))}
         </div>
 
-        <div className="rounded-md border bg-white/75 p-3">
-          <div className="flex items-center gap-2 font-black">
-            <Gift className="h-4 w-4 text-gold-700" />
+        <div className="pixel-card-sunken p-3">
+          <div className="flex items-center gap-2 font-black text-[#f2fbf1]">
+            <Gift className="h-4 w-4 text-[#f7d767]" />
             Tutorial Reward
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
-            <Badge variant="legendary" className="gap-1">
+            <span className="pixel-badge text-[#f7d767]">
               <Coins className="h-3.5 w-3.5" />
               {reward?.grow ?? 25} $GROW
-            </Badge>
+            </span>
             {(reward?.starterSeeds || []).map((seed) => (
-              <Badge key={seed.seedSlug} variant="outline" className="gap-1 bg-white">
+              <span key={seed.seedSlug} className="pixel-badge text-[#91d985]">
                 <Sprout className="h-3.5 w-3.5" />
                 {seed.quantity} {seed.seedSlug} seeds
-              </Badge>
+              </span>
             ))}
           </div>
         </div>
 
         {garden?.tutorial?.completed ? (
-          <div className="flex items-center gap-2 rounded-md bg-leaf-50 p-3 text-sm font-bold text-leaf-900">
+          <div className="pixel-card-sunken flex items-center gap-2 p-3 text-sm font-bold text-[#3d9f4b]">
             <CheckCircle2 className="h-4 w-4" />
             Tutorial completed.
           </div>
@@ -105,8 +109,9 @@ export function TutorialOnboardingDialog({
 
         <DialogFooter className="gap-2 sm:gap-0">
           {!garden?.tutorial?.completed ? (
-            <Button
-              variant="secondary"
+            <button
+              type="button"
+              className="pixel-btn pixel-btn-ghost px-4 py-2"
               disabled={skipMutation.isPending}
               onClick={() => {
                 window.localStorage.setItem("growfi:tutorial-skipped", "1");
@@ -114,12 +119,16 @@ export function TutorialOnboardingDialog({
                 skipMutation.mutate();
               }}
             >
-              Skip
-            </Button>
+              SKIP
+            </button>
           ) : null}
-          <Button onClick={() => onOpenChange(false)}>
-            {garden?.tutorial?.completed ? "Close" : "Start Tutorial"}
-          </Button>
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-primary px-4 py-2"
+            onClick={() => onOpenChange(false)}
+          >
+            {garden?.tutorial?.completed ? "CLOSE" : "START TUTORIAL"}
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
