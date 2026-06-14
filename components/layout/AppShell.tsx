@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Home page has its own full-width structure
   if (pathname === "/") {
     return (
-      <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/30">
+      <div className="min-h-screen flex flex-col bg-[#0a0f0d] text-[#ddf5d9] selection:bg-[#3d9f4b]/40">
         <Navbar />
         {children}
         <Footer />

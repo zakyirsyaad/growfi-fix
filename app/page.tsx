@@ -1,177 +1,170 @@
 import Link from "next/link";
-import {
-  Sprout,
-  ArrowRightLeft,
-  Coins,
-  Leaf,
-  Sparkles,
-  MoveRight,
-} from "lucide-react";
+
+const FEATURES = [
+  {
+    icon: "🌱",
+    title: "FARM & HARVEST",
+    body: "Plant seeds, tend your land, and harvest rare genetic mutations on a cozy 2D tile world.",
+    color: "#91d985",
+  },
+  {
+    icon: "🔁",
+    title: "PLAYER TRADING",
+    body: "Swap rare crops on the global market with zero slippage. Direct peer-to-peer deals.",
+    color: "#8ad4ff",
+  },
+  {
+    icon: "🪙",
+    title: "ON-CHAIN $GROW",
+    body: "True ownership of every asset. Transparent rewards on an open Solana economy.",
+    color: "#f7d767",
+  },
+];
+
+const STATS = [
+  { label: "TOTAL VOLUME", value: "$12.4M" },
+  { label: "FARMERS", value: "8,420" },
+  { label: "ITEMS TRADED", value: "1.2M+" },
+  { label: "NETWORK", value: "SOLANA" },
+];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary/20">
+    <main className="font-pixel text-[#ddf5d9] overflow-hidden">
       {/* HERO */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 px-6 flex flex-col items-center justify-center text-center">
-        {/* Soft ambient glows — warmed to match the red/gold harvest palette */}
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-30 bg-primary/20 rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] opacity-20 bg-gold-300/30 rounded-full blur-[100px] pointer-events-none"></div>
+      <section className="relative pixel-sky scanlines pt-36 pb-28 px-6">
+        {/* Twinkling pixel stars */}
+        <div className="pointer-events-none absolute inset-0">
+          <span className="absolute left-[12%] top-[18%] h-1.5 w-1.5 bg-[#f7d767] animate-pixel-twinkle" />
+          <span className="absolute left-[78%] top-[12%] h-1.5 w-1.5 bg-[#8ad4ff] animate-pixel-twinkle [animation-delay:0.6s]" />
+          <span className="absolute left-[64%] top-[30%] h-1.5 w-1.5 bg-[#ff9ebd] animate-pixel-twinkle [animation-delay:1.1s]" />
+          <span className="absolute left-[30%] top-[8%] h-1.5 w-1.5 bg-[#91d985] animate-pixel-twinkle [animation-delay:1.6s]" />
+        </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto space-y-8 flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/60 border border-border/60 text-sm font-medium backdrop-blur-sm text-muted-foreground">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span>Welcome to the new era of GameFi</span>
+        <div className="relative z-20 mx-auto max-w-4xl text-center">
+          {/* Pixel badge */}
+          <div className="mb-8 inline-flex items-center gap-3 border-2 border-[#3d9f4b] bg-[#0d2614] px-4 py-3 pixel-shadow">
+            <span className="h-2 w-2 bg-[#91d985] animate-pixel-blink" />
+            <span className="text-[10px] text-[#91d985]">
+              A NEW ERA OF GAMEFI
+            </span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tight leading-[1.1] text-foreground">
-            Cultivate your <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-gold-500 to-primary animate-gradient-x">
-              digital harvest.
-            </span>
+          {/* Floating crop sprite */}
+          <div className="mb-6 flex justify-center">
+            <div className="animate-pixel-float select-none text-6xl md:text-7xl drop-shadow-[4px_4px_0_rgba(0,0,0,0.6)]">
+              🌾
+            </div>
+          </div>
+
+          <h1 className="text-2xl leading-relaxed md:text-4xl md:leading-relaxed text-[#f2fbf1]">
+            CULTIVATE YOUR
+            <br />
+            <span className="text-[#f7d767]">DIGITAL HARVEST</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
-            A minimalist 2D farming experience on Solana. Plant seeds, grow rare
-            mutations, and trade assets in a seamless, player-owned economy.
+          <p className="mx-auto mt-8 max-w-xl font-sans text-base leading-relaxed text-[#91d985] md:text-lg">
+            A Stardew-inspired 2D farming GameFi on Solana. Plant seeds, grow
+            rare mutations, and trade assets in a player-owned pixel economy.
           </p>
 
-          <div className="pt-6 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <div className="mt-10 flex flex-col items-center justify-center gap-5 sm:flex-row">
             <Link
               href="/game"
-              className="w-full sm:w-auto px-8 py-4 bg-primary text-primary-foreground font-semibold text-lg rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
+              className="w-full border-2 border-[#0a0f0d] bg-[#3d9f4b] px-8 py-4 text-xs text-[#0a0f0d] pixel-shadow transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#91d985] sm:w-auto"
             >
-              Start Playing
-              <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              ▶ START PLAYING
             </Link>
             <Link
               href="/marketplace"
-              className="w-full sm:w-auto px-8 py-4 bg-background text-foreground font-semibold text-lg rounded-xl border border-border hover:bg-muted/60 hover:-translate-y-0.5 transition-all flex items-center justify-center"
+              className="w-full border-2 border-[#3d9f4b] bg-[#0d2614] px-8 py-4 text-xs text-[#91d985] transition-colors hover:border-[#f7d767] hover:text-[#f7d767] sm:w-auto"
             >
-              Explore Market
+              EXPLORE MARKET
             </Link>
           </div>
         </div>
+
+        {/* Pixel ground strip */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-[#3d9f4b]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 z-20 h-3 bg-[#287235]" />
       </section>
 
       {/* STATS STRIP */}
-      <section className="relative z-20 border-y border-border/50 bg-background/60 backdrop-blur-xl">
-        <div className="absolute -top-3 left-6 bg-muted border border-border px-3 py-0.5 rounded-md text-[10px] font-bold text-muted-foreground uppercase tracking-wider shadow-sm z-30">
-          Demo Data
+      <section className="relative border-y-2 border-[#3d9f4b] bg-[#0d2614]">
+        <div className="absolute -top-3 left-6 border border-[#3d9f4b] bg-[#0a0f0d] px-2 py-1 text-[8px] text-[#5e8c52]">
+          DEMO DATA
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 divide-x divide-border/50">
-          <div className="flex flex-col items-center justify-center space-y-2 px-4">
-            <span className="text-sm font-medium text-muted-foreground">
-              Total Volume
-            </span>
-            <span className="text-3xl md:text-4xl font-semibold tracking-tight">
-              $12.4M
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center space-y-2 px-4">
-            <span className="text-sm font-medium text-muted-foreground">
-              Active Farmers
-            </span>
-            <span className="text-3xl md:text-4xl font-semibold tracking-tight">
-              8,420
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center space-y-2 px-4">
-            <span className="text-sm font-medium text-muted-foreground">
-              Items Traded
-            </span>
-            <span className="text-3xl md:text-4xl font-semibold tracking-tight">
-              1.2M+
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center space-y-2 px-4">
-            <span className="text-sm font-medium text-muted-foreground">
-              Network
-            </span>
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_oklch(var(--primary)/0.6)]"></div>
-              <span className="text-3xl md:text-4xl font-semibold tracking-tight">
-                Solana
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px md:grid-cols-4">
+          {STATS.map((stat) => (
+            <div
+              key={stat.label}
+              className="flex flex-col items-center justify-center gap-3 px-4 py-10 text-center"
+            >
+              <span className="text-[8px] text-[#5e8c52]">{stat.label}</span>
+              <span className="text-lg text-[#f7d767] md:text-xl">
+                {stat.value}
               </span>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* FEATURES */}
-      <section className="py-24 md:py-32 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-            Ecosystem Essentials
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Everything you need to cultivate your digital empire, built with
-            speed and elegance in mind.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          {/* Card 1 */}
-          <div className="group relative bg-card/60 backdrop-blur-sm border border-border/60 p-8 rounded-2xl flex flex-col hover:bg-card hover:border-border hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[3rem] -z-10 group-hover:bg-primary/10 transition-colors duration-300"></div>
-            <div className="w-12 h-12 bg-background border border-border/60 rounded-xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform duration-300">
-              <Sprout className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-3">Farm &amp; Harvest</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Plant seeds, manage your land, and wait for crops to grow.
-              Experience serene mechanics with a chance to harvest rare genetic
-              mutations.
+      <section className="bg-[#0a0f0d] px-6 py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-16 text-center">
+            <h2 className="text-xl text-[#f2fbf1] md:text-2xl">
+              ECOSYSTEM <span className="text-[#91d985]">ESSENTIALS</span>
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl font-sans text-base text-[#5e8c52]">
+              Everything you need to cultivate your digital empire — built pixel
+              by pixel.
             </p>
           </div>
 
-          {/* Card 2 */}
-          <div className="group relative bg-card/60 backdrop-blur-sm border border-border/60 p-8 rounded-2xl flex flex-col hover:bg-card hover:border-border hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[3rem] -z-10 group-hover:bg-primary/10 transition-colors duration-300"></div>
-            <div className="w-12 h-12 bg-background border border-border/60 rounded-xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform duration-300">
-              <ArrowRightLeft className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-3">Seamless Trading</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Access the global marketplace to buy and sell rare crops. Enjoy
-              direct player-to-player trading with zero slippage.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="group relative bg-card/60 backdrop-blur-sm border border-border/60 p-8 rounded-2xl flex flex-col hover:bg-card hover:border-border hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[3rem] -z-10 group-hover:bg-primary/10 transition-colors duration-300"></div>
-            <div className="w-12 h-12 bg-background border border-border/60 rounded-xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform duration-300">
-              <Coins className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-3">On-chain Economy</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Powered by the $GROW token. True ownership of your assets,
-              transparent reward distributions, and a completely open market.
-            </p>
+          <div className="grid gap-8 md:grid-cols-3">
+            {FEATURES.map((feature) => (
+              <div
+                key={feature.title}
+                className="group border-2 border-[#3d9f4b] bg-[#0d2614] p-8 pixel-shadow transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5"
+              >
+                <div className="mb-6 flex h-14 w-14 items-center justify-center border-2 border-[#0a0f0d] bg-[#0a0f0d] text-2xl group-hover:animate-pixel-float">
+                  {feature.icon}
+                </div>
+                <h3
+                  className="mb-4 text-sm"
+                  style={{ color: feature.color }}
+                >
+                  {feature.title}
+                </h3>
+                <p className="font-sans text-sm leading-relaxed text-[#91d985]">
+                  {feature.body}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24 md:py-32 px-6">
-        <div className="max-w-5xl mx-auto bg-gradient-to-b from-card to-background border border-border/60 rounded-3xl p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-[80px]"></div>
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gold-300/10 rounded-full blur-[80px]"></div>
-
-          <div className="relative z-10 max-w-2xl mx-auto space-y-8 flex flex-col items-center">
-            <Leaf className="w-12 h-12 text-primary" />
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Ready to break ground?
+      <section className="bg-[#0a0f0d] px-6 pb-28">
+        <div className="relative mx-auto max-w-4xl scanlines border-2 border-[#3d9f4b] bg-[#0d2614] p-12 text-center pixel-shadow-lg md:p-20">
+          <div className="relative z-20">
+            <div className="mb-8 animate-pixel-float text-5xl">🚜</div>
+            <h2 className="text-xl leading-relaxed text-[#f2fbf1] md:text-2xl md:leading-relaxed">
+              READY TO
+              <br />
+              <span className="text-[#f7d767]">BREAK GROUND?</span>
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            <p className="mx-auto mt-8 max-w-md font-sans text-base text-[#91d985]">
               Connect your Solana wallet and join thousands of players in the
-              most elegant web3 farming simulator built today.
+              cozy pixel farming sim built on-chain.
             </p>
             <Link
               href="/game"
-              className="px-10 py-4 bg-foreground text-background font-semibold text-lg rounded-xl hover:bg-foreground/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="mt-10 inline-block border-2 border-[#0a0f0d] bg-[#f7d767] px-10 py-4 text-xs text-[#0a0f0d] pixel-shadow transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[#fff4c7]"
             >
-              Play Now for Free
+              ▶ PLAY NOW — FREE
             </Link>
           </div>
         </div>

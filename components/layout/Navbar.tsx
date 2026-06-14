@@ -25,15 +25,37 @@ export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pixel = pathname === "/";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+    <nav
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50",
+        pixel
+          ? "bg-[#0a0f0d]/95 backdrop-blur border-b-2 border-[#3d9f4b]"
+          : "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border",
+      )}
+    >
       <div className="flex justify-between items-center h-16 px-4 md:px-8 max-w-[1400px] mx-auto">
         <Link href="/" className="flex items-center space-x-2 group shrink-0">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground">
+          <div
+            className={cn(
+              "w-8 h-8 flex items-center justify-center text-primary-foreground",
+              pixel
+                ? "bg-[#3d9f4b] text-[#0a0f0d] pixel-shadow"
+                : "rounded-md bg-primary",
+            )}
+          >
             <Leaf className="w-5 h-5" />
           </div>
-          <span className="text-xl font-black text-foreground group-hover:text-primary transition-colors hidden sm:block">
+          <span
+            className={cn(
+              "transition-colors hidden sm:block",
+              pixel
+                ? "font-pixel text-sm text-[#91d985] group-hover:text-[#f7d767]"
+                : "text-xl font-black text-foreground group-hover:text-primary",
+            )}
+          >
             GrowFi
           </span>
         </Link>
@@ -45,10 +67,17 @@ export function Navbar() {
               key={route.href}
               href={route.href}
               className={cn(
-                "text-sm font-semibold transition-colors hover:text-primary",
+                "transition-colors",
+                pixel
+                  ? "font-pixel text-[10px] hover:text-[#f7d767]"
+                  : "text-sm font-semibold hover:text-primary",
                 pathname === route.href || pathname.startsWith(route.href + "/")
-                  ? "text-primary"
-                  : "text-muted-foreground",
+                  ? pixel
+                    ? "text-[#f7d767]"
+                    : "text-primary"
+                  : pixel
+                    ? "text-[#5e8c52]"
+                    : "text-muted-foreground",
               )}
             >
               {route.label}
@@ -97,7 +126,11 @@ export function Navbar() {
             <div className="hidden sm:flex h-10 items-center">
               <Button
                 onClick={() => signIn("discord")}
-                className="font-bold px-6"
+                className={cn(
+                  "font-bold px-6",
+                  pixel &&
+                    "font-pixel text-[10px] bg-[#3d9f4b] text-[#0a0f0d] hover:bg-[#f7d767] rounded-none pixel-shadow",
+                )}
               >
                 Login
               </Button>
