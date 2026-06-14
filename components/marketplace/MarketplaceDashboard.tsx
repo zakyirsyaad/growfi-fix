@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { RarityBadge } from "@/components/game/shared/RarityBadge";
+import { MutationBadge } from "@/components/game/shared/MutationBadge";
 
 type MeResponse = { user: { id: string } };
 
@@ -203,7 +205,7 @@ export function MarketplaceDashboard() {
 
           {/* Total Volume Stats */}
           <Card className="p-6 flex flex-col justify-between relative">
-            <div className="absolute top-4 right-4 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+            <div className="absolute top-4 right-4 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
               Demo Data
             </div>
             <div className="w-12 h-12 bg-primary/10 text-primary flex items-center justify-center rounded-xl mb-4">
@@ -260,20 +262,22 @@ export function MarketplaceDashboard() {
             return (
               <Card
                 key={listing.id}
-                className="overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+                className="overflow-hidden flex flex-col hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="aspect-square bg-muted relative overflow-hidden flex items-center justify-center text-7xl">
                   <div>{listing.fruit.iconUrl || "🌱"}</div>
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold shadow-sm bg-background border border-border text-foreground">
-                    {listing.fruit.rarity}
+                  <div className="absolute top-4 right-4">
+                    <RarityBadge rarity={listing.fruit.rarity} />
                   </div>
                 </div>
                 <div className="p-6 space-y-4 flex flex-col flex-1">
                   <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {listing.mutation !== "NORMAL" ? (
+                        <MutationBadge mutation={listing.mutation} />
+                      ) : null}
+                    </div>
                     <h3 className="text-2xl font-bold mb-1 text-foreground">
-                      {listing.mutation !== "NORMAL"
-                        ? `${listing.mutation} `
-                        : ""}
                       {listing.fruit.name}
                     </h3>
                     <p className="text-sm text-muted-foreground flex items-center gap-2 font-medium">
