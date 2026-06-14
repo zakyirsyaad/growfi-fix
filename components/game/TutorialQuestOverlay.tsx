@@ -9,7 +9,7 @@ import type { GardenResponse } from "@/types/game-data";
 
 export function TutorialQuestOverlay({
   garden,
-  visible
+  visible,
 }: {
   garden?: GardenResponse;
   visible: boolean;
@@ -40,7 +40,9 @@ export function TutorialQuestOverlay({
               size="icon"
               variant="ghost"
               className="h-7 w-7"
-              onClick={() => gameEventBus.emit("openOverlay", { overlay: "tutorial" })}
+              onClick={() =>
+                gameEventBus.emit("openOverlay", { overlay: "tutorial" })
+              }
             >
               <HelpCircle className="h-4 w-4" />
             </Button>
@@ -48,11 +50,18 @@ export function TutorialQuestOverlay({
           <Progress value={(completed / total) * 100} />
           <div className="space-y-1.5">
             {tutorial.steps.map((step) => (
-              <div key={step.stepKey} className="flex items-center gap-2 text-xs font-semibold">
+              <div
+                key={step.stepKey}
+                className="flex items-center gap-2 text-xs font-semibold"
+              >
                 <CheckCircle2
                   className={`h-3.5 w-3.5 ${step.completed ? "text-leaf-700" : "text-muted-foreground/45"}`}
                 />
-                <span className={step.completed ? "text-muted-foreground line-through" : ""}>
+                <span
+                  className={
+                    step.completed ? "text-muted-foreground line-through" : ""
+                  }
+                >
                   {step.title}
                 </span>
               </div>

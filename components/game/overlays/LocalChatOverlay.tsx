@@ -15,7 +15,7 @@ export function LocalChatOverlay({
   open,
   onOpenChange,
   room,
-  messages
+  messages,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -25,7 +25,7 @@ export function LocalChatOverlay({
   const [message, setMessage] = useState("");
   const roomMessages = useMemo(
     () => messages.filter((item) => item.room === room).slice(-50),
-    [messages, room]
+    [messages, room],
   );
 
   const send = () => {
@@ -38,12 +38,19 @@ export function LocalChatOverlay({
   };
 
   return (
-    <ResponsivePanel open={open} onOpenChange={onOpenChange} title="Local Chat" description={room}>
+    <ResponsivePanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Local Chat"
+      description={room}
+    >
       <div className="space-y-3">
         <div className="space-y-2">
           {roomMessages.length === 0 ? (
             <Card className="bg-white/82">
-              <CardContent className="p-4 text-sm text-muted-foreground">No messages yet.</CardContent>
+              <CardContent className="p-4 text-sm text-muted-foreground">
+                No messages yet.
+              </CardContent>
             </Card>
           ) : (
             roomMessages.map((item) => (
@@ -57,9 +64,14 @@ export function LocalChatOverlay({
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">{item.from.username}</span>
+                      <span className="font-semibold">
+                        {item.from.username}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(item.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                     <div className="break-words text-sm">{item.message}</div>

@@ -8,14 +8,14 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import type { OnlinePlayer } from "@/lib/realtime/types";
 
 export function ProfilePreviewDialog({
   open,
   onOpenChange,
-  player
+  player,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,14 +26,18 @@ export function ProfilePreviewDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Profile Preview</DialogTitle>
-          <DialogDescription>{player?.currentRoom || "Nearby farmer"}</DialogDescription>
+          <DialogDescription>
+            {player?.currentRoom || "Nearby farmer"}
+          </DialogDescription>
         </DialogHeader>
         {player ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-14 w-14 rounded-md">
                 <AvatarImage src={player.avatarUrl || undefined} />
-                <AvatarFallback className="rounded-md">{player.username.slice(0, 1).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="rounded-md">
+                  {player.username.slice(0, 1).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <div className="text-xl font-black">{player.username}</div>

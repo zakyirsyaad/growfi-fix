@@ -37,7 +37,7 @@ export function GameClient() {
   const { data: shop } = useGrowfiShop();
   const displayGarden = useMemo(
     () => mergeOnchainGarden(garden, onchain.data),
-    [garden, onchain.data]
+    [garden, onchain.data],
   );
 
   useEffect(() => {

@@ -15,7 +15,7 @@ import {
   Store,
   User,
   Users,
-  Wallet
+  Wallet,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,14 +25,23 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ProgressionPanel } from "@/components/game/ProgressionPanel";
 import { BalanceCard } from "@/components/game/shared/BalanceCard";
 import { CountdownBadge } from "@/components/game/shared/CountdownBadge";
 import { StaminaBar } from "@/components/game/shared/StaminaBar";
-import { gameEventBus, type GameArea, type GameOverlayKey } from "@/lib/game/eventBus";
+import {
+  gameEventBus,
+  type GameArea,
+  type GameOverlayKey,
+} from "@/lib/game/eventBus";
 import {
   clientGrowMintFromConfig,
   useWalletBalances,
@@ -40,14 +49,18 @@ import {
 import { useGrowfiOnchainState } from "@/lib/solana/useGrowfiProgram";
 import type { GardenResponse } from "@/types/game-data";
 
-const quickActions: Array<{ overlay: GameOverlayKey; label: string; icon: typeof Backpack }> = [
+const quickActions: Array<{
+  overlay: GameOverlayKey;
+  label: string;
+  icon: typeof Backpack;
+}> = [
   { overlay: "inventory", label: "Inventory", icon: Backpack },
   { overlay: "seedShop", label: "Seed Shop", icon: ShoppingBasket },
   { overlay: "marketplace", label: "Market", icon: Store },
   { overlay: "wallet", label: "Wallet", icon: Wallet },
   { overlay: "trade", label: "Trade", icon: Handshake },
   { overlay: "farmUpgrade", label: "Farm", icon: Sprout },
-  { overlay: "onlinePlayers", label: "Online Players", icon: Users }
+  { overlay: "onlinePlayers", label: "Online Players", icon: Users },
 ];
 
 export const GameHUD = memo(function GameHUD({
@@ -56,7 +69,7 @@ export const GameHUD = memo(function GameHUD({
   shopEndsAt,
   ownerName,
   visitorMode,
-  onlineCount
+  onlineCount,
 }: {
   garden?: GardenResponse;
   area: GameArea;
@@ -86,13 +99,17 @@ export const GameHUD = memo(function GameHUD({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-bold">{user?.username || "Farmer"}</div>
+                  <div className="truncate font-bold">
+                    {user?.username || "Farmer"}
+                  </div>
                   <div className="flex flex-wrap gap-1">
                     <Badge variant="outline" className="gap-1 bg-white/75">
                       <MapPin className="h-3.5 w-3.5" />
                       {visitorMode && ownerName ? ownerName : area}
                     </Badge>
-                    {visitorMode ? <Badge variant="secondary">read-only visit</Badge> : null}
+                    {visitorMode ? (
+                      <Badge variant="secondary">read-only visit</Badge>
+                    ) : null}
                     <Badge variant="outline" className="gap-1 bg-white/75">
                       <Users className="h-3.5 w-3.5" />
                       Online in area: {onlineCount ?? 1}
@@ -108,7 +125,10 @@ export const GameHUD = memo(function GameHUD({
               />
               <Card className="bg-white/88">
                 <CardContent className="space-y-2 p-3">
-                  <StaminaBar stamina={user?.stamina ?? 0} maxStamina={user?.maxStamina ?? 100} />
+                  <StaminaBar
+                    stamina={user?.stamina ?? 0}
+                    maxStamina={user?.maxStamina ?? 100}
+                  />
                   <div className="flex flex-wrap gap-1">
                     <CountdownBadge to={shopEndsAt} label="Shop" />
                     <Badge variant="outline" className="gap-1 bg-white/75">
@@ -161,7 +181,11 @@ export const GameHUD = memo(function GameHUD({
                       variant="secondary"
                       size="icon"
                       className="bg-white/88 shadow-sm"
-                      onClick={() => gameEventBus.emit("openOverlay", { overlay: action.overlay })}
+                      onClick={() =>
+                        gameEventBus.emit("openOverlay", {
+                          overlay: action.overlay,
+                        })
+                      }
                     >
                       <Icon className="h-4 w-4" />
                     </Button>
@@ -170,35 +194,60 @@ export const GameHUD = memo(function GameHUD({
                 </Tooltip>
               );
             })}
-            <Button className="bg-primary/95 shadow-sm" onClick={() => gameEventBus.emit("interact")}>
+            <Button
+              className="bg-primary/95 shadow-sm"
+              onClick={() => gameEventBus.emit("interact")}
+            >
               <Hand className="h-4 w-4" />
               Interact
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="bg-white/88 shadow-sm">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="bg-white/88 shadow-sm"
+                >
                   <Menu className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "tutorial" })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    gameEventBus.emit("openOverlay", { overlay: "tutorial" })
+                  }
+                >
                   <HelpCircle className="mr-2 h-4 w-4" />
                   Tutorial
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "questBoard" })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    gameEventBus.emit("openOverlay", { overlay: "questBoard" })
+                  }
+                >
                   <Sprout className="mr-2 h-4 w-4" />
                   Daily Quests
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "profile" })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    gameEventBus.emit("openOverlay", { overlay: "profile" })
+                  }
+                >
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => gameEventBus.emit("openOverlay", { overlay: "activityLog" })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    gameEventBus.emit("openOverlay", { overlay: "activityLog" })
+                  }
+                >
                   <Home className="mr-2 h-4 w-4" />
                   Mailbox & Activity
                 </DropdownMenuItem>
                 {visitorMode ? (
-                  <DropdownMenuItem onClick={() => gameEventBus.emit("returnHome")}>
+                  <DropdownMenuItem
+                    onClick={() => gameEventBus.emit("returnHome")}
+                  >
                     <Home className="mr-2 h-4 w-4" />
                     Return Home
                   </DropdownMenuItem>

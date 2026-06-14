@@ -16,14 +16,15 @@ import type { PublicFarmResponse } from "@/types/game-data";
 export function PlayerInteractionOverlay({
   open,
   onOpenChange,
-  player
+  player,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   player?: OnlinePlayer;
 }) {
   const visitMutation = useMutation({
-    mutationFn: (userId: string) => apiFetch<PublicFarmResponse>(`/api/farms/${userId}`),
+    mutationFn: (userId: string) =>
+      apiFetch<PublicFarmResponse>(`/api/farms/${userId}`),
     onSuccess: (farm) => {
       toast.success(`Visiting ${farm.owner.username}'s farm`);
       onOpenChange(false);
@@ -31,9 +32,9 @@ export function PlayerInteractionOverlay({
     },
     onError: (err) => {
       toast.error("Could not visit farm", {
-        description: err instanceof Error ? err.message : "Try again later."
+        description: err instanceof Error ? err.message : "Try again later.",
       });
-    }
+    },
   });
 
   return (
@@ -55,7 +56,9 @@ export function PlayerInteractionOverlay({
               </Avatar>
               <div>
                 <div className="font-black">{player.username}</div>
-                <div className="text-sm text-muted-foreground">{player.currentRoom}</div>
+                <div className="text-sm text-muted-foreground">
+                  {player.currentRoom}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -81,7 +84,10 @@ export function PlayerInteractionOverlay({
             <Button
               variant="secondary"
               onClick={() => {
-                gameEventBus.emit("openOverlay", { overlay: "profilePreview", payload: player });
+                gameEventBus.emit("openOverlay", {
+                  overlay: "profilePreview",
+                  payload: player,
+                });
               }}
             >
               <UserRound className="h-4 w-4" />

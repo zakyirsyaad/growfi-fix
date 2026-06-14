@@ -1,6 +1,12 @@
 import { Progress } from "@/components/ui/progress";
 
-export function StaminaBar({ stamina, maxStamina }: { stamina: number; maxStamina: number }) {
+export function StaminaBar({
+  stamina,
+  maxStamina,
+}: {
+  stamina: number;
+  maxStamina: number;
+}) {
   const value = maxStamina > 0 ? Math.round((stamina / maxStamina) * 100) : 0;
   return (
     <div className="space-y-1">

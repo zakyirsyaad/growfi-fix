@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const InteractionPrompt = memo(function InteractionPrompt({
   visible,
-  label
+  label,
 }: {
   visible: boolean;
   label?: string;
@@ -17,7 +17,10 @@ export const InteractionPrompt = memo(function InteractionPrompt({
 
   return (
     <div className="pointer-events-none absolute left-1/2 top-24 z-30 -translate-x-1/2 md:top-auto md:bottom-8">
-      <Badge variant="secondary" className="gap-2 border bg-white/90 px-3 py-2 text-sm shadow-sm backdrop-blur">
+      <Badge
+        variant="secondary"
+        className="gap-2 border bg-white/90 px-3 py-2 text-sm shadow-sm backdrop-blur"
+      >
         <Keyboard className="hidden h-4 w-4 md:block" />
         <MousePointerClick className="h-4 w-4 md:hidden" />
         {label}

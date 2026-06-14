@@ -27,7 +27,7 @@ export type ShopItemView = {
 export function ShopItemCard({
   item,
   onBuy,
-  disabled
+  disabled,
 }: {
   item: ShopItemView;
   onBuy: () => void;
@@ -48,7 +48,9 @@ export function ShopItemCard({
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs font-black uppercase text-leaf-700">Price</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Price
+          </div>
           <div className="text-lg font-black">{item.price}</div>
           {item.stockRemaining <= 0 ? (
             <Badge variant="secondary">Sold Out</Badge>
@@ -58,15 +60,21 @@ export function ShopItemCard({
 
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div className="rounded-lg bg-white/65 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Stock</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Stock
+          </div>
           {item.stockRemaining}/{item.stockTotal}
         </div>
         <div className="rounded-lg bg-white/65 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Limit</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Limit
+          </div>
           {remainingForUser}
         </div>
         <div className="rounded-lg bg-white/65 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Yield</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Yield
+          </div>
           {item.seed.minYield}-{item.seed.maxYield}
         </div>
       </div>

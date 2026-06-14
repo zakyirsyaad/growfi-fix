@@ -27,13 +27,23 @@ export function ErrorState({ message }: { message: string }) {
   );
 }
 
-export function EmptyState({ title, description }: { title: string; description?: string }) {
+export function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description?: string;
+}) {
   return (
     <Card className="border-dashed bg-white/65">
       <CardContent className="flex min-h-32 flex-col items-center justify-center gap-2 p-6 text-center">
         <Inbox className="h-8 w-8 text-muted-foreground" />
         <div className="font-bold">{title}</div>
-        {description ? <p className="max-w-sm text-sm text-muted-foreground">{description}</p> : null}
+        {description ? (
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {description}
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   );

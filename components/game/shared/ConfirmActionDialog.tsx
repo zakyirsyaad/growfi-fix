@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 export function ConfirmActionDialog({
@@ -17,7 +17,7 @@ export function ConfirmActionDialog({
   confirmLabel = "Confirm",
   busy,
   onOpenChange,
-  onConfirm
+  onConfirm,
 }: {
   open: boolean;
   title: string;

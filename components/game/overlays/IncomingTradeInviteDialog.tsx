@@ -8,14 +8,17 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { acceptTradeInvite, declineTradeInvite } from "@/lib/realtime/socketClient";
+import {
+  acceptTradeInvite,
+  declineTradeInvite,
+} from "@/lib/realtime/socketClient";
 import type { TradeInvitePayload } from "@/lib/realtime/types";
 
 export function IncomingTradeInviteDialog({
   invite,
-  onClose
+  onClose,
 }: {
   invite?: TradeInvitePayload | null;
   onClose: () => void;
@@ -24,7 +27,9 @@ export function IncomingTradeInviteDialog({
     <Dialog open={!!invite} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{invite?.from.username || "A farmer"} wants to trade with you</DialogTitle>
+          <DialogTitle>
+            {invite?.from.username || "A farmer"} wants to trade with you
+          </DialogTitle>
           <DialogDescription>
             Accept to open a direct trade session.
           </DialogDescription>

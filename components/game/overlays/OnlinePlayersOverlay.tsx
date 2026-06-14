@@ -15,7 +15,7 @@ export function OnlinePlayersOverlay({
   open,
   onOpenChange,
   players,
-  room
+  room,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,7 +37,10 @@ export function OnlinePlayersOverlay({
         <Badge variant="secondary">{players.length} online</Badge>
       </div>
       {players.length === 0 ? (
-        <EmptyState title="No other farmers nearby" description="Open another account/window to test realtime presence." />
+        <EmptyState
+          title="No other farmers nearby"
+          description="Open another account/window to test realtime presence."
+        />
       ) : (
         <div className="space-y-3">
           {players.map((player) => (
@@ -60,13 +63,19 @@ export function OnlinePlayersOverlay({
                   variant="secondary"
                   onClick={() => {
                     onOpenChange(false);
-                    gameEventBus.emit("openOverlay", { overlay: "playerInteraction", payload: player });
+                    gameEventBus.emit("openOverlay", {
+                      overlay: "playerInteraction",
+                      payload: player,
+                    });
                   }}
                 >
                   <UserRound className="h-4 w-4" />
                   Open
                 </Button>
-                <Button size="sm" onClick={() => sendTradeInvite(player.userId, room)}>
+                <Button
+                  size="sm"
+                  onClick={() => sendTradeInvite(player.userId, room)}
+                >
                   <Handshake className="h-4 w-4" />
                   Trade
                 </Button>

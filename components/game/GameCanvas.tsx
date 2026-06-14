@@ -4,7 +4,9 @@ import { memo, useEffect, useRef } from "react";
 
 export const GameCanvas = memo(function GameCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const gameRef = useRef<{ destroy: (removeCanvas: boolean, noReturn?: boolean) => void } | null>(null);
+  const gameRef = useRef<{
+    destroy: (removeCanvas: boolean, noReturn?: boolean) => void;
+  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -29,5 +31,10 @@ export const GameCanvas = memo(function GameCanvas() {
     };
   }, []);
 
-  return <div ref={containerRef} className="phaser-root absolute inset-0 bg-leaf-500" />;
+  return (
+    <div
+      ref={containerRef}
+      className="phaser-root absolute inset-0 bg-leaf-500"
+    />
+  );
 });

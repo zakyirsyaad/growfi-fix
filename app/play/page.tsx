@@ -8,10 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Stat } from "@/components/ui/stat";
-import {
-  GardenGrid,
-  PlotSummary,
-} from "@/components/garden/GardenGrid";
+import { GardenGrid, PlotSummary } from "@/components/garden/GardenGrid";
 import { apiFetch } from "@/lib/utils/fetcher";
 import {
   decodeGrowfiError,
@@ -40,7 +37,7 @@ function PlayContent() {
   });
   const displayData = useMemo(
     () => mergeOnchainGarden(data, onchain.data),
-    [data, onchain.data]
+    [data, onchain.data],
   );
 
   const selectedPlot = useMemo(() => {

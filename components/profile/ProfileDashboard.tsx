@@ -158,7 +158,7 @@ export function ProfileDashboard({ compact = false }: { compact?: boolean }) {
 
   const marketplace = useMemo(
     () => mergeMarketplaceListings(dbMarketplace, onchainMarketplace.data),
-    [dbMarketplace, onchainMarketplace.data]
+    [dbMarketplace, onchainMarketplace.data],
   );
 
   if (isLoading || !data) {
@@ -174,13 +174,13 @@ export function ProfileDashboard({ compact = false }: { compact?: boolean }) {
     farm?.width && farm?.height
       ? `${farm.width}x${farm.height}`
       : farmExists
-      ? "Farm account found"
-      : "Farm not created yet";
+        ? "Farm account found"
+        : "Farm not created yet";
   const activeListings = marketplace.myListings.filter(
-    (listing) => listing.status === "ACTIVE"
+    (listing) => listing.status === "ACTIVE",
   ).length;
   const soldListings = marketplace.myListings.filter(
-    (listing) => listing.status === "SOLD"
+    (listing) => listing.status === "SOLD",
   ).length;
   const walletForDisplay = walletAddress || data.user.walletAddress;
   const programId = getGrowfiCoreProgramId().toBase58();
@@ -191,7 +191,9 @@ export function ProfileDashboard({ compact = false }: { compact?: boolean }) {
       queryClient.invalidateQueries({ queryKey: ["activity"] }),
       queryClient.invalidateQueries({ queryKey: ["marketplace"] }),
       queryClient.invalidateQueries({ queryKey: ["growfi-onchain-state"] }),
-      queryClient.invalidateQueries({ queryKey: ["growfi-onchain-marketplace"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["growfi-onchain-marketplace"],
+      }),
       queryClient.invalidateQueries({ queryKey: ["wallet-balances"] }),
     ]);
   };
@@ -227,7 +229,10 @@ export function ProfileDashboard({ compact = false }: { compact?: boolean }) {
             <div className="break-all text-sm font-semibold">
               {walletForDisplay || "Wallet not connected"}
             </div>
-            <ExplorerButton label="Wallet Explorer" address={walletForDisplay} />
+            <ExplorerButton
+              label="Wallet Explorer"
+              address={walletForDisplay}
+            />
           </div>
           <StaminaBar
             stamina={data.user.stamina}
@@ -284,7 +289,9 @@ export function ProfileDashboard({ compact = false }: { compact?: boolean }) {
             <StatCard
               label="Total Trades"
               value={
-                playerExists ? asNumber(player?.totalTrades) : data.user.totalTrades
+                playerExists
+                  ? asNumber(player?.totalTrades)
+                  : data.user.totalTrades
               }
             />
             <StatCard label="Sold Listings" value={soldListings} />
@@ -375,8 +382,7 @@ export function ProfileDashboard({ compact = false }: { compact?: boolean }) {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="break-all font-semibold">
-                  {onchain.data?.farmPda?.toBase58() ||
-                    "Farm not created yet"}
+                  {onchain.data?.farmPda?.toBase58() || "Farm not created yet"}
                 </div>
                 <div className="text-muted-foreground">
                   Level {farmLevel} · {farmSize}

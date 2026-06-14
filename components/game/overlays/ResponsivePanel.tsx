@@ -6,14 +6,14 @@ import {
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
-  DrawerTitle
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
-  SheetTitle
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -24,7 +24,7 @@ export function ResponsivePanel({
   title,
   description,
   children,
-  wide
+  wide,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,7 +41,9 @@ export function ResponsivePanel({
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{title}</DrawerTitle>
-            {description ? <DrawerDescription>{description}</DrawerDescription> : null}
+            {description ? (
+              <DrawerDescription>{description}</DrawerDescription>
+            ) : null}
           </DrawerHeader>
           <ScrollArea className="max-h-[70vh] px-5 pb-5">{children}</ScrollArea>
         </DrawerContent>
@@ -51,12 +53,18 @@ export function ResponsivePanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className={wide ? "w-[min(94vw,900px)] sm:max-w-none" : undefined}>
+      <SheetContent
+        className={wide ? "w-[min(94vw,900px)] sm:max-w-none" : undefined}
+      >
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
-          {description ? <SheetDescription>{description}</SheetDescription> : null}
+          {description ? (
+            <SheetDescription>{description}</SheetDescription>
+          ) : null}
         </SheetHeader>
-        <ScrollArea className="mt-5 h-[calc(100vh-7rem)] pr-4">{children}</ScrollArea>
+        <ScrollArea className="mt-5 h-[calc(100vh-7rem)] pr-4">
+          {children}
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

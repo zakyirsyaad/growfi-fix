@@ -58,7 +58,7 @@ export function FarmUpgradeOverlay({
   const missing = Math.max(0, cost - balance);
   const missingPlotCount = useMemo(
     () => onchain.data?.plots.filter((plot) => !plot.account).length ?? 0,
-    [onchain.data?.plots]
+    [onchain.data?.plots],
   );
   const hasEnoughGrow = balance >= cost;
   const canUpgrade =
@@ -80,7 +80,7 @@ export function FarmUpgradeOverlay({
         {
           method: "POST",
           body: JSON.stringify({ walletAddress: publicKey.toBase58() }),
-        }
+        },
       );
     },
     onSuccess: async (result) => {
@@ -91,7 +91,8 @@ export function FarmUpgradeOverlay({
     },
     onError: (err) => {
       toast.error("Mint failed", {
-        description: err instanceof Error ? err.message : "Could not mint $GROW.",
+        description:
+          err instanceof Error ? err.message : "Could not mint $GROW.",
       });
     },
   });
@@ -206,9 +207,9 @@ export function FarmUpgradeOverlay({
             <AlertTitle>Some farm plots need initialization</AlertTitle>
             <AlertDescription className="space-y-3">
               <p>
-                Your farm level is upgraded, but {missingPlotCount} plot
-                account{missingPlotCount === 1 ? "" : "s"} still need to be
-                created on Solana before they can be used.
+                Your farm level is upgraded, but {missingPlotCount} plot account
+                {missingPlotCount === 1 ? "" : "s"} still need to be created on
+                Solana before they can be used.
               </p>
               <Button
                 size="sm"
@@ -268,7 +269,9 @@ export function FarmUpgradeOverlay({
                     Wallet $GROW Balance
                   </div>
                   <div className="text-lg font-black">
-                    {walletBalances.isLoading ? "Checking..." : balance.toLocaleString()}
+                    {walletBalances.isLoading
+                      ? "Checking..."
+                      : balance.toLocaleString()}
                   </div>
                 </div>
               </div>

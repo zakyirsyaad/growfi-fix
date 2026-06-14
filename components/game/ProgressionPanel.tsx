@@ -1,12 +1,24 @@
 "use client";
 
-import { ArrowUpRight, CheckCircle2, Grid3X3, Lightbulb, Sprout } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Grid3X3,
+  Lightbulb,
+  Sprout,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { GardenResponse } from "@/types/game-data";
 
-export function ProgressionPanel({ garden, compact = false }: { garden?: GardenResponse; compact?: boolean }) {
+export function ProgressionPanel({
+  garden,
+  compact = false,
+}: {
+  garden?: GardenResponse;
+  compact?: boolean;
+}) {
   const progression = garden?.progression;
   if (!progression) {
     return null;
@@ -14,7 +26,9 @@ export function ProgressionPanel({ garden, compact = false }: { garden?: GardenR
 
   const questValue =
     progression.dailyQuestProgress.target > 0
-      ? (progression.dailyQuestProgress.progress / progression.dailyQuestProgress.target) * 100
+      ? (progression.dailyQuestProgress.progress /
+          progression.dailyQuestProgress.target) *
+        100
       : 0;
 
   return (
@@ -22,8 +36,12 @@ export function ProgressionPanel({ garden, compact = false }: { garden?: GardenR
       <CardContent className={compact ? "space-y-3 p-3" : "space-y-4 p-4"}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs font-black uppercase text-leaf-700">Progression</div>
-            <div className="font-black">Garden Level {progression.currentGardenLevel}</div>
+            <div className="text-xs font-black uppercase text-leaf-700">
+              Progression
+            </div>
+            <div className="font-black">
+              Garden Level {progression.currentGardenLevel}
+            </div>
           </div>
           <Badge variant="outline" className="gap-1 bg-white/80">
             <Grid3X3 className="h-3.5 w-3.5" />
@@ -53,7 +71,8 @@ export function ProgressionPanel({ garden, compact = false }: { garden?: GardenR
               Daily quests
             </span>
             <span>
-              {progression.dailyQuestProgress.completed}/{progression.dailyQuestProgress.total}
+              {progression.dailyQuestProgress.completed}/
+              {progression.dailyQuestProgress.total}
             </span>
           </div>
           <Progress value={questValue} />
@@ -74,7 +93,8 @@ export function ProgressionPanel({ garden, compact = false }: { garden?: GardenR
                 Unlocked now
               </div>
               <div className="mt-1 font-semibold">
-                {progression.seedsUnlockedCurrentLevel.join(", ") || "No seeds yet"}
+                {progression.seedsUnlockedCurrentLevel.join(", ") ||
+                  "No seeds yet"}
               </div>
             </div>
             <div className="rounded-md bg-white/75 p-2">
@@ -99,4 +119,3 @@ export function ProgressionPanel({ garden, compact = false }: { garden?: GardenR
     </Card>
   );
 }
-

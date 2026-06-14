@@ -10,7 +10,7 @@ export function ItemCard({
   quantity,
   rarity,
   mutation,
-  children
+  children,
 }: {
   icon: string;
   name: string;
@@ -35,7 +35,9 @@ export function ItemCard({
               </div>
             </div>
           </div>
-          {typeof quantity === "number" ? <div className="text-xl font-bold">x{quantity}</div> : null}
+          {typeof quantity === "number" ? (
+            <div className="text-xl font-bold">x{quantity}</div>
+          ) : null}
         </div>
         {children}
       </CardContent>

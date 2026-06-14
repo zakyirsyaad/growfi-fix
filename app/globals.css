@@ -4,29 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-  --background: 40 43% 94%;
-  --foreground: 132 20% 16%;
-  --card: 48 52% 98%;
-  --card-foreground: 132 20% 16%;
-  --popover: 48 52% 98%;
-  --popover-foreground: 132 20% 16%;
-  --primary: 132 47% 31%;
-  --primary-foreground: 42 64% 97%;
-  --secondary: 87 42% 90%;
-  --secondary-foreground: 132 27% 22%;
-  --muted: 39 36% 88%;
-  --muted-foreground: 126 13% 38%;
-  --accent: 188 50% 90%;
-  --accent-foreground: 144 27% 20%;
-  --destructive: 346 75% 45%;
-  --destructive-foreground: 42 64% 97%;
-  --border: 42 36% 80%;
-  --input: 42 36% 80%;
-  --ring: 132 47% 31%;
-  --radius: 0.75rem;
-}
 
 * {
   box-sizing: border-box;
@@ -35,16 +12,16 @@
 
 html {
   min-height: 100%;
-  background: hsl(var(--background));
+  background: oklch(var(--background));
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 243, 0.96) 0%, rgba(236, 246, 231, 0.96) 52%, rgba(245, 235, 219, 0.96) 100%),
-    repeating-linear-gradient(90deg, rgba(71, 119, 68, 0.05) 0 1px, transparent 1px 96px);
-  color: hsl(var(--foreground));
+  background-color: oklch(var(--background));
+  color: oklch(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body[data-game-route="true"] {
@@ -59,11 +36,20 @@ textarea {
 }
 
 .wallet-adapter-button {
-  height: 40px !important;
-  border-radius: 8px !important;
-  background: #203024 !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  background: oklch(var(--primary) / 0.1) !important;
+  color: oklch(var(--primary)) !important;
+  border: 1px solid oklch(var(--primary) / 0.2) !important;
   font-size: 0.875rem !important;
   font-weight: 700 !important;
+  transition: all 0.2s ease !important;
+}
+
+.wallet-adapter-button:hover {
+  background: oklch(var(--primary) / 0.2) !important;
+  border-color: oklch(var(--primary) / 0.5) !important;
+  box-shadow: 0 0 15px oklch(var(--primary) / 0.2) !important;
 }
 
 .wallet-adapter-dropdown-list {
@@ -81,27 +67,155 @@ textarea {
   image-rendering: pixelated;
 }
 
-
-
 @layer base {
   :root {
-    --sidebar-background: 48 52% 98%;
-    --sidebar-foreground: 132 20% 16%;
-    --sidebar-primary: 132 47% 31%;
-    --sidebar-primary-foreground: 42 64% 97%;
-    --sidebar-accent: 87 42% 90%;
-    --sidebar-accent-foreground: 132 27% 22%;
-    --sidebar-border: 42 36% 80%;
-    --sidebar-ring: 132 47% 31%;
+    --sidebar-background: 160 10% 6%;
+    --sidebar-foreground: 0 0 0;
+    --sidebar-primary: 0.7190 0.1751 22.5025;
+    --sidebar-primary-foreground: 1.0000 0 0;
+    --sidebar-accent: 0.6331 0.1981 258.7273;
+    --sidebar-accent-foreground: 1.0000 0 0;
+    --sidebar-border: 0 0 0;
+    --sidebar-ring: 0.7190 0.1751 22.5025;
+    --background: 1.0000 0 0;
+    --foreground: 0 0 0;
+    --card: 1.0000 0 0;
+    --card-foreground: 0 0 0;
+    --popover: 1.0000 0 0;
+    --popover-foreground: 0 0 0;
+    --primary: 0.7190 0.1751 22.5025;
+    --primary-foreground: 1.0000 0 0;
+    --secondary: 0.9691 0.2005 109.6228;
+    --secondary-foreground: 0 0 0;
+    --muted: 0.9551 0 0;
+    --muted-foreground: 0.3211 0 0;
+    --accent: 0.6331 0.1981 258.7273;
+    --accent-foreground: 1.0000 0 0;
+    --destructive: 0 0 0;
+    --destructive-foreground: 1.0000 0 0;
+    --border: 0 0 0;
+    --input: 0 0 0;
+    --ring: 0.7190 0.1751 22.5025;
+    --chart-1: 0.7190 0.1751 22.5025;
+    --chart-2: 0.9691 0.2005 109.6228;
+    --chart-3: 0.6331 0.1981 258.7273;
+    --chart-4: 0.8406 0.2860 142.4953;
+    --chart-5: 0.6807 0.3129 328.3634;
+    --radius: 0px;
+    --sidebar: 0.9551 0 0;
+    --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: Space Mono, monospace;
+    --shadow-color: #1a1a1a;
+    --shadow-opacity: 1;
+    --shadow-blur: 0px;
+    --shadow-spread: 0px;
+    --shadow-offset-x: 4px;
+    --shadow-offset-y: 4px;
+    --letter-spacing: 0em;
+    --spacing: 0.25rem;
+    --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-sm: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-md: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 2px 4px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-lg: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 4px 6px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 8px 10px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 2.50);
+    --tracking-normal: 0em;
+  }
+  .theme {
+    --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+    --font-mono: Space Mono, monospace;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --radius: 0px;
+    --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+    --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+    --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+    --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+    --tracking-widest: calc(var(--tracking-normal) + 0.1em);
   }
   .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 0 0 0;
+    --foreground: 1.0000 0 0;
+    --card: 0.3211 0 0;
+    --card-foreground: 1.0000 0 0;
+    --popover: 0.3211 0 0;
+    --popover-foreground: 1.0000 0 0;
+    --primary: 0.8266 0.0967 19.3324;
+    --primary-foreground: 0 0 0;
+    --secondary: 0.9733 0.1634 109.0867;
+    --secondary-foreground: 0 0 0;
+    --muted: 0.2178 0 0;
+    --muted-foreground: 0.8452 0 0;
+    --accent: 0.7642 0.1257 249.4644;
+    --accent-foreground: 0 0 0;
+    --destructive: 1.0000 0 0;
+    --destructive-foreground: 0 0 0;
+    --border: 1.0000 0 0;
+    --input: 1.0000 0 0;
+    --ring: 0.8266 0.0967 19.3324;
+    --chart-1: 0.8266 0.0967 19.3324;
+    --chart-2: 0.9733 0.1634 109.0867;
+    --chart-3: 0.7642 0.1257 249.4644;
+    --chart-4: 0.7802 0.1961 143.4097;
+    --chart-5: 0.6715 0.2093 327.5960;
+    --radius: 0px;
+    --sidebar: 0 0 0;
+    --sidebar-foreground: 1.0000 0 0;
+    --sidebar-primary: 0.8266 0.0967 19.3324;
+    --sidebar-primary-foreground: 0 0 0;
+    --sidebar-accent: 0.7642 0.1257 249.4644;
+    --sidebar-accent-foreground: 0 0 0;
+    --sidebar-border: 1.0000 0 0;
+    --sidebar-ring: 0.8266 0.0967 19.3324;
+    --font-sans: Montserrat, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: Space Mono, monospace;
+    --shadow-color: #1a1a1a;
+    --shadow-opacity: 1;
+    --shadow-blur: 0px;
+    --shadow-spread: 0px;
+    --shadow-offset-x: 4px;
+    --shadow-offset-y: 4px;
+    --letter-spacing: 0em;
+    --spacing: 0.25rem;
+    --shadow-2xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-xs: 4px 4px 0px 0px hsl(0 0% 10.1961% / 0.50);
+    --shadow-sm: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 1px 2px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-md: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 2px 4px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-lg: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 4px 6px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 1.00), 4px 8px 10px -1px hsl(0 0% 10.1961% / 1.00);
+    --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 10.1961% / 2.50);
+  }
+  body {
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 30px 30px;
+    background-image: linear-gradient(to right, oklch(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(var(--border) / 0.3) 1px, transparent 1px);
+  }
+  .bg-dot-pattern {
+    background-image: radial-gradient(oklch(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 6s ease infinite;
+  }
+}
+
+@keyframes gradient-x {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }

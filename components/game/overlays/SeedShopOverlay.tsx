@@ -90,7 +90,7 @@ export function SeedShopOverlay({
       setError(
         err instanceof Error
           ? err.message
-          : "No active shop rotation. Please create a shop rotation."
+          : "No active shop rotation. Please create a shop rotation.",
       ),
   });
 
@@ -138,8 +138,8 @@ export function SeedShopOverlay({
           />
           <div className="rounded-md bg-muted p-3 text-xs font-semibold text-muted-foreground">
             Devnet setup: configure GROWFI_ADMIN_SECRET_KEY or
-            TREASURY_WALLET_SECRET_KEY, then refresh. Manual fallback:
-            npx tsx anchor/scripts/create-shop-rotation.ts
+            TREASURY_WALLET_SECRET_KEY, then refresh. Manual fallback: npx tsx
+            anchor/scripts/create-shop-rotation.ts
           </div>
           <Button
             disabled={ensureRotationMutation.isPending}

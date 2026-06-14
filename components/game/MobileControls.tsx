@@ -2,7 +2,17 @@
 
 import type React from "react";
 import { memo, useEffect, useRef } from "react";
-import { Backpack, Hand, Handshake, HelpCircle, Map, ShoppingBasket, Sprout, Store, Wallet } from "lucide-react";
+import {
+  Backpack,
+  Hand,
+  Handshake,
+  HelpCircle,
+  Map,
+  ShoppingBasket,
+  Sprout,
+  Store,
+  Wallet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gameEventBus, type GameOverlayKey } from "@/lib/game/eventBus";
 import { cn } from "@/lib/utils";
@@ -10,7 +20,7 @@ import { cn } from "@/lib/utils";
 function QuickButton({
   icon: Icon,
   label,
-  overlay
+  overlay,
 }: {
   icon: React.ElementType;
   label: string;
@@ -117,7 +127,7 @@ export const MobileControls = memo(function MobileControls() {
             ref={thumbRef}
             data-active="false"
             className={cn(
-              "absolute left-1/2 top-1/2 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow transition-colors data-[active=true]:bg-primary/90"
+              "absolute left-1/2 top-1/2 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow transition-colors data-[active=true]:bg-primary/90",
             )}
             style={{ transform: "translate(-50%, -50%)" }}
           >

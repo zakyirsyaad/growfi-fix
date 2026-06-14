@@ -40,7 +40,10 @@ function ChatMessages({ messages }: { messages: GlobalChatMessagePayload[] }) {
           </div>
         ) : (
           messages.map((item) => (
-            <div key={item.id} className="flex gap-2 rounded-md bg-white/75 p-2">
+            <div
+              key={item.id}
+              className="flex gap-2 rounded-md bg-white/75 p-2"
+            >
               <Avatar className="h-8 w-8 rounded-md">
                 <AvatarImage src={item.from.avatarUrl || undefined} />
                 <AvatarFallback className="rounded-md">
@@ -197,13 +200,13 @@ export function GlobalChatWidget() {
       socketState.connected
         ? "Connected"
         : socketState.status === "error"
-        ? "Error"
-        : socketState.status === "disconnected"
-        ? "Disconnected"
-        : socketState.status === "connecting"
-        ? "Connecting"
-        : "Reconnecting",
-    [socketState.connected, socketState.status]
+          ? "Error"
+          : socketState.status === "disconnected"
+            ? "Disconnected"
+            : socketState.status === "connecting"
+              ? "Connecting"
+              : "Reconnecting",
+    [socketState.connected, socketState.status],
   );
   const connected = socketState.connected;
 
@@ -278,10 +281,18 @@ export function GlobalChatWidget() {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="text-base">Global Chat</CardTitle>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setMinimized(true)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMinimized(true)}
+          >
             <Minus className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setMinimized(true)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMinimized(true)}
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>

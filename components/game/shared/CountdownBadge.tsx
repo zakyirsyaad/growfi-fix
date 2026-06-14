@@ -25,7 +25,13 @@ export function formatDuration(target?: string | Date | null) {
   return `${seconds}s`;
 }
 
-export function CountdownBadge({ to, label }: { to?: string | Date | null; label?: string }) {
+export function CountdownBadge({
+  to,
+  label,
+}: {
+  to?: string | Date | null;
+  label?: string;
+}) {
   const target = useMemo(() => to, [to]);
   const [, setTick] = useState(0);
 

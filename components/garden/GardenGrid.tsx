@@ -2,6 +2,7 @@
 
 import { Droplets, Lock, Sparkles } from "lucide-react";
 import { Countdown } from "@/components/ui/countdown";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 export type GardenPlotView = {
@@ -31,14 +32,14 @@ const plotStyles: Record<GardenPlotView["state"], string> = {
   GROWING: "bg-leaf-100 hover:bg-leaf-50",
   READY: "bg-gold-100 ring-gold-300 hover:bg-gold-300",
   REGROWING: "bg-skyday-100 hover:bg-skyday-50",
-  LOCKED: "bg-stone-200 text-stone-500"
+  LOCKED: "bg-stone-200 text-stone-500",
 };
 
 export function GardenGrid({
   width,
   plots,
   selectedPlotId,
-  onSelect
+  onSelect,
 }: {
   width: number;
   plots: GardenPlotView[];
@@ -56,19 +57,22 @@ export function GardenGrid({
           plot.state === "LOCKED" ? (
             <Lock size={24} />
           ) : plot.plant ? (
-            <span className="text-2xl sm:text-3xl">{plot.plant.seed.iconUrl}</span>
+            <span className="text-2xl sm:text-3xl">
+              {plot.plant.seed.iconUrl}
+            </span>
           ) : (
             <span className="text-lg text-soil-700">+</span>
           );
 
         return (
-          <button
+          <Button
+            variant="ghost"
             key={plot.id}
             onClick={() => onSelect(plot)}
             className={cn(
-              "relative aspect-square min-h-12 rounded-lg border border-white/60 p-1 text-center shadow-sm ring-2 ring-transparent transition",
+              "relative flex-col aspect-square min-h-12 rounded-lg border border-white/60 p-1 text-center shadow-sm ring-2 ring-transparent transition h-auto w-auto",
               plotStyles[plot.state],
-              selected && "ring-leaf-700"
+              selected && "ring-leaf-700",
             )}
           >
             <span className="grid h-full place-items-center">{icon}</span>
@@ -83,7 +87,7 @@ export function GardenGrid({
                 {plot.plant.waterLevel}
               </span>
             ) : null}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -98,14 +102,18 @@ export function PlotSummary({ plot }: { plot: GardenPlotView | null }) {
   if (!plot.plant) {
     return (
       <div className="space-y-1">
-        <div className="text-sm font-black text-leaf-900">Plot {plot.x + 1},{plot.y + 1}</div>
+        <div className="text-sm font-black text-leaf-900">
+          Plot {plot.x + 1},{plot.y + 1}
+        </div>
         <div className="text-sm text-leaf-800">{plot.state.toLowerCase()}</div>
       </div>
     );
   }
 
   const countdownTarget =
-    plot.plant.state === "GROWING" ? plot.plant.growCompleteAt : plot.plant.nextHarvestAt;
+    plot.plant.state === "GROWING"
+      ? plot.plant.growCompleteAt
+      : plot.plant.nextHarvestAt;
 
   return (
     <div className="space-y-2">
@@ -113,24 +121,34 @@ export function PlotSummary({ plot }: { plot: GardenPlotView | null }) {
         <span className="text-3xl">{plot.plant.seed.iconUrl}</span>
         <div>
           <div className="font-black text-leaf-950">{plot.plant.seed.name}</div>
-          <div className="text-xs font-bold uppercase text-leaf-700">{plot.plant.state}</div>
+          <div className="text-xs font-bold uppercase text-leaf-700">
+            {plot.plant.state}
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-lg bg-white/70 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Timer</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Timer
+          </div>
           <Countdown to={countdownTarget} />
         </div>
         <div className="rounded-lg bg-white/70 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Water</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Water
+          </div>
           {plot.plant.waterLevel}/5
         </div>
         <div className="rounded-lg bg-white/70 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Health</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Health
+          </div>
           {plot.plant.health}
         </div>
         <div className="rounded-lg bg-white/70 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Harvests</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Harvests
+          </div>
           {plot.plant.harvestCount}
         </div>
       </div>

@@ -28,7 +28,7 @@ export function ListingCard({
   currentUserId,
   onBuy,
   onCancel,
-  busy
+  busy,
 }: {
   listing: ListingView;
   currentUserId?: string;
@@ -54,7 +54,9 @@ export function ListingCard({
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs font-black uppercase text-leaf-700">Price</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Price
+          </div>
           <div className="text-xl font-black">{listing.price}</div>
         </div>
       </div>
@@ -65,7 +67,9 @@ export function ListingCard({
           {listing.quantity}
         </div>
         <div className="rounded-lg bg-white/65 p-2">
-          <div className="text-xs font-black uppercase text-leaf-700">Seller</div>
+          <div className="text-xs font-black uppercase text-leaf-700">
+            Seller
+          </div>
           {listing.seller?.username || "You"}
         </div>
         <div className="rounded-lg bg-white/65 p-2">

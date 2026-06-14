@@ -17,9 +17,17 @@ export function BalanceCard({
           <Coins className="h-5 w-5" />
         </span>
         <span>
-          <span className="block text-xs font-semibold text-muted-foreground">{label}</span>
-          <span className="block text-lg font-bold leading-none">{balance}</span>
-          {locked ? <span className="text-xs text-muted-foreground">{locked} locked</span> : null}
+          <span className="block text-xs font-semibold text-muted-foreground">
+            {label}
+          </span>
+          <span className="block text-lg font-bold leading-none">
+            {balance}
+          </span>
+          {locked ? (
+            <span className="text-xs text-muted-foreground">
+              {locked} locked
+            </span>
+          ) : null}
         </span>
       </CardContent>
     </Card>

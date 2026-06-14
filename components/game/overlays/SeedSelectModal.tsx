@@ -129,8 +129,7 @@ function SeedPlantCard({
           <div className="rounded-md bg-muted p-2">
             <div className="font-semibold text-muted-foreground">Regrow</div>
             {formatDuration(
-              stack.seed.regrowTimeSeconds ||
-                stack.seed.harvestCooldownSeconds
+              stack.seed.regrowTimeSeconds || stack.seed.harvestCooldownSeconds,
             )}
           </div>
           <div className="rounded-md bg-muted p-2">
@@ -176,14 +175,14 @@ export function SeedSelectModal({
   const [error, setError] = useState<string | null>(null);
   const plot = useMemo<GardenPlotView | undefined>(
     () => garden?.garden.plots.find((item) => item.id === plotId),
-    [garden, plotId]
+    [garden, plotId],
   );
   const onchainPlot = useMemo<OnchainPlotAccount | null>(() => {
     if (!plot) {
       return null;
     }
     const match = onchain.data?.plots.find(
-      (item) => item.x === plot.x && item.y === plot.y
+      (item) => item.x === plot.x && item.y === plot.y,
     );
     return (match?.account as OnchainPlotAccount | null) || null;
   }, [onchain.data?.plots, plot]);
@@ -198,10 +197,10 @@ export function SeedSelectModal({
   const currentFarmLevel =
     garden?.garden.level || garden?.user.gardenLevel || 1;
   const availableSeedStacks = seedStacks.filter(
-    (stack) => (stack.seed.requiredGardenLevel || 1) <= currentFarmLevel
+    (stack) => (stack.seed.requiredGardenLevel || 1) <= currentFarmLevel,
   );
   const lockedSeedStacks = seedStacks.filter(
-    (stack) => (stack.seed.requiredGardenLevel || 1) > currentFarmLevel
+    (stack) => (stack.seed.requiredGardenLevel || 1) > currentFarmLevel,
   );
   const plotIsEmpty = onchainPlot
     ? onchainPlotState === "empty"
@@ -219,9 +218,8 @@ export function SeedSelectModal({
       numberFromValue(
         onchainPlotState === "regrowing"
           ? onchainPlot.nextHarvestAt
-          : onchainPlot.growCompleteAt
-      ) <=
-        Math.floor(Date.now() / 1000));
+          : onchainPlot.growCompleteAt,
+      ) <= Math.floor(Date.now() / 1000));
   const canHarvest =
     !visitorMode &&
     !!plot &&
@@ -246,7 +244,7 @@ export function SeedSelectModal({
       const requiredLevel = seed.requiredGardenLevel || 1;
       if (currentFarmLevel < requiredLevel) {
         throw new Error(
-          `Requires Farm Level ${requiredLevel}. Your farm is Level ${currentFarmLevel}.`
+          `Requires Farm Level ${requiredLevel}. Your farm is Level ${currentFarmLevel}.`,
         );
       }
       return growfiActions.plantSeed({ x: plot.x, y: plot.y, seed });
@@ -344,54 +342,56 @@ export function SeedSelectModal({
                 </div>
                 {seedStacks.length ? (
                   <div className="space-y-4">
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <h4 className="text-sm font-black">Available to Plant</h4>
-                      <Badge variant="outline">
-                        Farm Level {currentFarmLevel}
-                      </Badge>
-                    </div>
-                    {availableSeedStacks.length ? (
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {availableSeedStacks.map((stack) => (
-                          <SeedPlantCard
-                            key={stack.id}
-                            stack={stack}
-                            currentFarmLevel={currentFarmLevel}
-                            busy={busy}
-                            locked={false}
-                            onPlant={() => plantMutation.mutate(stack.seed)}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <EmptyState
-                        title="No available seeds"
-                        description="Buy beginner seeds from the Seed Shop or upgrade your farm to unlock higher level seeds."
-                      />
-                    )}
-                  </div>
-
-                  {lockedSeedStacks.length ? (
                     <div>
-                      <h4 className="mb-2 text-sm font-black">
-                        Locked by Farm Level
-                      </h4>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {lockedSeedStacks.map((stack) => (
-                          <SeedPlantCard
-                            key={stack.id}
-                            stack={stack}
-                            currentFarmLevel={currentFarmLevel}
-                            busy={busy}
-                            locked
-                            onPlant={() => undefined}
-                          />
-                        ))}
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="text-sm font-black">
+                          Available to Plant
+                        </h4>
+                        <Badge variant="outline">
+                          Farm Level {currentFarmLevel}
+                        </Badge>
                       </div>
+                      {availableSeedStacks.length ? (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {availableSeedStacks.map((stack) => (
+                            <SeedPlantCard
+                              key={stack.id}
+                              stack={stack}
+                              currentFarmLevel={currentFarmLevel}
+                              busy={busy}
+                              locked={false}
+                              onPlant={() => plantMutation.mutate(stack.seed)}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState
+                          title="No available seeds"
+                          description="Buy beginner seeds from the Seed Shop or upgrade your farm to unlock higher level seeds."
+                        />
+                      )}
                     </div>
-                  ) : null}
-                </div>
+
+                    {lockedSeedStacks.length ? (
+                      <div>
+                        <h4 className="mb-2 text-sm font-black">
+                          Locked by Farm Level
+                        </h4>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {lockedSeedStacks.map((stack) => (
+                            <SeedPlantCard
+                              key={stack.id}
+                              stack={stack}
+                              currentFarmLevel={currentFarmLevel}
+                              busy={busy}
+                              locked
+                              onPlant={() => undefined}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 ) : (
                   <EmptyState
                     title="No seeds yet"
@@ -404,61 +404,61 @@ export function SeedSelectModal({
             {plot && !plot.plant && onchainPlot && !plotIsEmpty ? (
               <Card className="bg-white/80">
                 <CardContent className="space-y-4 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="font-bold">
-                    {onchainSeed?.name || `Seed ${onchainSeedId}`}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-bold">
+                        {onchainSeed?.name || `Seed ${onchainSeedId}`}
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <Badge variant="outline">{onchainPlotState}</Badge>
+                        {onchainSeed ? (
+                          <RarityBadge rarity={onchainSeed.rarity} />
+                        ) : null}
+                      </div>
+                    </div>
+                    <CountdownBadge to={onchainGrowCompleteAt} />
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <Badge variant="outline">{onchainPlotState}</Badge>
-                    {onchainSeed ? (
-                      <RarityBadge rarity={onchainSeed.rarity} />
-                    ) : null}
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="rounded-md bg-muted p-2">
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        Water
+                      </div>
+                      {numberFromValue(onchainPlot.waterLevel)}/5
+                    </div>
+                    <div className="rounded-md bg-muted p-2">
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        Health
+                      </div>
+                      {numberFromValue(onchainPlot.health)}
+                    </div>
+                    <div className="rounded-md bg-muted p-2">
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        Harvests
+                      </div>
+                      {numberFromValue(onchainPlot.harvestCount)}/
+                      {numberFromValue(onchainPlot.maxHarvests)}
+                    </div>
                   </div>
-                </div>
-                <CountdownBadge to={onchainGrowCompleteAt} />
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div className="rounded-md bg-muted p-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Water
-                  </div>
-                  {numberFromValue(onchainPlot.waterLevel)}/5
-                </div>
-                <div className="rounded-md bg-muted p-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Health
-                  </div>
-                  {numberFromValue(onchainPlot.health)}
-                </div>
-                <div className="rounded-md bg-muted p-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Harvests
-                  </div>
-                  {numberFromValue(onchainPlot.harvestCount)}/
-                  {numberFromValue(onchainPlot.maxHarvests)}
-                </div>
-              </div>
-              {canWater ? (
-                <Button
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => waterMutation.mutate()}
-                >
-                  <Droplets className="h-4 w-4" />
-                  Water Plant
-                </Button>
-              ) : null}
-              {canHarvest ? (
-                <Button
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => harvestMutation.mutate()}
-                >
-                  <Pickaxe className="h-4 w-4" />
-                  Harvest Fruit
-                </Button>
-              ) : null}
+                  {canWater ? (
+                    <Button
+                      className="w-full"
+                      disabled={busy}
+                      onClick={() => waterMutation.mutate()}
+                    >
+                      <Droplets className="h-4 w-4" />
+                      Water Plant
+                    </Button>
+                  ) : null}
+                  {canHarvest ? (
+                    <Button
+                      className="w-full"
+                      disabled={busy}
+                      onClick={() => harvestMutation.mutate()}
+                    >
+                      <Pickaxe className="h-4 w-4" />
+                      Harvest Fruit
+                    </Button>
+                  ) : null}
                 </CardContent>
               </Card>
             ) : null}
@@ -466,70 +466,72 @@ export function SeedSelectModal({
             {plot?.plant ? (
               <Card className="bg-white/80">
                 <CardContent className="space-y-4 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-14 w-14 place-items-center rounded-md bg-secondary text-3xl">
-                    {plot.plant.seed.iconUrl}
-                  </span>
-                  <div>
-                    <div className="font-bold">{plot.plant.seed.name}</div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      <RarityBadge rarity={plot.plant.seed.rarity} />
-                      <Badge variant="outline">
-                        {plot.plant.state.toLowerCase()}
-                      </Badge>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="grid h-14 w-14 place-items-center rounded-md bg-secondary text-3xl">
+                        {plot.plant.seed.iconUrl}
+                      </span>
+                      <div>
+                        <div className="font-bold">{plot.plant.seed.name}</div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          <RarityBadge rarity={plot.plant.seed.rarity} />
+                          <Badge variant="outline">
+                            {plot.plant.state.toLowerCase()}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <CountdownBadge
+                      to={
+                        plot.plant.state === "REGROWING"
+                          ? plot.plant.nextHarvestAt
+                          : plot.plant.growCompleteAt
+                      }
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="rounded-md bg-muted p-2">
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        Water
+                      </div>
+                      {plot.plant.waterLevel}/5
+                    </div>
+                    <div className="rounded-md bg-muted p-2">
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        Health
+                      </div>
+                      {plot.plant.health}
+                    </div>
+                    <div className="rounded-md bg-muted p-2">
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        Harvests
+                      </div>
+                      {plot.plant.harvestCount}/
+                      {plot.plant.maxHarvests ??
+                        plot.plant.seed.maxHarvests ??
+                        1}
                     </div>
                   </div>
-                </div>
-                <CountdownBadge
-                  to={
-                    plot.plant.state === "REGROWING"
-                      ? plot.plant.nextHarvestAt
-                      : plot.plant.growCompleteAt
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div className="rounded-md bg-muted p-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Water
-                  </div>
-                  {plot.plant.waterLevel}/5
-                </div>
-                <div className="rounded-md bg-muted p-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Health
-                  </div>
-                  {plot.plant.health}
-                </div>
-                <div className="rounded-md bg-muted p-2">
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Harvests
-                  </div>
-                  {plot.plant.harvestCount}/
-                  {plot.plant.maxHarvests ?? plot.plant.seed.maxHarvests ?? 1}
-                </div>
-              </div>
-              {canWater ? (
-                <Button
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => waterMutation.mutate()}
-                >
-                  <Droplets className="h-4 w-4" />
-                  Water Plant
-                </Button>
-              ) : null}
-              {canHarvest ? (
-                <Button
-                  className="w-full"
-                  disabled={busy}
-                  onClick={() => harvestMutation.mutate()}
-                >
-                  <Pickaxe className="h-4 w-4" />
-                  Harvest Fruit
-                </Button>
-              ) : null}
+                  {canWater ? (
+                    <Button
+                      className="w-full"
+                      disabled={busy}
+                      onClick={() => waterMutation.mutate()}
+                    >
+                      <Droplets className="h-4 w-4" />
+                      Water Plant
+                    </Button>
+                  ) : null}
+                  {canHarvest ? (
+                    <Button
+                      className="w-full"
+                      disabled={busy}
+                      onClick={() => harvestMutation.mutate()}
+                    >
+                      <Pickaxe className="h-4 w-4" />
+                      Harvest Fruit
+                    </Button>
+                  ) : null}
                 </CardContent>
               </Card>
             ) : null}

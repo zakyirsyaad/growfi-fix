@@ -28,32 +28,34 @@ function TradeContent() {
   const { data: tradesData } = useQuery({
     queryKey: ["trades"],
     queryFn: () => apiFetch<TradesResponse>("/api/trades"),
-    refetchInterval: 15_000
+    refetchInterval: 15_000,
   });
   const { data: inventory } = useQuery({
     queryKey: ["inventory"],
-    queryFn: () => apiFetch<InventoryResponse>("/api/inventory")
+    queryFn: () => apiFetch<InventoryResponse>("/api/inventory"),
   });
   const { data: me } = useQuery({
     queryKey: ["me"],
-    queryFn: () => apiFetch<MeResponse>("/api/me")
+    queryFn: () => apiFetch<MeResponse>("/api/me"),
   });
 
   const activeTrades = useMemo(
     () =>
       tradesData?.trades.filter((trade) =>
-        ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status)
+        ["PENDING", "ACTIVE", "LOCKED"].includes(trade.status),
       ) || [],
-    [tradesData]
+    [tradesData],
   );
-  const selectedTrade = activeTrades.find((trade) => trade.id === selectedTradeId) || activeTrades[0];
+  const selectedTrade =
+    activeTrades.find((trade) => trade.id === selectedTradeId) ||
+    activeTrades[0];
 
   const invalidate = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["trades"] }),
       queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       queryClient.invalidateQueries({ queryKey: ["me"] }),
-      queryClient.invalidateQueries({ queryKey: ["activity"] })
+      queryClient.invalidateQueries({ queryKey: ["activity"] }),
     ]);
   };
 
@@ -61,14 +63,15 @@ function TradeContent() {
     mutationFn: () =>
       apiFetch("/api/trades/create", {
         method: "POST",
-        body: JSON.stringify({ recipientUsername })
+        body: JSON.stringify({ recipientUsername }),
       }),
     onSuccess: async () => {
       setRecipientUsername("");
       setError(null);
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Trade create failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Trade create failed"),
   });
   const addFruitMutation = useMutation({
     mutationFn: () =>
@@ -78,11 +81,12 @@ function TradeContent() {
           tradeId: selectedTrade?.id,
           type: "FRUIT",
           userFruitId: selectedFruitId,
-          quantity: fruitQuantity
-        })
+          quantity: fruitQuantity,
+        }),
       }),
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Could not add fruit")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Could not add fruit"),
   });
   const addGrowMutation = useMutation({
     mutationFn: () =>
@@ -91,65 +95,73 @@ function TradeContent() {
         body: JSON.stringify({
           tradeId: selectedTrade?.id,
           type: "GROW",
-          growAmount
-        })
+          growAmount,
+        }),
       }),
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Could not add $GROW")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Could not add $GROW"),
   });
   const confirmMutation = useMutation({
     mutationFn: (tradeId: string) =>
       apiFetch<ConfirmTradeResponse>("/api/trades/confirm", {
         method: "POST",
-        body: JSON.stringify({ tradeId })
+        body: JSON.stringify({ tradeId }),
       }),
     onSuccess: async (result) => {
-      toast.success(result.trade.status === "COMPLETED" ? "Trade completed" : "Trade confirmed");
+      toast.success(
+        result.trade.status === "COMPLETED"
+          ? "Trade completed"
+          : "Trade confirmed",
+      );
       await invalidate();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Confirm failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Confirm failed"),
   });
   const cancelMutation = useMutation({
     mutationFn: (tradeId: string) =>
       apiFetch("/api/trades/cancel", {
         method: "POST",
-        body: JSON.stringify({ tradeId })
+        body: JSON.stringify({ tradeId }),
       }),
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Cancel failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Cancel failed"),
   });
   const removeMutation = useMutation({
     mutationFn: ({ tradeId, itemId }: { tradeId: string; itemId: string }) =>
       apiFetch("/api/trades/remove-item", {
         method: "POST",
-        body: JSON.stringify({ tradeId, itemId })
+        body: JSON.stringify({ tradeId, itemId }),
       }),
     onSuccess: invalidate,
-    onError: (err) => setError(err instanceof Error ? err.message : "Remove failed")
+    onError: (err) =>
+      setError(err instanceof Error ? err.message : "Remove failed"),
   });
 
   return (
-    <>
+    <div className="mt-8">
       <PageHeader title="Direct Trade" eyebrow="Five minute offers" />
 
       {error ? (
-        <div className="mb-4 rounded-lg bg-berry-100 px-4 py-3 text-sm font-bold text-berry-700">
+        <div className="mb-6 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm font-bold text-destructive">
           {error}
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[380px_1fr]">
-        <aside className="space-y-5">
-          <Card className="space-y-3">
-            <CardTitle>New Trade</CardTitle>
+      <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
+        <aside className="space-y-6">
+          <Card className="space-y-4 p-5">
+            <CardTitle className="text-xl font-bold">New Trade</CardTitle>
             <input
               value={recipientUsername}
               onChange={(event) => setRecipientUsername(event.target.value)}
               placeholder="Discord username"
-              className="h-10 w-full rounded-lg border border-leaf-200 px-3 text-sm font-bold"
+              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:border-primary"
             />
             <Button
-              className="w-full"
+              className="w-full font-bold"
               onClick={() => createMutation.mutate()}
               disabled={!recipientUsername || createMutation.isPending}
             >
@@ -157,16 +169,21 @@ function TradeContent() {
             </Button>
           </Card>
 
-          <Card className="space-y-3">
-            <CardTitle>Add Offer</CardTitle>
+          <Card className="space-y-4 p-5">
+            <CardTitle className="text-xl font-bold">Add Offer</CardTitle>
             <select
               value={selectedTrade?.id || ""}
               onChange={(event) => setSelectedTradeId(event.target.value)}
-              className="h-10 w-full rounded-lg border border-leaf-200 bg-white px-3 text-sm font-bold"
+              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:border-primary"
             >
-              {activeTrades.length === 0 ? <option value="">No active trades</option> : null}
+              {activeTrades.length === 0 ? (
+                <option value="">No active trades</option>
+              ) : null}
               {activeTrades.map((trade) => {
-                const other = trade.initiatorId === me?.user.id ? trade.recipient : trade.initiator;
+                const other =
+                  trade.initiatorId === me?.user.id
+                    ? trade.recipient
+                    : trade.initiator;
                 return (
                   <option key={trade.id} value={trade.id}>
                     {other.username} · {trade.status.toLowerCase()}
@@ -175,18 +192,18 @@ function TradeContent() {
               })}
             </select>
 
-            <div className="rounded-lg bg-white/65 p-3">
-              <div className="mb-2 text-sm font-black text-leaf-800">Fruit</div>
+            <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+              <div className="text-sm font-bold text-foreground">Fruit</div>
               <select
                 value={selectedFruitId}
                 onChange={(event) => setSelectedFruitId(event.target.value)}
-                className="h-10 w-full rounded-lg border border-leaf-200 bg-white px-3 text-sm font-bold"
+                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:border-primary"
               >
                 <option value="">Choose fruit</option>
                 {(inventory?.fruits || []).map((fruit) => (
                   <option key={fruit.id} value={fruit.id}>
-                    {fruit.fruit.iconUrl} {fruit.mutation.toLowerCase()} {fruit.fruit.name} x
-                    {fruit.quantity - fruit.lockedQuantity}
+                    {fruit.fruit.iconUrl} {fruit.mutation.toLowerCase()}{" "}
+                    {fruit.fruit.name} x{fruit.quantity - fruit.lockedQuantity}
                   </option>
                 ))}
               </select>
@@ -194,21 +211,27 @@ function TradeContent() {
                 type="number"
                 min={1}
                 value={fruitQuantity}
-                onChange={(event) => setFruitQuantity(Number(event.target.value))}
-                className="mt-2 h-10 w-full rounded-lg border border-leaf-200 px-3 text-sm font-bold"
+                onChange={(event) =>
+                  setFruitQuantity(Number(event.target.value))
+                }
+                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:border-primary"
               />
               <Button
-                className="mt-2 w-full"
-                variant="secondary"
+                className="w-full font-bold"
+                variant="outline"
                 onClick={() => addFruitMutation.mutate()}
-                disabled={!selectedTrade || !selectedFruitId || addFruitMutation.isPending}
+                disabled={
+                  !selectedTrade ||
+                  !selectedFruitId ||
+                  addFruitMutation.isPending
+                }
               >
                 Add fruit
               </Button>
             </div>
 
-            <div className="rounded-lg bg-white/65 p-3">
-              <div className="mb-2 text-sm font-black text-leaf-800">
+            <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+              <div className="text-sm font-bold text-foreground">
                 $GROW available: {me?.user.availableGrow ?? 0}
               </div>
               <input
@@ -216,11 +239,11 @@ function TradeContent() {
                 min={1}
                 value={growAmount}
                 onChange={(event) => setGrowAmount(Number(event.target.value))}
-                className="h-10 w-full rounded-lg border border-leaf-200 px-3 text-sm font-bold"
+                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium focus:outline-none focus:border-primary"
               />
               <Button
-                className="mt-2 w-full"
-                variant="secondary"
+                className="w-full font-bold"
+                variant="outline"
                 onClick={() => addGrowMutation.mutate()}
                 disabled={!selectedTrade || addGrowMutation.isPending}
               >
@@ -230,28 +253,40 @@ function TradeContent() {
           </Card>
         </aside>
 
-        <section className="space-y-4">
-          <CardTitle>Trades</CardTitle>
+        <section className="space-y-5">
+          <CardTitle className="text-2xl font-bold">Trades</CardTitle>
           {!tradesData || !me ? (
-            <Card className="font-bold text-leaf-800">Loading trades...</Card>
+            <div className="p-8 border border-border bg-card rounded-xl shadow-sm text-center font-bold text-muted-foreground">
+              Loading trades...
+            </div>
           ) : tradesData.trades.length === 0 ? (
-            <Card className="font-bold text-leaf-800">No trades yet.</Card>
+            <div className="p-8 border border-border bg-card rounded-xl shadow-sm text-center font-bold text-muted-foreground">
+              No trades yet.
+            </div>
           ) : (
-            tradesData.trades.map((trade) => (
-              <TradeCard
-                key={trade.id}
-                trade={trade}
-                currentUserId={me.user.id}
-                onConfirm={() => confirmMutation.mutate(trade.id)}
-                onCancel={() => cancelMutation.mutate(trade.id)}
-                onRemoveItem={(itemId) => removeMutation.mutate({ tradeId: trade.id, itemId })}
-                busy={confirmMutation.isPending || cancelMutation.isPending || removeMutation.isPending}
-              />
-            ))
+            <div className="space-y-4">
+              {tradesData.trades.map((trade) => (
+                <TradeCard
+                  key={trade.id}
+                  trade={trade}
+                  currentUserId={me.user.id}
+                  onConfirm={() => confirmMutation.mutate(trade.id)}
+                  onCancel={() => cancelMutation.mutate(trade.id)}
+                  onRemoveItem={(itemId) =>
+                    removeMutation.mutate({ tradeId: trade.id, itemId })
+                  }
+                  busy={
+                    confirmMutation.isPending ||
+                    cancelMutation.isPending ||
+                    removeMutation.isPending
+                  }
+                />
+              ))}
+            </div>
           )}
         </section>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -28,7 +28,7 @@ type QuestResponse = { quests: Quest[] };
 
 export function QuestBoardOverlay({
   open,
-  onOpenChange
+  onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,14 +37,14 @@ export function QuestBoardOverlay({
   const { data, isLoading } = useQuery({
     queryKey: ["quests"],
     queryFn: () => apiFetch<QuestResponse>("/api/quests"),
-    enabled: open
+    enabled: open,
   });
 
   const claimMutation = useMutation({
     mutationFn: (questKey: string) =>
       apiFetch<QuestResponse>("/api/quests", {
         method: "POST",
-        body: JSON.stringify({ questKey })
+        body: JSON.stringify({ questKey }),
       }),
     onSuccess: async () => {
       toast.success("Daily quest reward claimed");
@@ -52,14 +52,14 @@ export function QuestBoardOverlay({
         queryClient.invalidateQueries({ queryKey: ["quests"] }),
         queryClient.invalidateQueries({ queryKey: ["garden"] }),
         queryClient.invalidateQueries({ queryKey: ["me"] }),
-        queryClient.invalidateQueries({ queryKey: ["activity"] })
+        queryClient.invalidateQueries({ queryKey: ["activity"] }),
       ]);
     },
     onError: (err) => {
       toast.error("Could not claim quest", {
-        description: err instanceof Error ? err.message : "Try again later."
+        description: err instanceof Error ? err.message : "Try again later.",
       });
-    }
+    },
   });
 
   return (
@@ -87,24 +87,37 @@ export function QuestBoardOverlay({
                       <div>
                         <div className="font-black">{quest.title}</div>
                         <div className="text-sm text-muted-foreground">
-                          {Math.min(quest.progress, quest.target)}/{quest.target}
+                          {Math.min(quest.progress, quest.target)}/
+                          {quest.target}
                         </div>
                       </div>
                     </div>
-                    <Badge variant={complete ? "common" : "outline"} className="gap-1">
+                    <Badge
+                      variant={complete ? "common" : "outline"}
+                      className="gap-1"
+                    >
                       <Coins className="h-3.5 w-3.5" />
                       {quest.rewardGrow}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{quest.description}</p>
-                  <Progress value={(Math.min(quest.progress, quest.target) / quest.target) * 100} />
+                  <p className="text-sm text-muted-foreground">
+                    {quest.description}
+                  </p>
+                  <Progress
+                    value={
+                      (Math.min(quest.progress, quest.target) / quest.target) *
+                      100
+                    }
+                  />
                   <div className="text-xs font-semibold text-muted-foreground">
                     Expires {new Date(quest.expiresAt).toLocaleTimeString()}
                   </div>
                   <Button
                     className="w-full"
                     variant={quest.claimed ? "secondary" : "default"}
-                    disabled={!complete || quest.claimed || claimMutation.isPending}
+                    disabled={
+                      !complete || quest.claimed || claimMutation.isPending
+                    }
                     onClick={() => claimMutation.mutate(quest.questKey)}
                   >
                     <CheckCircle2 className="h-4 w-4" />

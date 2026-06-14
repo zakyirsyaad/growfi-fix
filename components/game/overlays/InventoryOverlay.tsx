@@ -48,7 +48,7 @@ export function InventoryOverlay({
         throw new Error(
           stack.lockedQuantity > 0
             ? "This fruit is locked in marketplace/trade."
-            : "Enter at least 1 fruit."
+            : "Enter at least 1 fruit.",
         );
       }
       if (process.env.NODE_ENV === "development") {
