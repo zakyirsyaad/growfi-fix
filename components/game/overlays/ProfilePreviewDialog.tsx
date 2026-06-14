@@ -2,7 +2,6 @@
 
 import { MapPin, Wallet } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +22,12 @@ export function ProfilePreviewDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="scanlines border-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>button]:text-[#91d985] [&>button:hover]:text-[#f7d767]">
         <DialogHeader>
-          <DialogTitle>Profile Preview</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="pixel-heading text-sm text-[#f2fbf1]">
+            Profile Preview
+          </DialogTitle>
+          <DialogDescription className="font-sans text-[#91d985]">
             {player?.currentRoom || "Nearby farmer"}
           </DialogDescription>
         </DialogHeader>
@@ -40,17 +41,19 @@ export function ProfilePreviewDialog({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <div className="text-xl font-black">{player.username}</div>
+                <div className="text-xl font-black text-[#f2fbf1]">
+                  {player.username}
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="gap-1">
+                  <span className="pixel-badge text-[#8ad4ff] gap-1">
                     <MapPin className="h-3.5 w-3.5" />
                     {Math.round(player.x)}, {Math.round(player.y)}
-                  </Badge>
+                  </span>
                   {player.walletAddress ? (
-                    <Badge variant="secondary" className="gap-1">
+                    <span className="pixel-badge text-[#f7d767] gap-1">
                       <Wallet className="h-3.5 w-3.5" />
                       wallet connected
-                    </Badge>
+                    </span>
                   ) : null}
                 </div>
               </div>

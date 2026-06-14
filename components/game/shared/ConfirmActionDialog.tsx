@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -29,18 +28,31 @@ export function ConfirmActionDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="scanlines border-2 border-[#3d9f4b] bg-[#0d2614] text-[#ddf5d9] [&>button]:text-[#91d985] [&>button:hover]:text-[#f7d767]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle className="pixel-heading text-sm text-[#f2fbf1]">
+            {title}
+          </DialogTitle>
+          <DialogDescription className="font-sans text-[#91d985]">
+            {description}
+          </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={onConfirm} disabled={busy}>
-            {confirmLabel}
-          </Button>
+        <DialogFooter className="gap-2">
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-ghost px-4 py-3"
+            onClick={() => onOpenChange(false)}
+          >
+            CANCEL
+          </button>
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-primary px-4 py-3"
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {confirmLabel.toUpperCase()}
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

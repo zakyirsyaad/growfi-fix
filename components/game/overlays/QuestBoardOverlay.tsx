@@ -3,10 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Coins, ListChecks } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { LoadingState } from "@/components/game/shared/StatusStates";
 import { apiFetch } from "@/lib/utils/fetcher";
@@ -77,54 +73,51 @@ export function QuestBoardOverlay({
             const complete = quest.progress >= quest.target;
 
             return (
-              <Card key={quest.questKey} className="bg-white/82">
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-10 w-10 place-items-center rounded-md bg-secondary text-primary">
-                        <ListChecks className="h-5 w-5" />
-                      </span>
-                      <div>
-                        <div className="font-black">{quest.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {Math.min(quest.progress, quest.target)}/
-                          {quest.target}
-                        </div>
+              <div key={quest.questKey} className="pixel-card space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="pixel-card-sunken grid h-10 w-10 place-items-center text-[#3d9f4b]">
+                      <ListChecks className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <div className="font-black text-[#f2fbf1]">
+                        {quest.title}
+                      </div>
+                      <div className="text-sm text-[#91d985]">
+                        {Math.min(quest.progress, quest.target)}/{quest.target}
                       </div>
                     </div>
-                    <Badge
-                      variant={complete ? "common" : "outline"}
-                      className="gap-1"
-                    >
-                      <Coins className="h-3.5 w-3.5" />
-                      {quest.rewardGrow}
-                    </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {quest.description}
-                  </p>
-                  <Progress
-                    value={
-                      (Math.min(quest.progress, quest.target) / quest.target) *
-                      100
-                    }
+                  <span className="pixel-badge gap-1 text-[#f7d767]">
+                    <Coins className="h-3.5 w-3.5" />
+                    {quest.rewardGrow}
+                  </span>
+                </div>
+                <p className="font-sans text-sm text-[#91d985]">
+                  {quest.description}
+                </p>
+                <div className="pixel-progress">
+                  <span
+                    style={{
+                      width: `${(Math.min(quest.progress, quest.target) / quest.target) * 100}%`,
+                    }}
                   />
-                  <div className="text-xs font-semibold text-muted-foreground">
-                    Expires {new Date(quest.expiresAt).toLocaleTimeString()}
-                  </div>
-                  <Button
-                    className="w-full"
-                    variant={quest.claimed ? "secondary" : "default"}
-                    disabled={
-                      !complete || quest.claimed || claimMutation.isPending
-                    }
-                    onClick={() => claimMutation.mutate(quest.questKey)}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    {quest.claimed ? "Claimed" : "Claim Reward"}
-                  </Button>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-xs font-semibold text-[#5e8c52]">
+                  Expires {new Date(quest.expiresAt).toLocaleTimeString()}
+                </div>
+                <button
+                  type="button"
+                  className={`pixel-btn w-full px-4 py-2 ${quest.claimed ? "pixel-btn-ghost" : "pixel-btn-primary"}`}
+                  disabled={
+                    !complete || quest.claimed || claimMutation.isPending
+                  }
+                  onClick={() => claimMutation.mutate(quest.questKey)}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  {quest.claimed ? "CLAIMED" : "CLAIM REWARD"}
+                </button>
+              </div>
             );
           })}
         </div>

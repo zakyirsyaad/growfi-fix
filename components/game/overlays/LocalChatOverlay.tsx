@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import { Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { gameEventBus } from "@/lib/game/eventBus";
@@ -47,37 +45,35 @@ export function LocalChatOverlay({
       <div className="space-y-3">
         <div className="space-y-2">
           {roomMessages.length === 0 ? (
-            <Card className="bg-white/82">
-              <CardContent className="p-4 text-sm text-muted-foreground">
-                No messages yet.
-              </CardContent>
-            </Card>
+            <div className="pixel-card p-4 text-sm text-[#91d985]">
+              No messages yet.
+            </div>
           ) : (
             roomMessages.map((item) => (
-              <Card key={item.id} className="bg-white/82">
-                <CardContent className="flex gap-3 p-3">
-                  <Avatar className="h-8 w-8 rounded-md">
-                    <AvatarImage src={item.from.avatarUrl || undefined} />
-                    <AvatarFallback className="rounded-md">
-                      {item.from.username.slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        {item.from.username}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(item.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                    <div className="break-words text-sm">{item.message}</div>
+              <div key={item.id} className="pixel-card flex gap-3 p-3">
+                <Avatar className="h-8 w-8 rounded-md">
+                  <AvatarImage src={item.from.avatarUrl || undefined} />
+                  <AvatarFallback className="rounded-md">
+                    {item.from.username.slice(0, 1).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#f2fbf1]">
+                      {item.from.username}
+                    </span>
+                    <span className="text-xs text-[#5e8c52]">
+                      {new Date(item.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="break-words text-sm text-[#ddf5d9]">
+                    {item.message}
+                  </div>
+                </div>
+              </div>
             ))
           )}
         </div>
@@ -86,6 +82,7 @@ export function LocalChatOverlay({
             value={message}
             maxLength={180}
             placeholder="Message nearby farmers"
+            className="pixel-input px-3 py-2"
             onFocus={() =>
               gameEventBus.emit("gameInputLockChanged", {
                 source: "local-chat",
@@ -108,9 +105,13 @@ export function LocalChatOverlay({
               }
             }}
           />
-          <Button size="icon" onClick={send}>
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-primary px-3 py-2"
+            onClick={send}
+          >
             <Send className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
     </ResponsivePanel>

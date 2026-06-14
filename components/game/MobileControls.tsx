@@ -13,7 +13,6 @@ import {
   Store,
   Wallet,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { gameEventBus, type GameOverlayKey } from "@/lib/game/eventBus";
 import { cn } from "@/lib/utils";
 
@@ -27,15 +26,14 @@ function QuickButton({
   overlay: GameOverlayKey;
 }) {
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className="h-12 flex-col gap-0 rounded-lg bg-white/90 px-2 text-[11px] shadow-sm"
+    <button
+      type="button"
+      className="pixel-hud flex h-12 flex-col items-center justify-center gap-0.5 px-2 text-[9px] text-[#91d985] active:translate-y-0.5"
       onClick={() => gameEventBus.emit("openOverlay", { overlay })}
     >
       <Icon className="h-4 w-4" />
-      {label}
-    </Button>
+      <span className="font-pixel leading-none">{label}</span>
+    </button>
   );
 }
 
@@ -110,7 +108,7 @@ export const MobileControls = memo(function MobileControls() {
       <div className="pointer-events-none absolute bottom-24 left-5">
         <div
           ref={padRef}
-          className="pointer-events-auto relative h-28 w-28 touch-none rounded-full border border-white/60 bg-white/35 shadow-sm backdrop-blur"
+          className="pointer-events-auto relative h-28 w-28 touch-none rounded-full border-2 border-[#3d9f4b] bg-[#0d2614]/70 backdrop-blur"
           onPointerDown={(event) => {
             event.currentTarget.setPointerCapture(event.pointerId);
             updateVector(event.clientX, event.clientY);
@@ -127,7 +125,7 @@ export const MobileControls = memo(function MobileControls() {
             ref={thumbRef}
             data-active="false"
             className={cn(
-              "absolute left-1/2 top-1/2 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow transition-colors data-[active=true]:bg-primary/90",
+              "absolute left-1/2 top-1/2 grid h-12 w-12 place-items-center border-2 border-[#0a0f0d] bg-[#3d9f4b] text-[#0a0f0d] transition-colors data-[active=true]:bg-[#91d985]",
             )}
             style={{ transform: "translate(-50%, -50%)" }}
           >
@@ -136,12 +134,13 @@ export const MobileControls = memo(function MobileControls() {
         </div>
       </div>
 
-      <Button
-        className="pointer-events-auto absolute bottom-28 right-6 h-20 w-20 rounded-full text-base shadow-lg"
+      <button
+        type="button"
+        className="pixel-btn pixel-btn-primary pointer-events-auto absolute bottom-28 right-6 h-20 w-20 rounded-none"
         onClick={() => gameEventBus.emit("interact")}
       >
         <Hand className="h-6 w-6" />
-      </Button>
+      </button>
     </div>
   );
 });

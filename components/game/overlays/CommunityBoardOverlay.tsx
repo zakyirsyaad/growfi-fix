@@ -1,8 +1,6 @@
 "use client";
 
 import { CalendarDays, Megaphone, Target, Wrench } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 
 const sections = [
@@ -58,30 +56,26 @@ export function CommunityBoardOverlay({
         {sections.map((section) => {
           const Icon = section.icon;
           return (
-            <Card key={section.title} className="bg-white/82">
-              <CardHeader className="p-4 pb-2">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Icon className="h-4 w-4" />
-                  {section.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 p-4 pt-0">
+            <div key={section.title} className="pixel-card p-4">
+              <div className="flex items-center gap-2 text-base font-bold text-[#f2fbf1]">
+                <Icon className="h-4 w-4" />
+                {section.title}
+              </div>
+              <div className="mt-2 space-y-2">
                 {section.items.map((item) => (
                   <div
                     key={item}
-                    className="rounded-md bg-muted px-3 py-2 text-sm"
+                    className="pixel-card-sunken px-3 py-2 text-sm text-[#ddf5d9]"
                   >
                     {item}
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>
-      <Badge variant="outline" className="mt-4 bg-white">
-        MVP board data
-      </Badge>
+      <span className="pixel-badge text-[#5e8c52] mt-4">MVP board data</span>
     </ResponsivePanel>
   );
 }

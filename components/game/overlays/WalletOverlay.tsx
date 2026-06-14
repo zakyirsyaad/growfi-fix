@@ -18,7 +18,9 @@ export function WalletOverlay({
       description="Inspect real devnet SOL and $GROW balances."
       wide
     >
-      <WalletDashboard compact={true} />
+      <div className="pixel-scope">
+        <WalletDashboard compact={true} />
+      </div>
     </ResponsivePanel>
   );
 }

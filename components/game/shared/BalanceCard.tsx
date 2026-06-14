@@ -1,5 +1,4 @@
 import { Coins } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 export function BalanceCard({
   balance,
@@ -11,25 +10,19 @@ export function BalanceCard({
   label?: string;
 }) {
   return (
-    <Card className="bg-white/88">
-      <CardContent className="flex items-center gap-3 p-3">
-        <span className="grid h-9 w-9 place-items-center rounded-md bg-gold-100 text-gold-700">
-          <Coins className="h-5 w-5" />
+    <div className="pixel-hud flex items-center gap-3 p-3">
+      <span className="pixel-tile grid h-9 w-9 place-items-center text-[#f7d767]">
+        <Coins className="h-5 w-5" />
+      </span>
+      <span>
+        <span className="pixel-label block">{label}</span>
+        <span className="pixel-value block text-base leading-none">
+          {balance}
         </span>
-        <span>
-          <span className="block text-xs font-semibold text-muted-foreground">
-            {label}
-          </span>
-          <span className="block text-lg font-bold leading-none">
-            {balance}
-          </span>
-          {locked ? (
-            <span className="text-xs text-muted-foreground">
-              {locked} locked
-            </span>
-          ) : null}
-        </span>
-      </CardContent>
-    </Card>
+        {locked ? (
+          <span className="text-xs text-[#5e8c52]">{locked} locked</span>
+        ) : null}
+      </span>
+    </div>
   );
 }

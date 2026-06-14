@@ -18,7 +18,9 @@ export function ProfileOverlay({
       description="Discord identity, wallet, garden stats, and recent activity."
       wide
     >
-      <ProfileDashboard compact />
+      <div className="pixel-scope">
+        <ProfileDashboard compact />
+      </div>
     </ResponsivePanel>
   );
 }

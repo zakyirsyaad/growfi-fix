@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { GameCanvas } from "@/components/game/GameCanvas";
 import { GameOverlay } from "@/components/game/GameOverlay";
-import { Card, CardContent } from "@/components/ui/card";
 import { gameEventBus } from "@/lib/game/eventBus";
 import {
   mergeOnchainGarden,
@@ -128,11 +127,9 @@ export function GameClient() {
       <GameOverlay garden={displayGarden} shopEndsAt={shop?.rotation?.endsAt} />
       {isLoading ? (
         <div className="absolute left-1/2 top-1/2 z-40 w-[min(90vw,360px)] -translate-x-1/2 -translate-y-1/2">
-          <Card className="bg-white/92">
-            <CardContent className="p-4 text-center text-sm font-semibold">
-              Loading your farm state...
-            </CardContent>
-          </Card>
+          <div className="pixel-card p-4 text-center text-sm font-semibold text-[#f2fbf1]">
+            Loading your farm state...
+          </div>
         </div>
       ) : null}
     </div>

@@ -1,18 +1,18 @@
-import { Badge } from "@/components/ui/badge";
 import type { Rarity } from "@/types/game-data";
 
-const variants: Record<
-  Rarity,
-  "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic"
-> = {
-  COMMON: "common",
-  UNCOMMON: "uncommon",
-  RARE: "rare",
-  EPIC: "epic",
-  LEGENDARY: "legendary",
-  MYTHIC: "mythic",
+const colors: Record<Rarity, string> = {
+  COMMON: "#91d985",
+  UNCOMMON: "#8ad4ff",
+  RARE: "#ff9ebd",
+  EPIC: "#c79bff",
+  LEGENDARY: "#f7d767",
+  MYTHIC: "#ff7b54",
 };
 
 export function RarityBadge({ rarity }: { rarity: Rarity }) {
-  return <Badge variant={variants[rarity]}>{rarity.toLowerCase()}</Badge>;
+  return (
+    <span className="pixel-badge" style={{ color: colors[rarity] }}>
+      {rarity}
+    </span>
+  );
 }

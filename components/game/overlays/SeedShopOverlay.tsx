@@ -3,10 +3,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, ShoppingBasket } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import { CountdownBadge } from "@/components/game/shared/CountdownBadge";
 import { RarityBadge } from "@/components/game/shared/RarityBadge";
@@ -119,9 +115,9 @@ export function SeedShopOverlay({
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <CountdownBadge to={data?.rotation?.endsAt} label="Next refresh" />
-        <Badge variant="outline" className="bg-white/80">
+        <span className="pixel-badge text-[#91d985]">
           $GROW balance updates after each purchase
-        </Badge>
+        </span>
       </div>
       {error ? (
         <div className="mb-3">
@@ -136,18 +132,20 @@ export function SeedShopOverlay({
             title="No active shop rotation"
             description="No active shop rotation was found. Devnet can create one automatically when an admin signer is configured."
           />
-          <div className="rounded-md bg-muted p-3 text-xs font-semibold text-muted-foreground">
+          <div className="pixel-card-sunken p-3 text-xs font-semibold text-[#91d985]">
             Devnet setup: configure GROWFI_ADMIN_SECRET_KEY or
             TREASURY_WALLET_SECRET_KEY, then refresh. Manual fallback: npx tsx
             anchor/scripts/create-shop-rotation.ts
           </div>
-          <Button
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-primary px-4 py-2"
             disabled={ensureRotationMutation.isPending}
             onClick={() => ensureRotationMutation.mutate()}
           >
             <RefreshCw className="h-4 w-4" />
-            Refresh/Create Devnet Shop Rotation
-          </Button>
+            REFRESH/CREATE DEVNET SHOP ROTATION
+          </button>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -158,73 +156,80 @@ export function SeedShopOverlay({
                 ? (item.stockRemaining / item.stockTotal) * 100
                 : 0;
             return (
-              <Card key={item.id} className="bg-white/82">
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="grid h-14 w-14 place-items-center rounded-md bg-secondary text-3xl">
-                        {item.seed.iconUrl}
+              <div key={item.id} className="pixel-card space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="pixel-tile grid h-14 w-14 place-items-center text-3xl">
+                      {item.seed.iconUrl}
+                    </span>
+                    <div>
+                      <div className="font-bold text-[#f2fbf1]">
+                        {item.seed.name}
+                      </div>
+                      <div className="mt-1">
+                        <RarityBadge rarity={item.seed.rarity} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-semibold text-[#5e8c52]">
+                      Price
+                    </div>
+                    <div className="text-xl font-bold text-[#f7d767]">
+                      {item.price}
+                    </div>
+                    {item.stockRemaining <= 0 ? (
+                      <span className="pixel-badge text-[#5e8c52]">
+                        Sold Out
                       </span>
-                      <div>
-                        <div className="font-bold">{item.seed.name}</div>
-                        <div className="mt-1">
-                          <RarityBadge rarity={item.seed.rarity} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-semibold text-muted-foreground">
-                        Price
-                      </div>
-                      <div className="text-xl font-bold">{item.price}</div>
-                      {item.stockRemaining <= 0 ? (
-                        <Badge variant="secondary">Sold Out</Badge>
-                      ) : null}
-                    </div>
+                    ) : null}
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-                      <span>Global stock</span>
-                      <span>
-                        {item.stockRemaining}/{item.stockTotal}
-                      </span>
-                    </div>
-                    <Progress value={stockPercent} />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold text-[#5e8c52]">
+                    <span>Global stock</span>
+                    <span>
+                      {item.stockRemaining}/{item.stockTotal}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div className="rounded-md bg-muted p-2">
-                      <div className="text-xs font-semibold text-muted-foreground">
-                        Limit
-                      </div>
-                      {remainingForUser}
-                    </div>
-                    <div className="rounded-md bg-muted p-2">
-                      <div className="text-xs font-semibold text-muted-foreground">
-                        Grow
-                      </div>
-                      {Math.round(item.seed.growTimeSeconds / 60)}m
-                    </div>
-                    <div className="rounded-md bg-muted p-2">
-                      <div className="text-xs font-semibold text-muted-foreground">
-                        Yield
-                      </div>
-                      {item.seed.minYield}-{item.seed.maxYield}
-                    </div>
+                  <div className="pixel-progress">
+                    <span style={{ width: `${stockPercent}%` }} />
                   </div>
-                  <Button
-                    className="w-full"
-                    disabled={
-                      buyMutation.isPending ||
-                      item.stockRemaining <= 0 ||
-                      remainingForUser <= 0
-                    }
-                    onClick={() => buyMutation.mutate(item)}
-                  >
-                    <ShoppingBasket className="h-4 w-4" />
-                    Buy 1 Seed
-                  </Button>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="pixel-card-sunken p-2">
+                    <div className="text-xs font-semibold text-[#5e8c52]">
+                      Limit
+                    </div>
+                    {remainingForUser}
+                  </div>
+                  <div className="pixel-card-sunken p-2">
+                    <div className="text-xs font-semibold text-[#5e8c52]">
+                      Grow
+                    </div>
+                    {Math.round(item.seed.growTimeSeconds / 60)}m
+                  </div>
+                  <div className="pixel-card-sunken p-2">
+                    <div className="text-xs font-semibold text-[#5e8c52]">
+                      Yield
+                    </div>
+                    {item.seed.minYield}-{item.seed.maxYield}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="pixel-btn pixel-btn-gold w-full px-4 py-2"
+                  disabled={
+                    buyMutation.isPending ||
+                    item.stockRemaining <= 0 ||
+                    remainingForUser <= 0
+                  }
+                  onClick={() => buyMutation.mutate(item)}
+                >
+                  <ShoppingBasket className="h-4 w-4" />
+                  BUY 1 SEED
+                </button>
+              </div>
             );
           })}
         </div>

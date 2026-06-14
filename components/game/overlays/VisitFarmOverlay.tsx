@@ -5,8 +5,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Handshake, Search, Sprout, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -81,52 +79,56 @@ export function VisitFarmOverlay({
       ) : null}
       {onlinePlayers.length > 0 ? (
         <div className="mb-4 space-y-2">
-          <div className="text-sm font-bold">Online nearby</div>
+          <div className="text-sm font-bold text-[#f2fbf1]">Online nearby</div>
           {onlinePlayers.slice(0, 5).map((player) => (
-            <Card key={player.userId} className="bg-white/82">
-              <CardContent className="flex items-center gap-3 p-3">
-                <Avatar className="h-9 w-9 rounded-md">
-                  <AvatarImage src={player.avatarUrl || undefined} />
-                  <AvatarFallback className="rounded-md">
-                    {player.username.slice(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-black">{player.username}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {player.currentRoom}
-                  </div>
+            <div
+              key={player.userId}
+              className="pixel-card flex items-center gap-3 p-3"
+            >
+              <Avatar className="h-9 w-9 rounded-md">
+                <AvatarImage src={player.avatarUrl || undefined} />
+                <AvatarFallback className="rounded-md">
+                  {player.username.slice(0, 1).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-black text-[#f2fbf1]">
+                  {player.username}
                 </div>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => visitMutation.mutate(player.userId)}
-                >
-                  <Sprout className="h-4 w-4" />
-                  Visit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() =>
-                    gameEventBus.emit("openOverlay", {
-                      overlay: "profilePreview",
-                      payload: player,
-                    })
-                  }
-                >
-                  <UserRound className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    sendTradeInvite(player.userId, player.currentRoom)
-                  }
-                >
-                  <Handshake className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
+                <div className="text-xs text-[#91d985]">
+                  {player.currentRoom}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-ghost px-3 py-2"
+                onClick={() => visitMutation.mutate(player.userId)}
+              >
+                <Sprout className="h-4 w-4" />
+                VISIT
+              </button>
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-ghost px-3 py-2"
+                onClick={() =>
+                  gameEventBus.emit("openOverlay", {
+                    overlay: "profilePreview",
+                    payload: player,
+                  })
+                }
+              >
+                <UserRound className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-primary px-3 py-2"
+                onClick={() =>
+                  sendTradeInvite(player.userId, player.currentRoom)
+                }
+              >
+                <Handshake className="h-4 w-4" />
+              </button>
+            </div>
           ))}
         </div>
       ) : null}
@@ -154,47 +156,51 @@ export function VisitFarmOverlay({
                   </AvatarFallback>
                 </Avatar>
                 <span className="flex-1">
-                  <span className="block font-semibold">{user.username}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="block font-semibold text-[#f2fbf1]">
+                    {user.username}
+                  </span>
+                  <span className="text-xs text-[#91d985]">
                     Level {user.gardenLevel} · {user.totalHarvests} harvests
                   </span>
                 </span>
-                <Button size="sm" disabled={visitMutation.isPending}>
-                  Visit
-                </Button>
+                <button
+                  type="button"
+                  className="pixel-btn pixel-btn-primary px-3 py-2"
+                  disabled={visitMutation.isPending}
+                >
+                  VISIT
+                </button>
               </CommandItem>
             ))}
           </CommandGroup>
         </CommandList>
       </Command>
       {!query && !data?.users.length ? (
-        <Card className="mt-4 bg-white/75">
-          <CardContent className="flex items-center gap-3 p-4">
-            <span className="grid h-10 w-10 place-items-center rounded-md bg-secondary text-primary">
-              <Search className="h-5 w-5" />
-            </span>
-            <div>
-              <div className="font-semibold">Search and visit</div>
-              <div className="text-sm text-muted-foreground">
-                Visitors can view crops and owner stats, then request a direct
-                trade.
-              </div>
+        <div className="pixel-card mt-4 flex items-center gap-3 p-4">
+          <span className="pixel-tile grid h-10 w-10 place-items-center text-[#91d985]">
+            <Search className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="font-semibold text-[#f2fbf1]">Search and visit</div>
+            <div className="text-sm text-[#91d985]">
+              Visitors can view crops and owner stats, then request a direct
+              trade.
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : data?.users.length === 0 ? (
         <div className="mt-4">
           <EmptyState title="No farms found" />
         </div>
       ) : null}
-      <Button
-        className="mt-4 w-full"
-        variant="secondary"
+      <button
+        type="button"
+        className="pixel-btn pixel-btn-ghost mt-4 w-full px-4 py-2"
         onClick={() => gameEventBus.emit("returnHome")}
       >
         <Sprout className="h-4 w-4" />
-        Return Home Farm
-      </Button>
+        RETURN HOME FARM
+      </button>
     </ResponsivePanel>
   );
 }

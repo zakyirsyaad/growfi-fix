@@ -1,18 +1,18 @@
-import { Badge } from "@/components/ui/badge";
 import type { Mutation } from "@/types/game-data";
 
-const variants: Record<
-  Mutation,
-  "secondary" | "uncommon" | "epic" | "legendary" | "crystal" | "rainbow"
-> = {
-  NORMAL: "secondary",
-  BIG: "uncommon",
-  SWEET: "epic",
-  GOLDEN: "legendary",
-  CRYSTAL: "crystal",
-  RAINBOW: "rainbow",
+const colors: Record<Mutation, string> = {
+  NORMAL: "#5e8c52",
+  BIG: "#8ad4ff",
+  SWEET: "#c79bff",
+  GOLDEN: "#f7d767",
+  CRYSTAL: "#ddf5d9",
+  RAINBOW: "#ff9ebd",
 };
 
 export function MutationBadge({ mutation }: { mutation: Mutation }) {
-  return <Badge variant={variants[mutation]}>{mutation.toLowerCase()}</Badge>;
+  return (
+    <span className="pixel-badge" style={{ color: colors[mutation] }}>
+      {mutation}
+    </span>
+  );
 }

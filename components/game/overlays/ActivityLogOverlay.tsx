@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
 import { ResponsivePanel } from "@/components/game/overlays/ResponsivePanel";
 import {
   EmptyState,
@@ -40,14 +39,16 @@ export function ActivityLogOverlay({
       ) : (
         <div className="space-y-2">
           {data.logs.map((log) => (
-            <div key={log.id} className="rounded-md bg-white/75 p-3">
+            <div key={log.id} className="pixel-card p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="font-semibold">{log.message}</div>
-                <Badge variant="outline">
+                <div className="font-semibold text-[#f2fbf1]">
+                  {log.message}
+                </div>
+                <span className="pixel-badge text-[#91d985]">
                   {log.type.toLowerCase().replaceAll("_", " ")}
-                </Badge>
+                </span>
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">
+              <div className="mt-1 text-xs text-[#5e8c52]">
                 {new Date(log.createdAt).toLocaleString()}
               </div>
             </div>

@@ -20,10 +20,6 @@ import {
   ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { gameEventBus } from "@/lib/game/eventBus";
 import { apiFetch } from "@/lib/utils/fetcher";
@@ -78,27 +74,35 @@ function SetupStep({
 }) {
   return (
     <div
-      className={`group flex items-center gap-4 rounded-xl border p-4 transition-all duration-300 ${
-        active 
-          ? "border-primary bg-primary/5 shadow-sm scale-[1.02]" 
+      className={`group flex items-center gap-4 border-2 p-4 transition-all duration-200 ${
+        active
+          ? "border-[#f7d767] bg-[#0a0f0d] pixel-shadow"
           : complete
-            ? "border-border/50 bg-card/50 opacity-70"
-            : "border-border bg-card/50 opacity-40"
+            ? "border-[#3d9f4b] bg-[#0a0f0d] opacity-80"
+            : "border-[#153d21] bg-[#0a0f0d] opacity-40"
       }`}
     >
       <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-black shadow-sm transition-colors ${
-          complete 
-            ? "bg-primary text-primary-foreground" 
+        className={`flex h-10 w-10 shrink-0 items-center justify-center border-2 border-[#0a0f0d] font-pixel text-[10px] transition-colors ${
+          complete
+            ? "bg-[#3d9f4b] text-[#0a0f0d]"
             : active
-              ? "bg-primary/20 text-primary border border-primary/30"
-              : "bg-muted text-muted-foreground border border-border"
+              ? "bg-[#f7d767] text-[#0a0f0d]"
+              : "bg-[#153d21] text-[#5e8c52]"
         }`}
       >
         {complete ? <CheckCircle2 className="h-5 w-5" /> : index}
       </div>
-      <span className={`min-w-0 flex-1 font-bold text-sm ${active ? "text-foreground" : "text-muted-foreground"}`}>{label}</span>
-      {active && <ChevronRight className="h-5 w-5 text-primary animate-pulse" />}
+      <span
+        className={`min-w-0 flex-1 font-sans text-sm font-bold ${
+          active ? "text-[#f2fbf1]" : "text-[#91d985]"
+        }`}
+      >
+        {label}
+      </span>
+      {active && (
+        <ChevronRight className="h-5 w-5 animate-pulse text-[#f7d767]" />
+      )}
     </div>
   );
 }
@@ -113,8 +117,8 @@ function ManualGrowInstructions({
   const mint =
     mintAddress || process.env.NEXT_PUBLIC_GROW_TOKEN_MINT || "GROW_TOKEN_MINT";
   return (
-    <div className="rounded-xl border border-border bg-muted/50 p-4 text-xs font-mono text-muted-foreground shadow-inner">
-      <div className="mb-2 text-foreground font-bold font-sans uppercase tracking-wider text-[10px]">CLI fallback</div>
+    <div className="pixel-card-sunken p-4 font-mono text-xs text-[#91d985]">
+      <div className="pixel-label mb-2">CLI fallback</div>
       <pre className="whitespace-pre-wrap break-words">
         {`spl-token create-account ${mint}
 spl-token mint ${mint} 1000000 ${walletAddress || "USER_WALLET_ADDRESS"}`}
@@ -337,22 +341,30 @@ export function WalletGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 flex flex-col relative overflow-hidden">
-      {/* Soft Ambient Glows */}
-      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] opacity-20 bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] opacity-20 bg-emerald-400/20 rounded-full blur-[100px] pointer-events-none" />
+    <div className="pixel-sky scanlines relative flex min-h-screen flex-col overflow-hidden p-4 font-sans md:p-8">
+      {/* Pixel sky ambience */}
+      <div className="pointer-events-none absolute inset-0">
+        <span className="absolute left-[14%] top-[16%] h-1.5 w-1.5 animate-pixel-twinkle bg-[#f7d767]" />
+        <span className="absolute left-[80%] top-[12%] h-1.5 w-1.5 animate-pixel-twinkle bg-[#8ad4ff] [animation-delay:0.6s]" />
+        <span className="absolute left-[60%] top-[28%] h-1.5 w-1.5 animate-pixel-twinkle bg-[#ff9ebd] [animation-delay:1.1s]" />
+        <div className="pixel-sun absolute right-[8%] top-[10%] h-10 w-10 animate-pixel-twinkle" />
+      </div>
 
-      <div className="mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-6xl items-start gap-8 lg:grid-cols-[400px_minmax(0,1fr)] pt-12 relative z-10">
-        
+      <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-6xl items-start gap-8 pt-12 lg:grid-cols-[400px_minmax(0,1fr)]">
+
         {/* Left Sidebar: Steps */}
         <div className="space-y-6">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-md">
-              <Leaf className="w-5 h-5" />
+            <div className="flex h-10 w-10 items-center justify-center border-2 border-[#0a0f0d] bg-[#3d9f4b] text-[#0a0f0d] pixel-shadow">
+              <Leaf className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-foreground">GrowFi Setup</h2>
-              <p className="text-sm font-medium text-muted-foreground">Complete these steps to play</p>
+              <h2 className="pixel-heading text-sm text-[#f2fbf1]">
+                GrowFi Setup
+              </h2>
+              <p className="font-sans text-sm font-medium text-[#91d985]">
+                Complete these steps to play
+              </p>
             </div>
           </div>
           <div className="space-y-3">
@@ -369,12 +381,10 @@ export function WalletGate({ children }: { children: ReactNode }) {
         </div>
 
         {/* Right Main Panel: Active Step Content */}
-        <Card className="bg-card/80 shadow-2xl backdrop-blur-xl border border-border/50 rounded-[2rem] overflow-hidden sticky top-12">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-bl-[100%] -z-10" />
-          
-          <CardHeader className="border-b border-border/30 pb-6 pt-8 px-8">
+        <div className="pixel-panel scanlines sticky top-12 overflow-hidden">
+          <div className="border-b-2 border-[#153d21] px-8 pb-6 pt-8">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-black">
+              <h3 className="pixel-heading text-base text-[#f2fbf1]">
                 {status !== "authenticated"
                   ? "Identity Verification"
                   : !wallet.publicKey
@@ -388,134 +398,164 @@ export function WalletGate({ children }: { children: ReactNode }) {
                           : !onchain.data?.player
                             ? "Initialize Player"
                             : "Prepare Land"}
-              </CardTitle>
-              <Badge variant="outline" className="bg-background border-primary/20 text-primary uppercase tracking-wider font-bold">
-                Devnet
-              </Badge>
+              </h3>
+              <span className="pixel-badge text-[#f7d767]">Devnet</span>
             </div>
-          </CardHeader>
+          </div>
 
-          <CardContent className="p-8 space-y-8 min-h-[400px] flex flex-col justify-center">
+          <div className="flex min-h-[400px] flex-col justify-center space-y-8 p-8">
             {loading ? (
-              <div className="space-y-4 w-full">
-                <Skeleton className="h-6 w-1/3 rounded-lg" />
-                <Skeleton className="h-24 w-full rounded-xl" />
-                <Skeleton className="h-12 w-48 rounded-xl" />
+              <div className="w-full space-y-4">
+                <Skeleton className="h-6 w-1/3 bg-[#153d21]" />
+                <Skeleton className="h-24 w-full bg-[#153d21]" />
+                <Skeleton className="h-12 w-48 bg-[#153d21]" />
               </div>
             ) : status !== "authenticated" ? (
-              <div className="space-y-8 text-center flex flex-col items-center">
-                <div className="w-20 h-20 bg-[#5865F2]/10 text-[#5865F2] rounded-[2rem] flex items-center justify-center">
-                  <svg className="w-10 h-10" role="img" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0788.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+              <div className="flex flex-col items-center space-y-8 text-center">
+                <div className="flex h-20 w-20 items-center justify-center border-2 border-[#0a0f0d] bg-[#5865F2]/15 text-[#8ad4ff] pixel-shadow">
+                  <svg className="h-10 w-10" role="img" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0788.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-foreground mb-2">Connect your identity</p>
-                  <p className="text-sm font-medium text-muted-foreground max-w-sm mx-auto">
+                  <p className="mb-2 text-lg font-bold text-[#f2fbf1]">
+                    Connect your identity
+                  </p>
+                  <p className="mx-auto max-w-sm font-sans text-sm font-medium text-[#91d985]">
                     Your farm profile, inventory cache, and social identity start with Discord.
                   </p>
                 </div>
-                <Button 
+                <button
+                  type="button"
                   onClick={() => signIn("discord")}
-                  className="w-full sm:w-auto px-8 py-6 text-lg rounded-xl font-bold bg-[#5865F2] hover:bg-[#4752C4] text-white transition-all shadow-lg hover:shadow-[#5865F2]/25"
+                  className="pixel-btn w-full bg-[#5865F2] px-8 py-4 text-white hover:bg-[#4752C4] sm:w-auto"
                 >
-                  Login with Discord
-                </Button>
+                  LOGIN WITH DISCORD
+                </button>
               </div>
             ) : !walletVerified ? (
               <div className="space-y-8">
                 <div className="space-y-2">
-                  <p className="text-lg font-bold text-foreground">Secure your progress</p>
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-lg font-bold text-[#f2fbf1]">
+                    Secure your progress
+                  </p>
+                  <p className="font-sans text-sm font-medium text-[#91d985]">
                     Connect and verify a Solana wallet so GrowFi can map your on-chain player, farm, and $GROW token account.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-4 p-6 bg-muted/30 border border-border rounded-[1.5rem]">
+                <div className="pixel-card-sunken flex flex-col items-center gap-4 p-6 sm:flex-row">
                   <div className="w-full sm:w-auto">
-                    <WalletMultiButton style={{ width: '100%', height: '3.5rem', borderRadius: '0.75rem', fontWeight: 700 }} />
+                    <WalletMultiButton style={{ width: '100%', height: '3.5rem', borderRadius: '0', fontWeight: 700 }} />
                   </div>
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto h-14 rounded-xl font-bold px-8 shadow-md"
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-primary w-full px-8 py-4 sm:w-auto"
                     disabled={!walletAddress || verifyWalletMutation.isPending}
                     onClick={() => verifyWalletMutation.mutate()}
                   >
                     {verifyWalletMutation.isPending ? (
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Wallet className="h-5 w-5 mr-2" />
+                      <Wallet className="h-5 w-5" />
                     )}
-                    Verify Wallet
-                  </Button>
+                    VERIFY WALLET
+                  </button>
                 </div>
               </div>
             ) : !devnetConfigured ? (
-              <Alert variant="destructive" className="border-2 p-6 rounded-2xl">
-                <ShieldAlert className="h-6 w-6" />
-                <AlertTitle className="text-lg font-bold ml-2">Wrong cluster configured</AlertTitle>
-                <AlertDescription className="ml-2 mt-2 text-sm font-medium">
-                  Set <code className="bg-destructive/10 px-1 py-0.5 rounded">NEXT_PUBLIC_TOKEN_CLUSTER=devnet</code> and <code className="bg-destructive/10 px-1 py-0.5 rounded">NEXT_PUBLIC_TOKEN_MODE=devnet</code>, and point <code className="bg-destructive/10 px-1 py-0.5 rounded">NEXT_PUBLIC_SOLANA_RPC_URL</code> at devnet before entering the game.
-                </AlertDescription>
-              </Alert>
+              <div className="pixel-card flex items-start gap-3 border-[#a31948] p-6">
+                <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0 text-[#ff9ebd]" />
+                <div>
+                  <div className="pixel-heading text-xs text-[#ff9ebd]">
+                    Wrong cluster configured
+                  </div>
+                  <p className="mt-2 font-sans text-sm font-medium text-[#ffe5ee]">
+                    Set <code className="bg-[#0a0f0d] px-1 py-0.5">NEXT_PUBLIC_TOKEN_CLUSTER=devnet</code> and <code className="bg-[#0a0f0d] px-1 py-0.5">NEXT_PUBLIC_TOKEN_MODE=devnet</code>, and point <code className="bg-[#0a0f0d] px-1 py-0.5">NEXT_PUBLIC_SOLANA_RPC_URL</code> at devnet before entering the game.
+                  </p>
+                </div>
+              </div>
             ) : !onchain.data?.config ? (
-              <Alert className="border-2 p-6 rounded-2xl bg-destructive/5 text-destructive border-destructive/20">
-                <ShieldAlert className="h-6 w-6" />
-                <AlertTitle className="text-lg font-bold ml-2">GrowFi program config is missing</AlertTitle>
-                <AlertDescription className="ml-2 mt-2 text-sm font-medium">
-                  The connected devnet program has no Config PDA yet. Run the Anchor initialize-config script with the devnet admin wallet.
-                </AlertDescription>
-              </Alert>
+              <div className="pixel-card flex items-start gap-3 border-[#a31948] p-6">
+                <ShieldAlert className="mt-0.5 h-6 w-6 shrink-0 text-[#ff9ebd]" />
+                <div>
+                  <div className="pixel-heading text-xs text-[#ff9ebd]">
+                    GrowFi program config is missing
+                  </div>
+                  <p className="mt-2 font-sans text-sm font-medium text-[#ffe5ee]">
+                    The connected devnet program has no Config PDA yet. Run the Anchor initialize-config script with the devnet admin wallet.
+                  </p>
+                </div>
+              </div>
             ) : !hasDevnetSol ? (
               <div className="space-y-6">
-                <Alert className="border-2 border-primary/20 bg-primary/5 p-6 rounded-2xl">
-                  <Wallet className="h-6 w-6 text-primary" />
-                  <AlertTitle className="text-lg font-bold ml-2 text-foreground">You need Devnet SOL for gas</AlertTitle>
-                  <AlertDescription className="ml-2 mt-2 text-sm font-medium text-muted-foreground">
-                    Current balance: <strong className="text-foreground">{solBalance.toFixed(4)} SOL</strong>. Add Devnet SOL before creating your on-chain player.
-                  </AlertDescription>
-                </Alert>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button asChild size="lg" className="rounded-xl font-bold flex-1 shadow-md">
-                    <a href="https://faucet.solana.com/" target="_blank" rel="noreferrer">
-                      <ExternalLink className="h-5 w-5 mr-2" />
-                      Open Solana Faucet
-                    </a>
-                  </Button>
-                  <Button variant="secondary" size="lg" className="rounded-xl font-bold" onClick={() => balances.refetch()}>
-                    <RefreshCw className="h-5 w-5 mr-2" />
-                    Refresh Balance
-                  </Button>
+                <div className="pixel-card flex items-start gap-3 p-6">
+                  <Wallet className="mt-0.5 h-6 w-6 shrink-0 text-[#f7d767]" />
+                  <div>
+                    <div className="pixel-heading text-xs text-[#f2fbf1]">
+                      You need Devnet SOL for gas
+                    </div>
+                    <p className="mt-2 font-sans text-sm font-medium text-[#91d985]">
+                      Current balance: <strong className="text-[#f7d767]">{solBalance.toFixed(4)} SOL</strong>. Add Devnet SOL before creating your on-chain player.
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-muted/50 border border-border p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Or use Solana CLI</p>
-                  <code className="text-sm font-mono text-foreground font-semibold">solana airdrop 2 {shortAddress(walletAddress!)} --url devnet</code>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <a
+                    href="https://faucet.solana.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="pixel-btn pixel-btn-primary flex-1 px-6 py-4"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                    OPEN SOLANA FAUCET
+                  </a>
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-ghost px-6 py-4"
+                    onClick={() => balances.refetch()}
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                    REFRESH BALANCE
+                  </button>
+                </div>
+                <div className="pixel-card-sunken p-4">
+                  <p className="pixel-label mb-2">Or use Solana CLI</p>
+                  <code className="font-mono text-sm font-semibold text-[#ddf5d9]">solana airdrop 2 {shortAddress(walletAddress!)} --url devnet</code>
                 </div>
               </div>
             ) : !hasGrow ? (
               <div className="space-y-6">
-                <Alert className="border-2 border-primary/20 bg-primary/5 p-6 rounded-2xl">
-                  <Coins className="h-6 w-6 text-primary" />
-                  <AlertTitle className="text-lg font-bold ml-2 text-foreground">Claim Devnet $GROW</AlertTitle>
-                  <AlertDescription className="ml-2 mt-2 text-sm font-medium text-muted-foreground">
-                    Mint test $GROW to your connected wallet. This button only works in devnet mode when the server has a mint authority.
-                  </AlertDescription>
-                </Alert>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    size="lg"
-                    className="flex-1 rounded-xl font-bold shadow-md"
+                <div className="pixel-card flex items-start gap-3 p-6">
+                  <Coins className="mt-0.5 h-6 w-6 shrink-0 text-[#f7d767]" />
+                  <div>
+                    <div className="pixel-heading text-xs text-[#f2fbf1]">
+                      Claim Devnet $GROW
+                    </div>
+                    <p className="mt-2 font-sans text-sm font-medium text-[#91d985]">
+                      Mint test $GROW to your connected wallet. This button only works in devnet mode when the server has a mint authority.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-gold flex-1 px-6 py-4"
                     disabled={mintMutation.isPending || !mintAddress}
                     onClick={() => mintMutation.mutate()}
                   >
                     {mintMutation.isPending ? (
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Coins className="h-5 w-5 mr-2" />
+                      <Coins className="h-5 w-5" />
                     )}
-                    Mint Devnet $GROW
-                  </Button>
-                  <Button variant="secondary" size="lg" className="rounded-xl font-bold" onClick={() => balances.refetch()}>
-                    <RefreshCw className="h-5 w-5 mr-2" />
-                    Refresh
-                  </Button>
+                    MINT DEVNET $GROW
+                  </button>
+                  <button
+                    type="button"
+                    className="pixel-btn pixel-btn-ghost px-6 py-4"
+                    onClick={() => balances.refetch()}
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                    REFRESH
+                  </button>
                 </div>
                 <ManualGrowInstructions
                   walletAddress={walletAddress}
@@ -524,71 +564,79 @@ export function WalletGate({ children }: { children: ReactNode }) {
               </div>
             ) : !onchain.data?.player ? (
               <div className="space-y-6">
-                <Alert className="border-2 border-primary/20 bg-primary/5 p-6 rounded-2xl">
-                  <Wallet className="h-6 w-6 text-primary" />
-                  <AlertTitle className="text-lg font-bold ml-2 text-foreground">Create On-chain Player</AlertTitle>
-                  <AlertDescription className="ml-2 mt-2 text-sm font-medium text-muted-foreground">
-                    This creates your GrowFi player account on Solana devnet. You will approve one wallet transaction.
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="grid gap-3 rounded-xl bg-muted/50 border border-border p-5 text-sm font-medium text-foreground">
-                  <div className="flex justify-between items-center border-b border-border/50 pb-2">
-                    <span className="text-muted-foreground">Wallet</span>
+                <div className="pixel-card flex items-start gap-3 p-6">
+                  <Wallet className="mt-0.5 h-6 w-6 shrink-0 text-[#f7d767]" />
+                  <div>
+                    <div className="pixel-heading text-xs text-[#f2fbf1]">
+                      Create On-chain Player
+                    </div>
+                    <p className="mt-2 font-sans text-sm font-medium text-[#91d985]">
+                      This creates your GrowFi player account on Solana devnet. You will approve one wallet transaction.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pixel-card-sunken grid gap-3 p-5 text-sm font-medium text-[#ddf5d9]">
+                  <div className="flex items-center justify-between border-b-2 border-[#153d21] pb-2">
+                    <span className="text-[#91d985]">Wallet</span>
                     <span className="font-mono font-bold">{shortAddress(walletAddress!)}</span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-border/50 pb-2">
-                    <span className="text-muted-foreground">Devnet SOL</span>
+                  <div className="flex items-center justify-between border-b-2 border-[#153d21] pb-2">
+                    <span className="text-[#91d985]">Devnet SOL</span>
                     <span className="font-bold">{solBalance.toFixed(4)}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-2">
+                  <div className="mt-2 text-xs text-[#5e8c52]">
                     Requirement: enough Devnet SOL for account rent and fees.
                   </div>
                 </div>
 
-                <Button
-                  size="lg"
-                  className="w-full rounded-xl font-bold shadow-lg"
+                <button
+                  type="button"
+                  className="pixel-btn pixel-btn-primary w-full px-6 py-4"
                   disabled={createPlayerMutation.isPending || !hasDevnetSol}
                   onClick={() => createPlayerMutation.mutate()}
                 >
                   {createPlayerMutation.isPending ? (
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : null}
-                  Initialize Player
-                </Button>
+                  INITIALIZE PLAYER
+                </button>
               </div>
             ) : (
               <div className="space-y-6">
-                <Alert className="border-2 border-primary/20 bg-primary/5 p-6 rounded-2xl">
-                  <Leaf className="h-6 w-6 text-primary" />
-                  <AlertTitle className="text-lg font-bold ml-2 text-foreground">Initialize Farm</AlertTitle>
-                  <AlertDescription className="ml-2 mt-2 text-sm font-medium text-muted-foreground">
-                    This creates your farm and first 4x4 plots in a smooth batched flow. Your wallet may ask for a few approvals depending on transaction size.
-                  </AlertDescription>
-                </Alert>
-                
+                <div className="pixel-card flex items-start gap-3 p-6">
+                  <Leaf className="mt-0.5 h-6 w-6 shrink-0 text-[#f7d767]" />
+                  <div>
+                    <div className="pixel-heading text-xs text-[#f2fbf1]">
+                      Initialize Farm
+                    </div>
+                    <p className="mt-2 font-sans text-sm font-medium text-[#91d985]">
+                      This creates your farm and first 4x4 plots in a smooth batched flow. Your wallet may ask for a few approvals depending on transaction size.
+                    </p>
+                  </div>
+                </div>
+
                 {farmProgress ? (
-                  <div className="rounded-xl border border-primary/30 bg-primary/10 p-5 text-center text-sm font-bold text-primary animate-pulse shadow-inner">
+                  <div className="pixel-card-sunken animate-pulse border-[#3d9f4b] p-5 text-center text-sm font-bold text-[#f7d767]">
                     {farmProgress}
                   </div>
                 ) : null}
 
-                <Button
-                  size="lg"
-                  className="w-full rounded-xl font-bold shadow-lg h-14 text-lg"
+                <button
+                  type="button"
+                  className="pixel-btn pixel-btn-primary w-full px-6 py-4"
                   disabled={createFarmMutation.isPending || !hasDevnetSol}
                   onClick={() => createFarmMutation.mutate()}
                 >
                   {createFarmMutation.isPending ? (
-                    <Loader2 className="h-6 w-6 animate-spin mr-3" />
+                    <Loader2 className="h-6 w-6 animate-spin" />
                   ) : null}
-                  Plant First Seeds
-                </Button>
+                  PLANT FIRST SEEDS
+                </button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

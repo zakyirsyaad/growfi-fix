@@ -18,7 +18,9 @@ export function LeaderboardOverlay({
       description="Top farmers across harvesting, balance, trading, and marketplace sales."
       wide
     >
-      <LeaderboardDashboard compact />
+      <div className="pixel-scope">
+        <LeaderboardDashboard compact />
+      </div>
     </ResponsivePanel>
   );
 }
